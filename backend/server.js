@@ -15,12 +15,14 @@ const doctorRoutes = require('./routes/doctors');
 const appointmentRoutes = require('./routes/appointments');
 const patientRoutes = require('./routes/patients');
 const serviceRoutes = require('./routes/services');
+const bookingRoutes = require('./routes/bookings');
 const authMiddleware = require('./middleware/auth');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/appointments', authMiddleware, appointmentRoutes);
 
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
