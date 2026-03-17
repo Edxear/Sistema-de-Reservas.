@@ -4,7 +4,15 @@ exports.getBookings = async (req, res) => {
   try {
     const { usuario, servicio, estado, fecha, page = 1, limit = 10 } = req.query;
     const query = {};
-    if (usuario) query.usuario = usuario;
+
+    // Los pacientes solo pueden ver sus propias reservas
+    if (req.user?.rol === 'paciente') {
+      query.usuario = req.user.id;
+    }
+
+    // Solo los admin/medico pueden filtrar por otros usuarios
+    if (req.user?.rol !== 'paciente' && usuario) query.usuario = usuario;
+
     if (servicio) query.servicio = servicio;
     if (estado) query.estado = estado;
     if (fecha) query.fecha = new Date(fecha);
