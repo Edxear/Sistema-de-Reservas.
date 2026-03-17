@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,6 +14,17 @@ import HistoriaClinica from './components/HistoriaClinica';
 import Recetas from './components/Recetas';
 import Header from './components/Header';
 import Perfil from './components/Perfil';
+import Turnos from './components/Turnos';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
 
 // Componente para proteger rutas (opcional pero muy útil)
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +49,7 @@ function App() {
     <Router>
       {/* AuthProvider envuelve toda la app para que el contexto esté disponible */}
       <AuthProvider>
+        <ScrollToTop />
         <Header />
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
@@ -70,6 +82,11 @@ function App() {
           <Route path="/perfil" element={
             <ProtectedRoute>
               <Perfil />
+            </ProtectedRoute>
+          } />
+          <Route path="/turnos" element={
+            <ProtectedRoute>
+              <Turnos />
             </ProtectedRoute>
           } />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
