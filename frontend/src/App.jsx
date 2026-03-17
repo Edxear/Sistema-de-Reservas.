@@ -11,6 +11,7 @@ import LoginRegister from './components/LoginRegister';
 import Dashboard from './components/Dashboard';
 import PaginaPublicaMedico from './components/PaginaPublicaMedico';
 import HistoriaClinica from './components/HistoriaClinica';
+import Recetas from './components/Recetas';
 
 // Componente para proteger rutas (opcional pero muy útil)
 const ProtectedRoute = ({ children }) => {
@@ -56,6 +57,11 @@ function App() {
           <Route path="/historial/:pacienteId" element={
             <ProtectedRoute>
               <HistoriaClinica />
+            </ProtectedRoute>
+          } />
+          <Route path="/recetas" element={
+            <ProtectedRoute>
+              <Recetas />
             </ProtectedRoute>
           } />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />

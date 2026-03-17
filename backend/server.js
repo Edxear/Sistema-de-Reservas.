@@ -22,6 +22,8 @@ const patientRoutes = require('./routes/patients');
 const serviceRoutes = require('./routes/services');
 const bookingRoutes = require('./routes/bookings');
 const medicoRoutes = require('./routes/medicos');
+const historiaClinicaRoutes = require('./routes/historiaClinica');
+const recetaRoutes = require('./routes/recetas');
 const authMiddleware = require('./middleware/auth');
 
 app.use('/api/auth', authRoutes);
@@ -29,6 +31,8 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/medicos', medicoRoutes);
+app.use('/api/historia-clinica', historiaClinicaRoutes);
+app.use('/api/recetas', recetaRoutes);
 app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/appointments', authMiddleware, appointmentRoutes);
 

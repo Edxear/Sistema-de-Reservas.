@@ -113,6 +113,16 @@ export default function Dashboard() {
         </button>
       </div>
       <p>Rol: {user?.rol || 'usuario'}</p>
+      {(user?.rol === 'medico' || user?.rol === 'admin') && (
+        <div style={{ marginBottom: 20 }}>
+          <button onClick={() => navigate('/recetas')} style={{ marginRight: 10 }}>
+            Ir a Recetas
+          </button>
+          <button onClick={() => navigate('/historial/')} disabled>
+            Ver Historia Clínica (seleccionar paciente)
+          </button>
+        </div>
+      )}
 
       {/* Formulario para crear reserva */}
       <section style={{ marginBottom: 30, border: '1px solid #ccc', padding: 20, borderRadius: 8 }}>
