@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthContext';
 // Importar los componentes de las páginas
 import LoginRegister from './components/LoginRegister';
 import Dashboard from './components/Dashboard';
+import PaginaPublicaMedico from './components/PaginaPublicaMedico';
 
 // Componente para proteger rutas (opcional pero muy útil)
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +52,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>

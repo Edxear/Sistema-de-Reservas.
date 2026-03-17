@@ -7,7 +7,12 @@ dotenv.config({ path: '../.env' });
 connectDB();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const authRoutes = require('./routes/auth');
@@ -16,12 +21,14 @@ const appointmentRoutes = require('./routes/appointments');
 const patientRoutes = require('./routes/patients');
 const serviceRoutes = require('./routes/services');
 const bookingRoutes = require('./routes/bookings');
+const medicoRoutes = require('./routes/medicos');
 const authMiddleware = require('./middleware/auth');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/medicos', medicoRoutes);
 app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/appointments', authMiddleware, appointmentRoutes);
 
