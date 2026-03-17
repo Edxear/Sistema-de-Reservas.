@@ -8,6 +8,7 @@ import { getDoctors } from '../services/appointmentService';
 import { getServices } from '../services/serviceService';
 import { getBookings, createBooking } from '../services/bookingService';
 import Chat from './Chat';
+import { crearPreferencia } from '../services/pagoService';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -26,6 +27,17 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
+
+  const handlePagar = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const res = await crearPreferencia(bookingId, config);
+      window.location.href = res.data.init_point;
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error al iniciar el pago');
+    }
+  };
 
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
@@ -222,7 +234,7 @@ export default function Dashboard() {
                 <th>Hora</th>
                 <th>Estado</th>
                 <th>Notas</th>
-                {(user?.rol === 'medico' || user?.rol === 'admin') && <th>Acciones</th>}
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -234,21 +246,31 @@ export default function Dashboard() {
                   <td>{b.hora}</td>
                   <td>{b.estado}</td>
                   <td>{b.notas || '-'}</td>
-                  {(user?.rol === 'medico' || user?.rol === 'admin') && (
-                    <td>
-                      <button onClick={() => navigate(`/historial/${b.usuario?._id}`)}>
-                        Ver historial
-                      </button>
-                      {b.usuario?._id && (
-                        <button
-                          onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}
-                          style={{ marginLeft: 6 }}
-                        >
-                          Chat
+                  <td>
+                    {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                      <>
+                        <button onClick={() => navigate(`/historial/${b.usuario?._id}`)}>
+                          Ver historial
                         </button>
-                      )}
-                    </td>
-                  )}
+                        {b.usuario?._id && (
+                          <button
+                            onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}
+                            style={{ marginLeft: 6 }}
+                          >
+                            Chat
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {user?.rol === 'paciente' && b.estado === 'pendiente' && (
+                      <button
+                        onClick={() => handlePagar(b._id)}
+                        style={{ background: '#009ee3', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        Pagar
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
