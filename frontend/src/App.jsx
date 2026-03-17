@@ -26,7 +26,7 @@ function ScrollToTop() {
   return null;
 }
 
-// Componente para proteger rutas (opcional pero muy útil)
+// Componente para proteger rutas. Redirige a login si no está autenticado.
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -35,7 +35,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Componente para redirigir si ya está logueado
+// Componente para redirigir si ya está logueado. Redirige a dashboard si está autenticado.
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   if (token) {

@@ -170,16 +170,19 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.field}>
-              <label>Doctor (opcional)</label>
+              <label>Doctor</label>
               <select
                 className={styles.select}
                 value={bookingData.doctor || ''}
                 onChange={(e) => setBookingData({ ...bookingData, doctor: e.target.value })}
               >
                 <option value="">Seleccionar doctor</option>
+                {doctors.length === 0 && (
+                  <option value="" disabled>No hay doctores disponibles</option>
+                )}
                 {doctors.map((d) => (
                   <option key={d._id} value={d._id}>
-                    {d.nombre || d.name}
+                    {d.nombre || d.name} {d.especialidad || d.specialty ? `- ${d.especialidad || d.specialty}` : ''}
                   </option>
                 ))}
               </select>
@@ -218,9 +221,11 @@ export default function Dashboard() {
             />
           </div>
 
-          <button type="submit" disabled={loading} className={styles.primaryBtn}>
-            {loading ? 'Creando...' : 'Crear Reserva'}
-          </button>
+          <div className={styles.submitRow}>
+            <button type="submit" disabled={loading} className={styles.primaryBtn}>
+              {loading ? 'Creando...' : 'Crear Reserva'}
+            </button>
+          </div>
         </form>
       </section>
 

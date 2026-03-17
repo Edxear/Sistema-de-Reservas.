@@ -73,6 +73,34 @@
   box-shadow: 0 0 0 3px rgba(72, 169, 165, 0.12);
 }
 
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap .input {
+  padding-right: 44px;
+}
+
+.eyeBtn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.98rem;
+  padding: 4px;
+}
+
+.eyeBtn:hover {
+  color: #1A3B5D;
+}
+
 .submit {
   background-color: #48A9A5;
   color: #ffffff;

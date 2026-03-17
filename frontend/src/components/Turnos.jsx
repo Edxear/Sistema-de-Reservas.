@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -17,6 +17,7 @@ export default function Turnos() {
   const [total, setTotal] = useState(0);
   const [chatPartner, setChatPartner] = useState(null);
   const [filters, setFilters] = useState({ estado: '', page: 1, limit: 10 });
+  const bookingsSectionRef = useRef(null);
 
   const totalPages = Math.max(1, Math.ceil(total / filters.limit));
 
@@ -51,6 +52,12 @@ export default function Turnos() {
     }
     loadBookings();
   }, [isAuthenticated, loadBookings, navigate]);
+
+  useEffect(() => {
+    if (filters.page > 1) {
+      bookingsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [filters.page]);
 
   const goToPage = (newPage) => {
     setFilters((prev) => ({ ...prev, page: Math.min(Math.max(1, newPage), totalPages) }));
@@ -110,7 +117,7 @@ export default function Turnos() {
         </div>
       </section>
 
-      <section className={styles.card}>
+      <section className={styles.card} ref={bookingsSectionRef}>
         <h2 className={styles.cardTitle}>Listado de turnos</h2>
         {loading && <p>Cargando turnos...</p>}
         {!loading && bookings.length === 0 ? (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext'; 
 import styles from './LoginRegister.module.css';
 
@@ -7,6 +8,7 @@ export default function LoginRegister() {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ nombre: '', email: '', telefono: '', password: '' });
   const [loading, setLoading] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login, register } = useAuth(); 
 
@@ -89,13 +91,24 @@ export default function LoginRegister() {
         )}
         <div className={styles.field}>
           <label className={styles.label}>Contraseña</label>
-          <input
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className={styles.input}
-            required
-          />
+          <div className={styles.passwordWrap}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className={styles.input}
+              required
+            />
+            <button
+              type="button"
+              className={styles.eyeBtn}
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
         </div>
         <button type="submit" disabled={loading} className={styles.submit}>
           {loading ? 'Cargando...' : mode === 'login' ? 'Ingresar' : 'Registrarse'}

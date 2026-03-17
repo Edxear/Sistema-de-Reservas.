@@ -95,6 +95,10 @@
   resize: vertical;
 }
 
+.submitRow {
+  margin-top: 12px;
+}
+
 .primaryBtn {
   background-color: #48A9A5;
   color: #ffffff;
