@@ -8,7 +8,7 @@ const Booking = require('../models/Booking');
 const Receta = require('../models/Receta');
 const HistoriaClinica = require('../models/HistoriaClinica');
 
-const seedUsers = require('../seeds/demo-users.json');
+const seedUsers = require('../seeds/usuarios-iniciales.json');
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -24,7 +24,7 @@ const enfermedades = [
   'Diabetes tipo 2',
   'Asma persistente',
   'Hipotiroidismo',
-  'Migraña cronica',
+  'Migrana cronica',
   'Artritis reumatoide',
   'EPOC',
   'Gastritis cronica',
@@ -37,7 +37,7 @@ const medicamentosPorEnfermedad = {
   'Diabetes tipo 2': ['Metformina 850mg', 'Glibenclamida 5mg'],
   'Asma persistente': ['Salbutamol inhalador', 'Budesonida inhalador'],
   'Hipotiroidismo': ['Levotiroxina 100mcg'],
-  'Migraña cronica': ['Topiramato 25mg', 'Sumatriptan 50mg'],
+  'Migrana cronica': ['Topiramato 25mg', 'Sumatriptan 50mg'],
   'Artritis reumatoide': ['Metotrexato 10mg', 'Ibuprofeno 600mg'],
   EPOC: ['Tiotropio inhalador', 'Formoterol inhalador'],
   'Gastritis cronica': ['Omeprazol 20mg', 'Sucralfato'],
@@ -66,11 +66,13 @@ function makeDate(daysAhead) {
 
 async function run() {
   await mongoose.connect(MONGODB_URI);
-  console.log('Mongo conectado para seed');
+  console.log('Mongo conectado para seed inicial');
 
   await Promise.all([
     User.deleteMany({
       $or: [
+        { email: /@consultoriosanpablo\.com$/ },
+        { email: /@pacientes\.sanpablo\.com$/ },
         { email: /@medicloud\.demo$/ },
         { email: /@paciente\.demo$/ }
       ]
@@ -78,27 +80,29 @@ async function run() {
     Service.deleteMany({ nombre: { $in: serviciosBase.map((s) => s.nombre) } }),
   ]);
 
-  const medicos = [];
-  for (const m of seedUsers.medicos) {
+  const medicosAdmins = [];
+  for (const m of seedUsers.medicosAdmins) {
     const medico = await User.create({
       nombre: m.nombre,
       email: m.email,
       telefono: m.telefono,
-      rol: m.rol,
+      rol: 'admin',
       password: seedUsers.passwordComun,
-      bio: `${m.especialidad}. ${m.nota || 'Profesional de consultorio.'}`,
+      especialidad: m.especialidad,
+      matriculaProfesional: m.matriculaProfesional,
+      bio: `${m.especialidad}. Medico con permisos administrativos.`,
       direccionConsultorio: 'Av. Salud 123, Rosario',
       mapaEmbed: '',
       redesSociales: {
-        instagram: 'https://instagram.com/consultorio_demo',
-        linkedin: 'https://linkedin.com/company/consultorio-demo'
+        instagram: 'https://instagram.com/consultoriosanpablo',
+        linkedin: 'https://linkedin.com/company/consultorio-san-pablo'
       },
       horariosAtencion: [
         { dia: 'Lunes', horaInicio: '09:00', horaFin: '13:00' },
         { dia: 'Miercoles', horaInicio: '14:00', horaFin: '18:00' }
       ]
     });
-    medicos.push(medico);
+    medicosAdmins.push(medico);
   }
 
   const secretarias = [];
@@ -109,6 +113,8 @@ async function run() {
       telefono: s.telefono,
       rol: s.rol,
       password: seedUsers.passwordComun,
+      areaSecretaria: s.areaSecretaria,
+      turnoLaboral: s.turnoLaboral,
       bio: 'Secretaria administrativa del consultorio'
     });
     secretarias.push(secretaria);
@@ -122,6 +128,8 @@ async function run() {
       telefono: p.telefono,
       rol: p.rol,
       password: seedUsers.passwordComun,
+      obraSocial: p.obraSocial,
+      numeroAfiliado: p.numeroAfiliado,
       bio: `Paciente con antecedente de ${p.enfermedadPrincipal}`
     });
     pacientes.push({ ...paciente.toObject(), enfermedadPrincipal: p.enfermedadPrincipal });
@@ -137,7 +145,7 @@ async function run() {
 
   for (let i = 0; i < pacientes.length; i += 1) {
     const paciente = pacientes[i];
-    const medico = medicos[i % medicos.length];
+    const medico = medicosAdmins[i % medicosAdmins.length];
     const servicio = randomFrom(servicios);
     const enfermedad = paciente.enfermedadPrincipal || randomFrom(enfermedades);
 
@@ -158,7 +166,7 @@ async function run() {
       paciente: paciente._id,
       medico: medico._id,
       tipo: 'evolucion',
-      descripcion: `Paciente con cuadro de ${enfermedad}. Se recomienda control en 30 dias, dieta y adherencia al tratamiento.`
+      descripcion: `Paciente con cuadro de ${enfermedad}. Se indica control en 30 dias y seguimiento del tratamiento.`
     });
 
     const meds = medicamentosPorEnfermedad[enfermedad] || ['Paracetamol 500mg'];
@@ -175,8 +183,8 @@ async function run() {
     });
   }
 
-  console.log('Seed completado:');
-  console.log(`- Medicos/Admin: ${medicos.length}`);
+  console.log('Seed inicial completado:');
+  console.log(`- Medicos administradores: ${medicosAdmins.length}`);
   console.log(`- Secretarias: ${secretarias.length}`);
   console.log(`- Pacientes: ${pacientes.length}`);
   console.log(`- Servicios: ${servicios.length}`);
@@ -191,7 +199,7 @@ async function run() {
 run()
   .then(() => process.exit(0))
   .catch(async (err) => {
-    console.error('Error en seed:', err);
+    console.error('Error en seed inicial:', err);
     await mongoose.disconnect();
     process.exit(1);
   });

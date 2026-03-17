@@ -8,12 +8,24 @@ const userSchema = new mongoose.Schema({
   telefono: { type: String, required: [true, 'El teléfono es obligatorio'] },
   rol: { type: String, enum: ['medico', 'paciente', 'admin', 'secretaria'], default: 'paciente' },
   fechaRegistro: { type: Date, default: Date.now },
+  documento: { type: String, default: '' },
+  direccion: { type: String, default: '' },
+  fechaNacimiento: { type: Date },
+  genero: { type: String, default: '' },
   bio: { type: String, maxlength: 200 },
   fotoPerfil: { type: String },
   direccionConsultorio: { type: String },
   mapaEmbed: { type: String },
   redesSociales: { type: Object, default: {} },
-  horariosAtencion: { type: Array, default: [] }
+  horariosAtencion: { type: Array, default: [] },
+  especialidad: { type: String, default: '' },
+  matriculaProfesional: { type: String, default: '' },
+  obraSocial: { type: String, default: '' },
+  numeroAfiliado: { type: String, default: '' },
+  alergias: { type: String, default: '' },
+  contactoEmergencia: { type: String, default: '' },
+  areaSecretaria: { type: String, default: '' },
+  turnoLaboral: { type: String, default: '' }
 });
 
 userSchema.pre('save', async function (next) {

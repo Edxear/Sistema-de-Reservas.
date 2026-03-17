@@ -1,0 +1,155 @@
+{
+  "passwordComun": "Clinica2026!",
+  "medicosAdmins": [
+    {
+      "nombre": "Dr. Lucas Fernandez",
+      "email": "lucas.fernandez@consultoriosanpablo.com",
+      "telefono": "3415101001",
+      "rol": "admin",
+      "especialidad": "Cardiologia",
+      "matriculaProfesional": "MP-CRD-45821"
+    },
+    {
+      "nombre": "Dra. Sofia Martinez",
+      "email": "sofia.martinez@consultoriosanpablo.com",
+      "telefono": "3415101002",
+      "rol": "admin",
+      "especialidad": "Clinica Medica",
+      "matriculaProfesional": "MP-CLM-51233"
+    },
+    {
+      "nombre": "Dr. Mateo Ruiz",
+      "email": "mateo.ruiz@consultoriosanpablo.com",
+      "telefono": "3415101003",
+      "rol": "admin",
+      "especialidad": "Traumatologia",
+      "matriculaProfesional": "MP-TRM-43901"
+    },
+    {
+      "nombre": "Dr. Nicolas Peralta",
+      "email": "nicolas.peralta@consultoriosanpablo.com",
+      "telefono": "3415101004",
+      "rol": "admin",
+      "especialidad": "Neurologia",
+      "matriculaProfesional": "MP-NLG-56220"
+    },
+    {
+      "nombre": "Dra. Valentina Gomez",
+      "email": "valentina.gomez@consultoriosanpablo.com",
+      "telefono": "3415101005",
+      "rol": "admin",
+      "especialidad": "Pediatria",
+      "matriculaProfesional": "MP-PDT-47813"
+    }
+  ],
+  "secretarias": [
+    {
+      "nombre": "Carla Mendez",
+      "email": "carla.mendez@consultoriosanpablo.com",
+      "telefono": "3415202001",
+      "rol": "secretaria",
+      "areaSecretaria": "Recepcion General",
+      "turnoLaboral": "Manana"
+    },
+    {
+      "nombre": "Julieta Acosta",
+      "email": "julieta.acosta@consultoriosanpablo.com",
+      "telefono": "3415202002",
+      "rol": "secretaria",
+      "areaSecretaria": "Gestion de Estudios",
+      "turnoLaboral": "Tarde"
+    }
+  ],
+  "pacientes": [
+    {
+      "nombre": "Juan Perez",
+      "email": "juan.perez@pacientes.sanpablo.com",
+      "telefono": "3415303001",
+      "rol": "paciente",
+      "obraSocial": "OSDE",
+      "numeroAfiliado": "OSD-938211",
+      "enfermedadPrincipal": "Hipertension arterial"
+    },
+    {
+      "nombre": "Maria Lopez",
+      "email": "maria.lopez@pacientes.sanpablo.com",
+      "telefono": "3415303002",
+      "rol": "paciente",
+      "obraSocial": "Swiss Medical",
+      "numeroAfiliado": "SWM-774501",
+      "enfermedadPrincipal": "Diabetes tipo 2"
+    },
+    {
+      "nombre": "Pedro Alvarez",
+      "email": "pedro.alvarez@pacientes.sanpablo.com",
+      "telefono": "3415303003",
+      "rol": "paciente",
+      "obraSocial": "IAPOS",
+      "numeroAfiliado": "IAP-632217",
+      "enfermedadPrincipal": "Asma persistente"
+    },
+    {
+      "nombre": "Lucia Romero",
+      "email": "lucia.romero@pacientes.sanpablo.com",
+      "telefono": "3415303004",
+      "rol": "paciente",
+      "obraSocial": "Galeno",
+      "numeroAfiliado": "GAL-327711",
+      "enfermedadPrincipal": "Hipotiroidismo"
+    },
+    {
+      "nombre": "Carlos Diaz",
+      "email": "carlos.diaz@pacientes.sanpablo.com",
+      "telefono": "3415303005",
+      "rol": "paciente",
+      "obraSocial": "Medife",
+      "numeroAfiliado": "MED-118843",
+      "enfermedadPrincipal": "Migrana cronica"
+    },
+    {
+      "nombre": "Ana Torres",
+      "email": "ana.torres@pacientes.sanpablo.com",
+      "telefono": "3415303006",
+      "rol": "paciente",
+      "obraSocial": "Sancor Salud",
+      "numeroAfiliado": "SAN-506192",
+      "enfermedadPrincipal": "Artritis reumatoide"
+    },
+    {
+      "nombre": "Fernando Silva",
+      "email": "fernando.silva@pacientes.sanpablo.com",
+      "telefono": "3415303007",
+      "rol": "paciente",
+      "obraSocial": "PAMI",
+      "numeroAfiliado": "PAM-861992",
+      "enfermedadPrincipal": "EPOC"
+    },
+    {
+      "nombre": "Camila Ortiz",
+      "email": "camila.ortiz@pacientes.sanpablo.com",
+      "telefono": "3415303008",
+      "rol": "paciente",
+      "obraSocial": "Avalian",
+      "numeroAfiliado": "AVA-271166",
+      "enfermedadPrincipal": "Gastritis cronica"
+    },
+    {
+      "nombre": "Diego Morales",
+      "email": "diego.morales@pacientes.sanpablo.com",
+      "telefono": "3415303009",
+      "rol": "paciente",
+      "obraSocial": "Federada Salud",
+      "numeroAfiliado": "FED-914306",
+      "enfermedadPrincipal": "Lumbalgia"
+    },
+    {
+      "nombre": "Paula Rios",
+      "email": "paula.rios@pacientes.sanpablo.com",
+      "telefono": "3415303010",
+      "rol": "paciente",
+      "obraSocial": "Prevencion Salud",
+      "numeroAfiliado": "PRV-330882",
+      "enfermedadPrincipal": "Dislipidemia"
+    }
+  ]
+}

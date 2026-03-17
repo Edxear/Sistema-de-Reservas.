@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { login as apiLogin, register as apiRegister } from '../services/authService';
+import { login as apiLogin, register as apiRegister, getMe as apiGetMe, updateMe as apiUpdateMe } from '../services/authService';
 import { toast } from 'react-toastify';
 
 export const AuthContext = createContext(null);
@@ -26,6 +26,17 @@ export function AuthProvider({ children }) {
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
+      apiGetMe({ headers: { Authorization: `Bearer ${storedToken}` } })
+        .then((res) => {
+          setUser(res.data.user);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setToken(null);
+          setUser(null);
+        });
     }
     setLoading(false); // Marcamos que ya terminamos de cargar
   }, []);
@@ -83,6 +94,30 @@ export function AuthProvider({ children }) {
     toast.info('Sesión cerrada');
   };
 
+  const refreshProfile = async () => {
+    if (!token) return { success: false, error: 'No autenticado' };
+    try {
+      const res = await apiGetMe({ headers: { Authorization: `Bearer ${token}` } });
+      setUser(res.data.user);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      return { success: true, user: res.data.user };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message || 'Error obteniendo perfil' };
+    }
+  };
+
+  const updateProfile = async (data) => {
+    if (!token) return { success: false, error: 'No autenticado' };
+    try {
+      const res = await apiUpdateMe(data, { headers: { Authorization: `Bearer ${token}` } });
+      setUser(res.data.user);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      return { success: true, user: res.data.user };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message || 'Error actualizando perfil' };
+    }
+  };
+
   // Valor que se proveerá a los componentes hijos
   const value = {
     token,
@@ -91,6 +126,8 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    refreshProfile,
+    updateProfile,
     isAuthenticated: !!token,
   };
 

@@ -19,7 +19,7 @@ export default function Header() {
         <nav className={styles.nav}>
           <Link to={isAuthenticated ? '/dashboard' : '/'}>Inicio</Link>
           <Link to={isAuthenticated ? '/dashboard' : '/'}>Turnos</Link>
-          <Link to={isAuthenticated ? '/dashboard' : '/'}>
+          <Link to={isAuthenticated ? '/perfil' : '/'}>
             <FaUserMd />
             <span>Mi Perfil</span>
           </Link>

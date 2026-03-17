@@ -13,6 +13,7 @@ import PaginaPublicaMedico from './components/PaginaPublicaMedico';
 import HistoriaClinica from './components/HistoriaClinica';
 import Recetas from './components/Recetas';
 import Header from './components/Header';
+import Perfil from './components/Perfil';
 
 // Componente para proteger rutas (opcional pero muy útil)
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +65,11 @@ function App() {
           <Route path="/recetas" element={
             <ProtectedRoute>
               <Recetas />
+            </ProtectedRoute>
+          } />
+          <Route path="/perfil" element={
+            <ProtectedRoute>
+              <Perfil />
             </ProtectedRoute>
           } />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
