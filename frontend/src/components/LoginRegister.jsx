@@ -14,11 +14,13 @@ export default function LoginRegister() {
     e.preventDefault();
     setLoading(true);
 
+    const emailNormalizado = form.email.trim().toLowerCase();
+
     let result;
     if (mode === 'register') {
-      result = await register(form);
+      result = await register({ ...form, email: emailNormalizado });
     } else {
-      result = await login({ email: form.email, password: form.password });
+      result = await login({ email: emailNormalizado, password: form.password });
     }
 
     if (result.success) {
@@ -75,7 +77,7 @@ export default function LoginRegister() {
         </div>
         {mode === 'register' && (
           <div className={styles.field}>
-            <label className={styles.label}>Telefono</label>
+            <label className={styles.label}>Teléfono</label>
             <input
               type="tel"
               value={form.telefono}
@@ -86,7 +88,7 @@ export default function LoginRegister() {
           </div>
         )}
         <div className={styles.field}>
-          <label className={styles.label}>Contrasena</label>
+          <label className={styles.label}>Contraseña</label>
           <input
             type="password"
             value={form.password}

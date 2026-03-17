@@ -31,10 +31,12 @@ const serializeUser = (user) => ({
 exports.registerUser = async (req, res) => {
   try {
     const { nombre, email, telefono, password, rol } = req.body;
-    const existing = await User.findOne({ email });
+    const normalizedEmail = (email || '').trim().toLowerCase();
+
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) return res.status(400).json({ message: 'Email ya registrado' });
 
-    const user = new User({ nombre, email, telefono, password, rol });
+    const user = new User({ nombre, email: normalizedEmail, telefono, password, rol });
     await user.save();
 
     const token = jwt.sign({ id: user._id, rol: user.rol }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
@@ -47,7 +49,13 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
+    const normalizedEmail = (email || '').trim().toLowerCase();
+
+    if (!normalizedEmail || typeof password !== 'string' || !password.trim()) {
+      return res.status(400).json({ message: 'Email y contraseña son obligatorios' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) return res.status(401).json({ message: 'Credenciales invalidas' });
 
     const valid = await bcrypt.compare(password, user.password);

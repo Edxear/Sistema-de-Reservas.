@@ -1,12 +1,12 @@
 {
-  "passwordComun": "Clinica2026!",
+  "passwordComun": "clinica123",
   "medicosAdmins": [
     {
-      "nombre": "Dr. Lucas Fernandez",
-      "email": "lucas.fernandez@consultoriosanpablo.com",
+      "nombre": "Enfermera Ayelen Parada",
+      "email": "ayelen.parada@consultoriosanpablo.com",
       "telefono": "3415101001",
       "rol": "admin",
-      "especialidad": "Cardiologia",
+      "especialidad": "Enfermeria",
       "matriculaProfesional": "MP-CRD-45821"
     },
     {
