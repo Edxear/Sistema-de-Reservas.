@@ -4,8 +4,6 @@ const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
 const { registerUser, loginUser } = require('../controllers/authController');
 
-// routes/historiaClinica.js
-router.get('/:pacienteId', authMiddleware, authorize('medico', 'admin'), historiaClinicaController.getByPaciente);
 
 router.post(
   '/register',

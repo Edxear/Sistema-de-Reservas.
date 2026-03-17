@@ -2,7 +2,6 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import { login as apiLogin, register as apiRegister } from '../services/authService';
 import { toast } from 'react-toastify';
 
-// Crear el contexto
 export const AuthContext = createContext(null);
 
 // Hook personalizado para usar el contexto fácilmente
@@ -17,7 +16,7 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Para saber si ya cargamos la info del localStorage
+  const [loading, setLoading] = useState(true); 
 
   // Efecto para cargar la sesión del localStorage al iniciar la app
   useEffect(() => {

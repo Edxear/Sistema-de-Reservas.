@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Importamos nuestro hook personalizado
+import { useAuth } from '../context/AuthContext'; 
 
 export default function LoginRegister() {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ nombre: '', email: '', telefono: '', password: '' });
-  const [loading, setLoading] = useState(false); // Estado local para el botón
+  const [loading, setLoading] = useState(false); 
   const navigate = useNavigate();
-  const { login, register } = useAuth(); // Obtenemos las funciones del contexto
+  const { login, register } = useAuth(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
