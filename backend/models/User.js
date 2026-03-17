@@ -6,18 +6,24 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: [true, 'El email es obligatorio'], unique: true, lowercase: true, match: [/^\S+@\S+\.\S+$/, 'Email inválido'] },
   password: { type: String, required: [true, 'La contraseña es obligatoria'], minlength: 6, select: false },
   telefono: { type: String, required: [true, 'El teléfono es obligatorio'] },
-  rol: { type: String, enum: ['usuario', 'admin'], default: 'usuario' },
-  fechaRegistro: { type: Date, default: Date.now }
-}, { timestamps: true });
+  rol: { type: String, enum: ['medico', 'paciente', 'admin', 'secretaria'], default: 'paciente' },
+  fechaRegistro: { type: Date, default: Date.now },
+  bio: { type: String, maxlength: 200 },
+  fotoPerfil: { type: String },
+  direccionConsultorio: { type: String },
+  mapaEmbed: { type: String },
+  redesSociales: { type: Object, default: {} },
+  horariosAtencion: { type: Array, default: [] }
+});
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-userSchema.methods.compararPassword = async function(passwordIngresada) {
+userSchema.methods.compararPassword = async function (passwordIngresada) {
   return await bcrypt.compare(passwordIngresada, this.password);
 };
 
