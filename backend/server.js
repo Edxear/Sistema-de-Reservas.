@@ -38,6 +38,11 @@ app.use('/api/appointments', authMiddleware, appointmentRoutes);
 
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
 
+const { iniciarRecordatorios } = require('./jobs/recordatorios');
+if (require.main === module) {
+  iniciarRecordatorios();
+}
+
 const PORT = process.env.PORT || 5000;
 if (require.main === module) {
   app.listen(PORT, () => {
