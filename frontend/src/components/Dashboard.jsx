@@ -210,6 +210,7 @@ export default function Dashboard() {
                 <th>Hora</th>
                 <th>Estado</th>
                 <th>Notas</th>
+                {(user?.rol === 'medico' || user?.rol === 'admin') && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -221,6 +222,13 @@ export default function Dashboard() {
                   <td>{b.hora}</td>
                   <td>{b.estado}</td>
                   <td>{b.notas || '-'}</td>
+                  {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                    <td>
+                      <button onClick={() => navigate(`/historial/${b.usuario?._id}`)}>
+                        Ver historial
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
