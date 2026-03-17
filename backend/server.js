@@ -28,6 +28,10 @@ app.use('/api/appointments', authMiddleware, appointmentRoutes);
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor iniciado en puerto ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Servidor iniciado en puerto ${PORT}`);
+  });
+}
+
+module.exports = app;

@@ -1,243 +1,149 @@
-import React, { useEffect, useState } from 'react';
-import { getDoctors } from './services/appointmentService';
-import { getServices } from './services/serviceService';
-import { register, login } from './services/authService';
-import { getBookings, createBooking } from './services/bookingService';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import LoginRegister from './components/LoginRegister';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [view, setView] = useState('login');
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
-  const [errors, setErrors] = useState([]);
+  const token = localStorage.getItem('token');
 
-  const [doctors, setDoctors] = useState([]);
-  const [services, setServices] = useState([]);
+  return (
+    <Router>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Routes>
+        <Route path="/" element={token ? <Navigate to="/dashboard" /> : <LoginRegister />} />
+        <Route path="/dashboard" element={token ? <Dashboard /> : <Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
+  );
+}
+
+function DashboardComponent() {
   const [bookings, setBookings] = useState([]);
-
-  const [authData, setAuthData] = useState({ name: '', email: '', phone: '', password: '' });
-  const [bookingData, setBookingData] = useState({ doctor: '', service: '', date: '', time: '', notes: '' });
+  const [services, setServices] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [errors, setErrors] = useState([]);
+  const [bookingData, setBookingData] = useState({
+    service: '',
+    employee: '',
+    date: '',
+    time: '',
+    notes: ''
+  });
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const docs = await getDoctors();
-        setDoctors(docs);
-        const srv = await getServices();
-        setServices(srv);
+    fetchBookings();
+    fetchServices();
+    fetchEmployees();
+  }, []);
 
-        if (token) {
-          const b = await getBookings({ headers: { Authorization: `Bearer ${token}` } });
-          setBookings(b.data);
+  const fetchBookings = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    load();
-  }, [token]);
-
-  const validateLoginPayload = () => {
-    const errors = [];
-    if (!authData.email) errors.push('Email es obligatorio');
-    if (!authData.password) errors.push('Password es obligatorio');
-    return errors;
-  };
-
-  const validateRegisterPayload = () => {
-    const errors = [];
-    if (!authData.name) errors.push('Nombre es obligatorio');
-    if (!authData.email) errors.push('Email es obligatorio');
-    if (!authData.phone) errors.push('Teléfono es obligatorio');
-    if (authData.password.length < 6) errors.push('La contraseña debe tener al menos 6 caracteres');
-    return errors;
-  };
-
-  const validateBookingData = () => {
-    const v = [];
-    if (!bookingData.doctor) v.push('Debe seleccionar doctor');
-    if (!bookingData.service) v.push('Debe seleccionar servicio');
-    if (!bookingData.date) v.push('Debe seleccionar fecha');
-    if (!bookingData.time) v.push('Debe seleccionar hora');
-    return v;
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const validation = validateRegisterPayload();
-    if (validation.length > 0) return setErrors(validation);
-
-    try {
-      const res = await register({
-        name: authData.name,
-        email: authData.email,
-        phone: authData.phone,
-        password: authData.password,
       });
-      setToken(res.data.token);
-      setUser(res.data.patient || res.data.user);
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.patient || res.data.user));
-      setView('dashboard');
-      setErrors([]);
-    } catch (err) {
-      setErrors([err.response?.data?.message || 'Error en registro']);
+      const data = await response.json();
+      setBookings(data);
+    } catch (error) {
+      toast.error('Error al cargar reservas');
     }
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const validation = validateLoginPayload();
-    if (validation.length > 0) return setErrors(validation);
-
+  const fetchServices = async () => {
     try {
-      const res = await login({ email: authData.email, password: authData.password });
-      setToken(res.data.token);
-      setUser(res.data.patient || res.data.user);
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.patient || res.data.user));
-      setView('dashboard');
-      setErrors([]);
-    } catch (err) {
-      setErrors([err.response?.data?.message || 'Error en login']);
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/services', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      setServices(data);
+    } catch (error) {
+      toast.error('Error al cargar servicios');
     }
   };
 
-  const handleBooking = async (e) => {
-    e.preventDefault();
-    const validation = validateBookingData();
-    if (validation.length > 0) return setErrors(validation);
+  const fetchEmployees = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/employees', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      toast.error('Error al cargar empleados');
+    }
+  };
 
-    if (!token) {
-      setErrors(['No estás autenticado']);
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    setErrors([]);
+
+    // Validaciones básicas
+    const newErrors = [];
+    if (!bookingData.service) newErrors.push('Debe seleccionar un servicio');
+    if (!bookingData.employee) newErrors.push('Debe seleccionar un empleado');
+    if (!bookingData.date) newErrors.push('Debe seleccionar una fecha');
+    if (!bookingData.time) newErrors.push('Debe seleccionar una hora');
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     try {
-      await createBooking(
-        {
-          usuario: user?._id,
-          servicio: bookingData.service,
-          fecha: bookingData.date,
-          hora: bookingData.time,
-          fechaHoraReserva: new Date(),
-          notas: bookingData.notes,
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const b = await getBookings({ headers: { Authorization: `Bearer ${token}` } });
-      setBookings(b.data);
-      setBookingData({ doctor: '', service: '', date: '', time: '', notes: '' });
-      setErrors([]);
-    } catch (err) {
-      setErrors([err.response?.data?.message || 'Error creando booking']);
+        body: JSON.stringify(bookingData)
+      });
+
+      if (response.ok) {
+        toast.success('Reserva creada exitosamente');
+        setBookingData({
+          service: '',
+          employee: '',
+          date: '',
+          time: '',
+          notes: ''
+        });
+        fetchBookings(); // Recargar la lista
+      } else {
+        const errorData = await response.json();
+        setErrors([errorData.message || 'Error al crear la reserva']);
+      }
+    } catch (error) {
+      toast.error('Error de conexión');
     }
   };
 
-  const handleLogout = () => {
-    setToken('');
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setView('login');
-  };
-
-  if (view !== 'dashboard') {
-    return (
-      <div style={{ padding: 20, fontFamily: 'Arial, sans-serif', maxWidth: 450, margin: 'auto' }}>
-        <h1>{view === 'login' ? 'Login' : 'Registro'}</h1>
-
-        <button
-          onClick={() => {
-            setView('login');
-            setErrors([]);
-          }}
-          style={{ marginRight: 8 }}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => {
-            setView('register');
-            setErrors([]);
-          }}
-        >
-          Register
-        </button>
-
-        <form onSubmit={view === 'login' ? handleLogin : handleRegister} style={{ marginTop: 20 }}>
-          {view === 'register' && (
-            <div>
-              <label>Nombre</label>
-              <input
-                type="text"
-                value={authData.name}
-                onChange={(e) => setAuthData({ ...authData, name: e.target.value })}
-              />
-            </div>
-          )}
-          <div>
-            <label>Email</label>
-            <input
-              type="email"
-              value={authData.email}
-              onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
-            />
-          </div>
-          {view === 'register' && (
-            <div>
-              <label>Teléfono</label>
-              <input
-                type="text"
-                value={authData.phone}
-                onChange={(e) => setAuthData({ ...authData, phone: e.target.value })}
-              />
-            </div>
-          )}
-          <div>
-            <label>Password</label>
-            <input
-              type="password"
-              value={authData.password}
-              onChange={(e) => setAuthData({ ...authData, password: e.target.value })}
-            />
-          </div>
-          <button type="submit" style={{ marginTop: 12 }}>
-            {view === 'login' ? 'Ingresar' : 'Registrarse'}
-          </button>
-        </form>
-
-        {errors.length > 0 && (
-          <div style={{ marginTop: 16, color: 'red' }}>
-            <ul>
-              {errors.map((err, index) => (
-                <li key={index}>{err}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif', maxWidth: 900, margin: 'auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Dashboard - Reserva de Turnos</h1>
-        <button onClick={handleLogout}>Cerrar sesión</button>
-      </div>
-
-      <h2>Crear Booking</h2>
-      <form onSubmit={handleBooking} style={{ marginBottom: 16 }}>
+    <div style={{ padding: 20 }}>
+      <h2>Crear nueva reserva</h2>
+      <form onSubmit={handleBookingSubmit}>
         <div>
-          <label>Doctor</label>
+          <label>Empleado</label>
           <select
-            value={bookingData.doctor}
-            onChange={(e) => setBookingData({ ...bookingData, doctor: e.target.value })}
+            value={bookingData.employee}
+            onChange={(e) => setBookingData({ ...bookingData, employee: e.target.value })}
           >
-            <option value="">Seleccione doctor</option>
-            {doctors.map((d) => (
-              <option key={d._id} value={d._id}>
-                {d.name} ({d.specialty})
+            <option value="">Seleccione empleado</option>
+            {employees.map((emp) => (
+              <option key={emp._id} value={emp._id}>
+                {emp.nombre} {emp.apellido}
               </option>
             ))}
           </select>
@@ -328,4 +234,3 @@ function App() {
 }
 
 export default App;
-

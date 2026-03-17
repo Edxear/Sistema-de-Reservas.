@@ -2,8 +2,22 @@ const Booking = require('../models/Booking');
 
 exports.getBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find().populate('usuario servicio');
-    res.json(bookings);
+    const { usuario, servicio, estado, fecha, page = 1, limit = 10 } = req.query;
+    const query = {};
+    if (usuario) query.usuario = usuario;
+    if (servicio) query.servicio = servicio;
+    if (estado) query.estado = estado;
+    if (fecha) query.fecha = new Date(fecha);
+
+    const skip = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
+    const total = await Booking.countDocuments(query);
+    const bookings = await Booking.find(query)
+      .populate('usuario servicio')
+      .sort({ fecha: 1, hora: 1 })
+      .skip(skip)
+      .limit(parseInt(limit, 10));
+
+    res.json({ total, page: parseInt(page, 10), limit: parseInt(limit, 10), bookings });
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo reservas', error });
   }
