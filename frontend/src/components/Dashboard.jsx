@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 
 // Importamos nuestro hook personalizado y los servicios
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,7 @@ import { getServices } from '../services/serviceService';
 import { getBookings, createBooking } from '../services/bookingService';
 import Chat from './Chat';
 import { crearPreferencia } from '../services/pagoService';
+import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,6 +29,13 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
+
+  const getStatusClass = (estado) => {
+    if (estado === 'confirmada') return styles.statusConfirmada;
+    if (estado === 'cancelada') return styles.statusCancelada;
+    if (estado === 'completada') return styles.statusCompletada;
+    return styles.statusPendiente;
+  };
 
   const handlePagar = async (bookingId) => {
     try {
@@ -119,86 +128,107 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '20px auto', padding: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Bienvenido {user?.nombre || user?.name || 'Usuario'}</h1>
-        <button onClick={handleLogout} disabled={loading}>
-          Cerrar sesión
-        </button>
-      </div>
-      <p>Rol: {user?.rol || 'usuario'}</p>
-      {(user?.rol === 'medico' || user?.rol === 'admin') && (
-        <div style={{ marginBottom: 20 }}>
-          <button onClick={() => navigate('/recetas')} style={{ marginRight: 10 }}>
-            Ir a Recetas
-          </button>
-          <button onClick={() => navigate('/historial/')} disabled>
-            Ver Historia Clínica (seleccionar paciente)
-          </button>
+    <div className={styles.page}>
+      <section className={styles.hero}>
+        <div>
+          <h1 className={styles.heroTitle}>Bienvenido, {user?.nombre || user?.name || 'Profesional'}</h1>
+          <p className={styles.heroSub}>Gestiona tus turnos y seguimiento clinico de forma centralizada.</p>
         </div>
+        <button onClick={handleLogout} disabled={loading} className={styles.secondaryBtn}>
+          Cerrar sesion
+        </button>
+      </section>
+
+      {(user?.rol === 'medico' || user?.rol === 'admin') && (
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Accesos rapidos</h2>
+          <div className={styles.actions}>
+            <button onClick={() => navigate('/recetas')} className={styles.secondaryBtn}>Ir a Recetas</button>
+          </div>
+        </section>
       )}
 
-      {/* Formulario para crear reserva */}
-      <section style={{ marginBottom: 30, border: '1px solid #ccc', padding: 20, borderRadius: 8 }}>
-        <h2>Crear nueva reserva</h2>
-        <form onSubmit={handleNewBooking} style={{ display: 'grid', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <select
-              value={bookingData.servicio}
-              onChange={(e) => setBookingData({ ...bookingData, servicio: e.target.value })}
-              required
-            >
-              <option value="">Seleccionar servicio</option>
-              {services.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.nombre} ({s.duracion} min)
-                </option>
-              ))}
-            </select>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}><FaCalendarAlt /> Crear nueva reserva</h2>
+        <form onSubmit={handleNewBooking}>
+          <div className={styles.grid2}>
+            <div className={styles.field}>
+              <label>Servicio</label>
+              <select
+                className={styles.select}
+                value={bookingData.servicio}
+                onChange={(e) => setBookingData({ ...bookingData, servicio: e.target.value })}
+                required
+              >
+                <option value="">Seleccionar servicio</option>
+                {services.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.nombre} ({s.duracion} min)
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Select de doctores (si es necesario) */}
-            <select
-              value={bookingData.doctor}
-              onChange={(e) => setBookingData({ ...bookingData, doctor: e.target.value })}
-            >
-              <option value="">Seleccionar doctor (opcional)</option>
-              {doctors.map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.nombre}
-                </option>
-              ))}
-            </select>
+            <div className={styles.field}>
+              <label>Doctor (opcional)</label>
+              <select
+                className={styles.select}
+                value={bookingData.doctor || ''}
+                onChange={(e) => setBookingData({ ...bookingData, doctor: e.target.value })}
+              >
+                <option value="">Seleccionar doctor</option>
+                {doctors.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.nombre || d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              type="date"
-              value={bookingData.fecha}
-              onChange={(e) => setBookingData({ ...bookingData, fecha: e.target.value })}
-              required
-            />
-            <input
-              type="time"
-              value={bookingData.hora}
-              onChange={(e) => setBookingData({ ...bookingData, hora: e.target.value })}
-              required
+            <div className={styles.field}>
+              <label>Fecha</label>
+              <input
+                className={styles.input}
+                type="date"
+                value={bookingData.fecha}
+                onChange={(e) => setBookingData({ ...bookingData, fecha: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>Hora</label>
+              <input
+                className={styles.input}
+                type="time"
+                value={bookingData.hora}
+                onChange={(e) => setBookingData({ ...bookingData, hora: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label>Notas</label>
+            <textarea
+              className={styles.textarea}
+              placeholder="Notas adicionales"
+              value={bookingData.notas}
+              onChange={(e) => setBookingData({ ...bookingData, notas: e.target.value })}
             />
           </div>
-          <textarea
-            placeholder="Notas adicionales"
-            value={bookingData.notas}
-            onChange={(e) => setBookingData({ ...bookingData, notas: e.target.value })}
-            rows="3"
-          />
-          <button type="submit" disabled={loading} style={{ width: 200 }}>
+
+          <button type="submit" disabled={loading} className={styles.primaryBtn}>
             {loading ? 'Creando...' : 'Crear Reserva'}
           </button>
         </form>
       </section>
 
-      {/* Filtros y paginación */}
-      <section style={{ marginBottom: 20 }}>
-        <h2>Filtros de reservas</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}><FaFilter /> Filtros</h2>
+        <div className={styles.filtersRow}>
           <select
+            className={styles.select}
             value={filters.estado}
             onChange={(e) => setFilters({ ...filters, estado: e.target.value, page: 1 })}
           >
@@ -208,112 +238,58 @@ export default function Dashboard() {
             <option value="cancelada">Cancelada</option>
             <option value="completada">Completada</option>
           </select>
-          <button onClick={() => goToPage(filters.page - 1)} disabled={filters.page <= 1 || loading}>
-            Anterior
-          </button>
-          <span>Página {filters.page}</span>
-          <button onClick={() => goToPage(filters.page + 1)} disabled={loading}>
-            Siguiente
-          </button>
+          <button className={styles.smallBtn} onClick={() => goToPage(filters.page - 1)} disabled={filters.page <= 1 || loading}>Anterior</button>
+          <span>Pagina {filters.page}</span>
+          <button className={styles.smallBtn} onClick={() => goToPage(filters.page + 1)} disabled={loading}>Siguiente</button>
         </div>
       </section>
 
-      {/* Listado de reservas */}
-      <section>
-        <h2>Mis reservas</h2>
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Reservas</h2>
         {loading && <p>Cargando reservas...</p>}
         {!loading && bookings.length === 0 ? (
           <p>No hay reservas para mostrar.</p>
         ) : (
-          <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Servicio</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Estado</th>
-                <th>Notas</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((b) => (
-                <tr key={b._id}>
-                  <td>{b._id.substring(0, 8)}...</td>
-                  <td>{b.servicio?.nombre || 'N/A'}</td>
-                  <td>{new Date(b.fecha).toLocaleDateString()}</td>
-                  <td>{b.hora}</td>
-                  <td>{b.estado}</td>
-                  <td>{b.notas || '-'}</td>
-                  <td>
-                    {(user?.rol === 'medico' || user?.rol === 'admin') && (
-                      <>
-                        <button onClick={() => navigate(`/historial/${b.usuario?._id}`)}>
-                          Ver historial
-                        </button>
-                        {b.usuario?._id && (
-                          <button
-                            onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}
-                            style={{ marginLeft: 6 }}
-                          >
-                            Chat
-                          </button>
-                        )}
-                      </>
-                    )}
-                    {user?.rol === 'paciente' && b.estado === 'pendiente' && (
-                      <button
-                        onClick={() => handlePagar(b._id)}
-                        style={{ background: '#009ee3', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
-                      >
-                        Pagar
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.bookingsList}>
+            {bookings.map((b) => (
+              <article key={b._id} className={styles.bookingCard}>
+                <div>
+                  <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
+                  <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
+                  <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
+                </div>
+
+                <div>
+                  <span className={`${styles.statusChip} ${getStatusClass(b.estado)}`}>{b.estado}</span>
+                </div>
+
+                <div className={styles.actions}>
+                  {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                    <>
+                      <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario?._id}`)}>Ver historial</button>
+                      {b.usuario?._id && (
+                        <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
+                      )}
+                    </>
+                  )}
+                  {user?.rol === 'paciente' && b.estado === 'pendiente' && (
+                    <button className={styles.primaryBtn} onClick={() => handlePagar(b._id)}>Pagar</button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
         )}
       </section>
 
-      {/* Sección de admin */}
       {user?.rol === 'admin' && (
-        <section style={{ marginTop: 30 }}>
-          <h2>Panel de Administración</h2>
-          <p>Aquí puedes agregar funcionalidades para gestionar servicios, doctores y todas las reservas.</p>
-          {/* Aquí irían los botones/links para gestionar el sistema */}
+        <section className={styles.adminBox}>
+          <h2>Panel de Administracion</h2>
+          <p>Area reservada para configurar servicios, doctores y reglas globales del consultorio.</p>
         </section>
       )}
 
-      {/* Chat flotante */}
-      {chatPartner && (
-        <Chat
-          otroUsuario={chatPartner}
-          onCerrar={() => setChatPartner(null)}
-        />
-      )}
-
-      {/* Botón para abrir chat en cada reserva (paciente puede chatear con el médico) */}
-      {user?.rol === 'paciente' && bookings.length > 0 && (
-        <section style={{ marginTop: 20 }}>
-          <h3>Chat con tu médico</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {[...new Map(bookings
-              .filter(b => b.usuario?.medico || b.medico)
-              .map(b => {
-                const m = b.usuario?.medico || b.medico;
-                return [m?._id, m];
-              })
-            ).values()].map(medico => medico?._id && (
-              <button key={medico._id} onClick={() => setChatPartner(medico)}>
-                Chatear con {medico.nombre}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      {chatPartner && <Chat otroUsuario={chatPartner} onCerrar={() => setChatPartner(null)} />}
     </div>
   );
 }

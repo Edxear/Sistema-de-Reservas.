@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --color-primary: #1A3B5D;
+  --color-accent: #48A9A5;
+  --color-bg: #F4F7FA;
+  --color-surface: #FFFFFF;
+  --color-text: #1F2937;
+  --color-muted: #6B7280;
+  --color-border: #E2E8F0;
+  --shadow-soft: 0 8px 24px rgba(26, 59, 93, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Open Sans', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--color-primary);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: 'Open Sans', sans-serif;
+}

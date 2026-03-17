@@ -12,6 +12,7 @@ import Dashboard from './components/Dashboard';
 import PaginaPublicaMedico from './components/PaginaPublicaMedico';
 import HistoriaClinica from './components/HistoriaClinica';
 import Recetas from './components/Recetas';
+import Header from './components/Header';
 
 // Componente para proteger rutas (opcional pero muy útil)
 const ProtectedRoute = ({ children }) => {
@@ -36,6 +37,7 @@ function App() {
     <Router>
       {/* AuthProvider envuelve toda la app para que el contexto esté disponible */}
       <AuthProvider>
+        <Header />
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           <Route

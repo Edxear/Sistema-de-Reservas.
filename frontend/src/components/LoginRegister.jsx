@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
+import styles from './LoginRegister.module.css';
 
 export default function LoginRegister() {
   const [mode, setMode] = useState('login');
@@ -27,61 +28,78 @@ export default function LoginRegister() {
   };
 
   return (
-    <div style={{ maxWidth: 560, margin: '30px auto', padding: 20, border: '1px solid #ddd', borderRadius: 8 }}>
-      <h2>{mode === 'login' ? 'Iniciar Sesión' : 'Registro'}</h2>
-      <p>
-        <button onClick={() => setMode('login')} disabled={mode === 'login'}>
-          Login
-        </button>
-        <button onClick={() => setMode('register')} disabled={mode === 'register'}>
-          Registro
-        </button>
-      </p>
-      <form onSubmit={handleSubmit}>
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <h2 className={styles.title}>{mode === 'login' ? 'Iniciar Sesion' : 'Registro'}</h2>
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${mode === 'login' ? styles.tabActive : ''}`}
+            onClick={() => setMode('login')}
+            disabled={mode === 'login'}
+            type="button"
+          >
+            Login
+          </button>
+          <button
+            className={`${styles.tab} ${mode === 'register' ? styles.tabActive : ''}`}
+            onClick={() => setMode('register')}
+            disabled={mode === 'register'}
+            type="button"
+          >
+            Registro
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
         {mode === 'register' && (
-          <div>
-            <label>Nombre</label>
+          <div className={styles.field}>
+            <label className={styles.label}>Nombre</label>
             <input
               type="text"
               value={form.nombre}
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              className={styles.input}
               required
             />
           </div>
         )}
-        <div>
-          <label>Email</label>
+        <div className={styles.field}>
+          <label className={styles.label}>Email</label>
           <input
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className={styles.input}
             required
           />
         </div>
         {mode === 'register' && (
-          <div>
-            <label>Teléfono</label>
+          <div className={styles.field}>
+            <label className={styles.label}>Telefono</label>
             <input
               type="tel"
               value={form.telefono}
               onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+              className={styles.input}
               required
             />
           </div>
         )}
-        <div>
-          <label>Contraseña</label>
+        <div className={styles.field}>
+          <label className={styles.label}>Contrasena</label>
           <input
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
+            className={styles.input}
             required
           />
         </div>
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className={styles.submit}>
           {loading ? 'Cargando...' : mode === 'login' ? 'Ingresar' : 'Registrarse'}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
