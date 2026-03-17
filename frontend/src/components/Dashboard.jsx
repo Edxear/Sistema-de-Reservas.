@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { getDoctors } from '../services/appointmentService';
 import { getServices } from '../services/serviceService';
 import { getBookings, createBooking } from '../services/bookingService';
+import Chat from './Chat';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Dashboard() {
     notas: '',
   });
   const [loading, setLoading] = useState(false);
+  const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
 
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
@@ -237,6 +239,14 @@ export default function Dashboard() {
                       <button onClick={() => navigate(`/historial/${b.usuario?._id}`)}>
                         Ver historial
                       </button>
+                      {b.usuario?._id && (
+                        <button
+                          onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}
+                          style={{ marginLeft: 6 }}
+                        >
+                          Chat
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
@@ -252,6 +262,34 @@ export default function Dashboard() {
           <h2>Panel de Administración</h2>
           <p>Aquí puedes agregar funcionalidades para gestionar servicios, doctores y todas las reservas.</p>
           {/* Aquí irían los botones/links para gestionar el sistema */}
+        </section>
+      )}
+
+      {/* Chat flotante */}
+      {chatPartner && (
+        <Chat
+          otroUsuario={chatPartner}
+          onCerrar={() => setChatPartner(null)}
+        />
+      )}
+
+      {/* Botón para abrir chat en cada reserva (paciente puede chatear con el médico) */}
+      {user?.rol === 'paciente' && bookings.length > 0 && (
+        <section style={{ marginTop: 20 }}>
+          <h3>Chat con tu médico</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {[...new Map(bookings
+              .filter(b => b.usuario?.medico || b.medico)
+              .map(b => {
+                const m = b.usuario?.medico || b.medico;
+                return [m?._id, m];
+              })
+            ).values()].map(medico => medico?._id && (
+              <button key={medico._id} onClick={() => setChatPartner(medico)}>
+                Chatear con {medico.nombre}
+              </button>
+            ))}
+          </div>
         </section>
       )}
     </div>

@@ -8,14 +8,15 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.13.1",
     "react-scripts": "5.0.1",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "socket.io-client": "^4.8.3"
   },
- "scripts": {
-  "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
-  "build": "react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
-},
+  "scripts": {
+    "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
