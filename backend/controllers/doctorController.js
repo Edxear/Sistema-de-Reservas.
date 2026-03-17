@@ -5,7 +5,9 @@ exports.getDoctors = async (req, res) => {
   try {
     const [legacyDoctors, staffDoctors] = await Promise.all([
       Doctor.find(),
-      User.find({ rol: { $in: ['medico', 'admin'] } }).select('nombre email telefono especialidad')
+      User.find({ rol: { $in: ['medico', 'admin'] } })
+        .select('nombre email telefono especialidad')
+        .sort({ nombre: 1 })
     ]);
 
     const normalizedLegacy = legacyDoctors.map((d) => ({
@@ -36,7 +38,11 @@ exports.getDoctors = async (req, res) => {
       if (!dedupByEmail.has(key)) dedupByEmail.set(key, doctor);
     }
 
-    res.json(Array.from(dedupByEmail.values()));
+    const doctors = Array.from(dedupByEmail.values()).sort((a, b) =>
+      (a.nombre || a.name || '').localeCompare(b.nombre || b.name || '')
+    );
+
+    res.json(doctors);
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo doctores', error });
   }

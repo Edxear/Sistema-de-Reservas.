@@ -30,6 +30,25 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
 
+  const inferirEspecialidadPorServicio = useCallback((serviceName = '') => {
+    const n = serviceName.toLowerCase();
+    if (n.includes('neurolog')) return 'neurologia';
+    if (n.includes('traumatolog') || n.includes('osteo')) return 'traumatologia';
+    if (n.includes('pediatr')) return 'pediatria';
+    if (n.includes('cardiolog')) return 'cardiologia';
+    if (n.includes('clinica')) return 'clinica medica';
+    return '';
+  }, []);
+
+  const servicioSeleccionado = services.find((s) => s._id === bookingData.servicio);
+  const especialidadRequerida = inferirEspecialidadPorServicio(servicioSeleccionado?.nombre || '');
+
+  const doctorsFiltrados = doctors.filter((d) => {
+    if (!especialidadRequerida) return true;
+    const especialidadDoctor = (d.especialidad || d.specialty || '').toLowerCase();
+    return especialidadDoctor.includes(especialidadRequerida);
+  });
+
   const getStatusClass = (estado) => {
     if (estado === 'confirmada') return styles.statusConfirmada;
     if (estado === 'cancelada') return styles.statusCancelada;
@@ -180,7 +199,10 @@ export default function Dashboard() {
                 {doctors.length === 0 && (
                   <option value="" disabled>No hay doctores disponibles</option>
                 )}
-                {doctors.map((d) => (
+                {doctors.length > 0 && doctorsFiltrados.length === 0 && (
+                  <option value="" disabled>No hay doctores para esta especialidad</option>
+                )}
+                {doctorsFiltrados.map((d) => (
                   <option key={d._id} value={d._id}>
                     {d.nombre || d.name} {d.especialidad || d.specialty ? `- ${d.especialidad || d.specialty}` : ''}
                   </option>
@@ -262,6 +284,22 @@ export default function Dashboard() {
                   <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
                   <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
+                  {b.estado === 'confirmada' && (
+                    <div className={styles.bookingMeta}>
+                      {b.historial?.cantidadRegistros > 0
+                        ? `Historial: ${b.historial.cantidadRegistros} registro(s).`
+                        : 'Historial: paciente sin historial clínico registrado.'}
+                    </div>
+                  )}
+                  {b.estado === 'confirmada' && b.historial?.atenciones?.length > 0 && (
+                    <ul className={styles.historialList}>
+                      {b.historial.atenciones.map((h, idx) => (
+                        <li key={`${b._id}-hist-${idx}`}>
+                          {new Date(h.fecha).toLocaleDateString()} - {h.tratamiento}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div>

@@ -32,13 +32,13 @@ export default function HistoriaClinica() {
     <div style={{ padding: 20, maxWidth: 900, margin: 'auto' }}>
       <h1>Historia Clínica</h1>
       {entries.length === 0 ? (
-        <p>No hay registros.</p>
+        <p>Este paciente no tiene historial clínico registrado todavía.</p>
       ) : (
         <ul>
           {entries.map((e) => (
             <li key={e._id} style={{ marginBottom: 12, padding: 12, border: '1px solid #ddd' }}>
-              <strong>{new Date(e.fecha).toLocaleString()}</strong> - <em>{e.tipo}</em>
-              <p>{e.descripcion}</p>
+              <strong>Fecha de atención: {new Date(e.fecha).toLocaleString()}</strong> - <em>{e.tipo}</em>
+              <p><strong>Tratamiento / evolución:</strong> {e.descripcion}</p>
               {e.archivosAdjuntos?.length > 0 && (
                 <div>
                   <strong>Archivos adjuntos:</strong>

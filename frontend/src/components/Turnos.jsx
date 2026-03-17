@@ -131,6 +131,22 @@ export default function Turnos() {
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
                   <div className={styles.bookingMeta}>Paciente: {b.usuario?.nombre || '-'}</div>
                   <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
+                  {b.estado === 'confirmada' && (
+                    <div className={styles.bookingMeta}>
+                      {b.historial?.cantidadRegistros > 0
+                        ? `Historial: ${b.historial.cantidadRegistros} registro(s).`
+                        : 'Historial: paciente sin historial clínico registrado.'}
+                    </div>
+                  )}
+                  {b.estado === 'confirmada' && b.historial?.atenciones?.length > 0 && (
+                    <ul className={styles.historialList}>
+                      {b.historial.atenciones.map((h, idx) => (
+                        <li key={`${b._id}-hist-${idx}`}>
+                          {new Date(h.fecha).toLocaleDateString()} - {h.tratamiento}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div>

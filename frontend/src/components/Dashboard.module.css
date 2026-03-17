@@ -157,6 +157,15 @@
   font-size: 0.9rem;
 }
 
+.historialList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 0.86rem;
+  display: grid;
+  gap: 4px;
+}
+
 .statusChip {
   display: inline-flex;
   align-items: center;

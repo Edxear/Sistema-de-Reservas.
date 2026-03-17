@@ -1,4 +1,5 @@
 const Booking = require('../models/Booking');
+const HistoriaClinica = require('../models/HistoriaClinica');
 
 exports.getBookings = async (req, res) => {
   try {
@@ -25,7 +26,44 @@ exports.getBookings = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit, 10));
 
-    res.json({ total, page: parseInt(page, 10), limit: parseInt(limit, 10), bookings });
+    const pacienteIds = [...new Set(
+      bookings
+        .map((b) => b.usuario?._id?.toString())
+        .filter(Boolean)
+    )];
+
+    const historiales = pacienteIds.length > 0
+      ? await HistoriaClinica.find({ paciente: { $in: pacienteIds } })
+          .select('paciente fecha descripcion')
+          .sort({ fecha: -1 })
+      : [];
+
+    const historialPorPaciente = new Map();
+    for (const h of historiales) {
+      const key = h.paciente.toString();
+      if (!historialPorPaciente.has(key)) {
+        historialPorPaciente.set(key, { cantidadRegistros: 0, atenciones: [] });
+      }
+      const data = historialPorPaciente.get(key);
+      data.cantidadRegistros += 1;
+      if (data.atenciones.length < 3) {
+        data.atenciones.push({ fecha: h.fecha, tratamiento: h.descripcion });
+      }
+    }
+
+    const bookingsConHistorial = bookings.map((b) => {
+      const pacienteId = b.usuario?._id?.toString();
+      const historial = pacienteId
+        ? historialPorPaciente.get(pacienteId) || { cantidadRegistros: 0, atenciones: [] }
+        : { cantidadRegistros: 0, atenciones: [] };
+
+      return {
+        ...b.toObject(),
+        historial,
+      };
+    });
+
+    res.json({ total, page: parseInt(page, 10), limit: parseInt(limit, 10), bookings: bookingsConHistorial });
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo reservas', error });
   }
