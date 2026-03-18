@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
 export default function Chat({ otroUsuario, onCerrar }) {
   const { user, token } = useAuth();
