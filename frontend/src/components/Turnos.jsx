@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-import { getBookings } from '../services/bookingService';
+import { getBookings, updateBooking } from '../services/bookingService';
 import { crearPreferencia } from '../services/pagoService';
 import Chat from './Chat';
 import styles from './Dashboard.module.css';
@@ -16,6 +16,7 @@ export default function Turnos() {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [chatPartner, setChatPartner] = useState(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState('');
   const [filters, setFilters] = useState({ estado: '', page: 1, limit: 10 });
   const bookingsSectionRef = useRef(null);
 
@@ -71,6 +72,19 @@ export default function Turnos() {
       window.location.href = res.data.init_point;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al iniciar el pago');
+    }
+  };
+
+  const handleBookingStatus = async (bookingId, estado) => {
+    setStatusUpdatingId(bookingId);
+    try {
+      await updateBooking(bookingId, { estado });
+      toast.success(`Consulta ${estado === 'confirmada' ? 'confirmada' : 'rechazada'} correctamente`);
+      await loadBookings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar el estado de la consulta');
+    } finally {
+      setStatusUpdatingId('');
     }
   };
 
@@ -158,6 +172,24 @@ export default function Turnos() {
                     <>
                       <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario._id}`)}>Ver historial</button>
                       <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
+                    </>
+                  )}
+                  {user?.rol === 'admin' && b.estado === 'pendiente' && (
+                    <>
+                      <button
+                        className={styles.approveBtn}
+                        onClick={() => handleBookingStatus(b._id, 'confirmada')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Confirmar consulta
+                      </button>
+                      <button
+                        className={styles.rejectBtn}
+                        onClick={() => handleBookingStatus(b._id, 'cancelada')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Rechazar consulta
+                      </button>
                     </>
                   )}
                   {user?.rol === 'paciente' && b.estado === 'pendiente' && (

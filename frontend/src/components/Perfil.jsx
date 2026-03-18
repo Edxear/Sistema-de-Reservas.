@@ -72,7 +72,15 @@ export default function Perfil() {
             <div className={styles.field}><label>Documento</label><input value={form.documento} onChange={(e) => onChange('documento', e.target.value)} /></div>
             <div className={styles.field}><label>Direccion</label><input value={form.direccion} onChange={(e) => onChange('direccion', e.target.value)} /></div>
             <div className={styles.field}><label>Fecha de nacimiento</label><input type="date" value={form.fechaNacimiento} onChange={(e) => onChange('fechaNacimiento', e.target.value)} /></div>
-            <div className={styles.field}><label>Genero</label><input value={form.genero} onChange={(e) => onChange('genero', e.target.value)} /></div>
+            <div className={styles.field}>
+              <label>Sexo</label>
+              <select value={form.genero} onChange={(e) => onChange('genero', e.target.value)}>
+                <option value="">No definido</option>
+                <option value="femenino">Femenino</option>
+                <option value="masculino">Masculino</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
             <div className={styles.field}><label>Contacto emergencia</label><input value={form.contactoEmergencia} onChange={(e) => onChange('contactoEmergencia', e.target.value)} /></div>
             <div className={styles.field}><label>Foto de perfil (URL)</label><input value={form.fotoPerfil} onChange={(e) => onChange('fotoPerfil', e.target.value)} /></div>
           </div>

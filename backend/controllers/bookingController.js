@@ -84,6 +84,11 @@ exports.createBooking = async (req, res) => {
 
 exports.updateBooking = async (req, res) => {
   try {
+    // Solo admins pueden confirmar/rechazar/completar consultas (estado del turno).
+    if (req.body?.estado && req.user?.rol !== 'admin') {
+      return res.status(403).json({ message: 'Solo administradores pueden cambiar el estado del turno' });
+    }
+
     const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!booking) return res.status(404).json({ message: 'Reserva no encontrada' });
     res.json(booking);
