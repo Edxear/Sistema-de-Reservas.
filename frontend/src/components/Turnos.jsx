@@ -82,7 +82,13 @@ export default function Turnos() {
     setStatusUpdatingId(bookingId);
     try {
       await updateBooking(bookingId, { estado });
-      toast.success(`Consulta ${estado === 'confirmada' ? 'confirmada' : 'rechazada'} correctamente`);
+      const estadoTexto = {
+        confirmada: 'confirmada',
+        cancelada: 'cancelada',
+        atendida: 'marcada como atendida',
+        ausente: 'marcada como ausente',
+      };
+      toast.success(`Consulta ${estadoTexto[estado] || 'actualizada'} correctamente`);
       await loadBookings();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo actualizar el estado de la consulta');
@@ -133,7 +139,9 @@ export default function Turnos() {
             <option value="pendiente">Pendiente</option>
             <option value="confirmada">Confirmada</option>
             <option value="cancelada">Cancelada</option>
-            <option value="completada">Completada</option>
+            <option value="reprogramada">Reprogramada</option>
+            <option value="ausente">Ausente</option>
+            <option value="atendida">Atendida</option>
           </select>
           <button
             className={styles.smallBtn}

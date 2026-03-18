@@ -60,7 +60,7 @@ function estaEnHorario(hora, duracion, bloques) {
 
 async function validarDisponibilidad({ medicoId, fecha, hora, servicioId, bookingId }) {
   const [medico, servicio] = await Promise.all([
-    User.findById(medicoId).select('rol horariosAtencion nombre'),
+    User.findById(medicoId).select('rol horariosAtencion nombre especialidad'),
     Service.findById(servicioId).select('duracion nombre')
   ]);
 
@@ -113,6 +113,118 @@ function puedeCambiarEstado(reqUser, booking, nuevoEstado) {
   return false;
 }
 
+exports.getBookingMetrics = async (req, res) => {
+  try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ message: 'Solo administradores pueden ver metricas' });
+    }
+
+    const startToday = new Date();
+    startToday.setHours(0, 0, 0, 0);
+    const endToday = new Date(startToday);
+    endToday.setDate(endToday.getDate() + 1);
+
+    const [total, byEstadoAgg, todayTotal] = await Promise.all([
+      Booking.countDocuments({}),
+      Booking.aggregate([{ $group: { _id: '$estado', count: { $sum: 1 } } }]),
+      Booking.countDocuments({ fecha: { $gte: startToday, $lt: endToday } })
+    ]);
+
+    const byEstado = {
+      pendiente: 0,
+      confirmada: 0,
+      cancelada: 0,
+      reprogramada: 0,
+      ausente: 0,
+      atendida: 0,
+    };
+
+    for (const row of byEstadoAgg) {
+      if (Object.prototype.hasOwnProperty.call(byEstado, row._id)) {
+        byEstado[row._id] = row.count;
+      }
+    }
+
+    res.json({ total, todayTotal, byEstado });
+  } catch (error) {
+    res.status(500).json({ message: 'Error obteniendo metricas de turnos', error });
+  }
+};
+
+exports.getPatientSummaries = async (req, res) => {
+  try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ message: 'Solo administradores pueden ver resumen de pacientes' });
+    }
+
+    const bookings = await Booking.find({})
+      .populate('usuario servicio medico', 'nombre email telefono obraSocial numeroAfiliado alergias especialidad')
+      .sort({ fecha: -1, hora: -1 })
+      .limit(1000);
+
+    const now = new Date();
+    const map = new Map();
+
+    for (const booking of bookings) {
+      if (!booking.usuario?._id) continue;
+
+      const key = booking.usuario._id.toString();
+      if (!map.has(key)) {
+        map.set(key, {
+          pacienteId: key,
+          nombre: booking.usuario.nombre || 'Paciente',
+          email: booking.usuario.email || '',
+          telefono: booking.usuario.telefono || '',
+          obraSocial: booking.usuario.obraSocial || '',
+          numeroAfiliado: booking.usuario.numeroAfiliado || '',
+          alergias: booking.usuario.alergias || '',
+          totalTurnos: 0,
+          proximosTurnos: 0,
+          ultimoTurno: null,
+          proximoTurno: null,
+        });
+      }
+
+      const summary = map.get(key);
+      summary.totalTurnos += 1;
+
+      const fechaTurno = new Date(booking.fecha);
+      const estadoActivo = ['pendiente', 'confirmada', 'reprogramada'];
+      const estadoAtendido = ['atendida', 'completada'];
+
+      if (estadoActivo.includes(booking.estado) && fechaTurno >= now) {
+        summary.proximosTurnos += 1;
+        if (!summary.proximoTurno || fechaTurno < new Date(summary.proximoTurno.fecha)) {
+          summary.proximoTurno = {
+            fecha: fechaTurno,
+            hora: booking.hora,
+            servicio: booking.servicio?.nombre || 'Servicio',
+            profesional: booking.medico?.nombre || 'Profesional',
+            estado: booking.estado,
+          };
+        }
+      }
+
+      if (estadoAtendido.includes(booking.estado)) {
+        if (!summary.ultimoTurno || fechaTurno > new Date(summary.ultimoTurno.fecha)) {
+          summary.ultimoTurno = {
+            fecha: fechaTurno,
+            hora: booking.hora,
+            servicio: booking.servicio?.nombre || 'Servicio',
+            profesional: booking.medico?.nombre || 'Profesional',
+            estado: booking.estado,
+          };
+        }
+      }
+    }
+
+    const items = Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: 'Error obteniendo resumen de pacientes', error });
+  }
+};
+
 exports.getBookings = async (req, res) => {
   try {
     await syncBookingIndexes();
@@ -135,7 +247,7 @@ exports.getBookings = async (req, res) => {
     const skip = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
     const total = await Booking.countDocuments(query);
     const bookings = await Booking.find(query)
-      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional')
+      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional horariosAtencion')
       .sort({ fecha: 1, hora: 1 })
       .skip(skip)
       .limit(parseInt(limit, 10));
@@ -247,7 +359,7 @@ exports.updateBooking = async (req, res) => {
     }
 
     const updated = await Booking.findByIdAndUpdate(req.params.id, payload, { new: true })
-      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional');
+      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional horariosAtencion');
     res.json(updated);
   } catch (error) {
     if (error.code === 11000) {

@@ -2,9 +2,11 @@ const express = require('express');
 const { check } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
 const router = express.Router();
-const { getBookings, createBooking, updateBooking, deleteBooking } = require('../controllers/bookingController');
+const { getBookings, createBooking, updateBooking, deleteBooking, getBookingMetrics, getPatientSummaries } = require('../controllers/bookingController');
 
 router.get('/', getBookings);
+router.get('/metrics', getBookingMetrics);
+router.get('/patient-summaries', getPatientSummaries);
 router.post(
   '/',
   [

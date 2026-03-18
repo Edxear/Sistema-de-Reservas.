@@ -257,6 +257,96 @@
   padding: 16px;
 }
 
+.metricsGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricCard {
+  border: 1px solid #d6e3f1;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.metricCard span {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+.metricCard strong {
+  color: #1a3b5d;
+  font-size: 1.2rem;
+}
+
+.patientSearchBox {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.patientList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.patientCard {
+  border: 1px solid #d6e3f1;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.patientTitle {
+  color: #1a3b5d;
+  font-weight: 700;
+}
+
+.patientMeta {
+  color: #4b5563;
+  font-size: 0.84rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1500;
+  padding: 16px;
+}
+
+.modalCard {
+  width: min(460px, 100%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.modalSub {
+  color: #6b7280;
+  margin: 0;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 @media (max-width: 920px) {
   .bookingCard {
     grid-template-columns: 1fr;
@@ -264,6 +354,11 @@
 
   .actions {
     justify-content: flex-start;
+  }
+
+  .metricsGrid,
+  .patientList {
+    grid-template-columns: 1fr;
   }
 }
 

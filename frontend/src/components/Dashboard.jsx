@@ -7,7 +7,7 @@ import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { getDoctors } from '../services/appointmentService';
 import { getServices } from '../services/serviceService';
-import { getBookings, createBooking, updateBooking } from '../services/bookingService';
+import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatientSummaries } from '../services/bookingService';
 import Chat from './Chat';
 import { crearPreferencia } from '../services/pagoService';
 import styles from './Dashboard.module.css';
@@ -30,7 +30,7 @@ const minutosAHora = (minutos) => {
   return `${hours}:${mins}`;
 };
 
-const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings }) => {
+const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings, excludeBookingId = '' }) => {
   if (!doctor || !fecha || !duration) return [];
 
   const dia = normalizarTexto(formatDia(fecha));
@@ -39,6 +39,7 @@ const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings }) => {
 
   const bookedTimes = new Set(
     reservedBookings
+      .filter((booking) => String(booking._id) !== String(excludeBookingId))
       .filter((booking) => ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado))
       .map((booking) => booking.hora)
   );
@@ -79,6 +80,20 @@ export default function Dashboard() {
   const [statusUpdatingId, setStatusUpdatingId] = useState('');
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [adminMetrics, setAdminMetrics] = useState(null);
+  const [patientSummaries, setPatientSummaries] = useState([]);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+  const [rescheduleModal, setRescheduleModal] = useState({
+    open: false,
+    bookingId: '',
+    servicio: null,
+    medico: null,
+    fecha: '',
+    hora: '',
+    slots: [],
+    loading: false,
+  });
   const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
 
   const inferirEspecialidadPorServicio = useCallback((serviceName = '') => {
@@ -160,11 +175,49 @@ export default function Dashboard() {
     loadAvailability();
   }, [bookingData.medico, bookingData.fecha, bookingData.hora, servicioSeleccionado, doctorSeleccionado]);
 
+  useEffect(() => {
+    const loadRescheduleAvailability = async () => {
+      if (!rescheduleModal.open || !rescheduleModal.medico?._id || !rescheduleModal.fecha || !rescheduleModal.servicio?.duracion) {
+        return;
+      }
+
+      setRescheduleModal((prev) => ({ ...prev, loading: true }));
+      try {
+        const res = await getBookings({ medico: rescheduleModal.medico._id, fecha: rescheduleModal.fecha, limit: 200, page: 1 });
+        const slots = buildAvailableSlots({
+          doctor: rescheduleModal.medico,
+          fecha: rescheduleModal.fecha,
+          duration: rescheduleModal.servicio.duracion,
+          reservedBookings: res.data.bookings || [],
+          excludeBookingId: rescheduleModal.bookingId,
+        });
+
+        setRescheduleModal((prev) => ({
+          ...prev,
+          slots,
+          hora: slots.includes(prev.hora) ? prev.hora : '',
+          loading: false,
+        }));
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'No se pudo consultar horarios para reprogramar');
+        setRescheduleModal((prev) => ({ ...prev, slots: [], loading: false }));
+      }
+    };
+
+    loadRescheduleAvailability();
+  }, [rescheduleModal.open, rescheduleModal.medico, rescheduleModal.fecha, rescheduleModal.servicio, rescheduleModal.bookingId]);
+
   const handleBookingStatus = async (bookingId, estado) => {
     setStatusUpdatingId(bookingId);
     try {
       await updateBooking(bookingId, { estado });
-      toast.success(`Consulta ${estado === 'confirmada' ? 'confirmada' : 'rechazada'} correctamente`);
+      const estadoTexto = {
+        confirmada: 'confirmada',
+        cancelada: 'cancelada',
+        atendida: 'marcada como atendida',
+        ausente: 'marcada como ausente',
+      };
+      toast.success(`Consulta ${estadoTexto[estado] || 'actualizada'} correctamente`);
       await loadData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo actualizar el estado de la consulta');
@@ -173,24 +226,61 @@ export default function Dashboard() {
     }
   };
 
-  const handleReschedule = async (booking) => {
-    const nuevaFecha = window.prompt('Nueva fecha del turno (YYYY-MM-DD)', String(booking.fecha).slice(0, 10));
-    if (!nuevaFecha) return;
+  const openRescheduleModal = (booking) => {
+    setRescheduleModal({
+      open: true,
+      bookingId: booking._id,
+      servicio: booking.servicio,
+      medico: booking.medico,
+      fecha: String(booking.fecha).slice(0, 10),
+      hora: booking.hora,
+      slots: [],
+      loading: false,
+    });
+  };
 
-    const nuevaHora = window.prompt('Nueva hora del turno (HH:mm)', booking.hora);
-    if (!nuevaHora) return;
+  const closeRescheduleModal = () => {
+    setRescheduleModal({
+      open: false,
+      bookingId: '',
+      servicio: null,
+      medico: null,
+      fecha: '',
+      hora: '',
+      slots: [],
+      loading: false,
+    });
+  };
 
-    setStatusUpdatingId(booking._id);
+  const submitReschedule = async () => {
+    if (!rescheduleModal.fecha || !rescheduleModal.hora) {
+      toast.error('Selecciona fecha y horario para reprogramar');
+      return;
+    }
+
+    setModalLoading(true);
     try {
-      await updateBooking(booking._id, { fecha: nuevaFecha, hora: nuevaHora, estado: 'reprogramada' });
+      await updateBooking(rescheduleModal.bookingId, {
+        fecha: rescheduleModal.fecha,
+        hora: rescheduleModal.hora,
+        estado: 'reprogramada'
+      });
       toast.success('Consulta reprogramada correctamente');
+      closeRescheduleModal();
       await loadData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo reprogramar la consulta');
     } finally {
-      setStatusUpdatingId('');
+      setModalLoading(false);
     }
   };
+
+  const filteredSummaries = patientSummaries.filter((summary) => {
+    if (!patientSearch.trim()) return true;
+    const search = patientSearch.toLowerCase();
+    return [summary.nombre, summary.email, summary.obraSocial, summary.numeroAfiliado]
+      .some((value) => (value || '').toLowerCase().includes(search));
+  });
 
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
@@ -203,8 +293,17 @@ export default function Dashboard() {
 
       // Cargamos las reservas con los filtros
       const bookingsRes = await getBookings(filters);
-    
+
       setBookings(bookingsRes.data.bookings || []);
+
+      if (user?.rol === 'admin') {
+        const [metricsRes, patientRes] = await Promise.all([
+          getBookingMetrics(),
+          getPatientSummaries(),
+        ]);
+        setAdminMetrics(metricsRes.data || null);
+        setPatientSummaries(patientRes.data || []);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error cargando datos');
       
@@ -215,7 +314,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters, logout, navigate]); // Dependencias: filters, logout, navigate
+  }, [filters, logout, navigate, user?.rol]); // Dependencias: filters, logout, navigate
 
   // Efecto para cargar datos al montar el componente o cuando cambian los filtros
   useEffect(() => {
@@ -402,7 +501,9 @@ export default function Dashboard() {
             <option value="pendiente">Pendiente</option>
             <option value="confirmada">Confirmada</option>
             <option value="cancelada">Cancelada</option>
-            <option value="completada">Completada</option>
+            <option value="reprogramada">Reprogramada</option>
+            <option value="ausente">Ausente</option>
+            <option value="atendida">Atendida</option>
           </select>
           <button className={styles.smallBtn} onClick={() => goToPage(filters.page - 1)} disabled={filters.page <= 1 || loading}>Anterior</button>
           <span>Pagina {filters.page}</span>
@@ -520,8 +621,88 @@ export default function Dashboard() {
       {user?.rol === 'admin' && (
         <section className={styles.adminBox}>
           <h2>Panel de Administracion</h2>
-          <p>Area reservada para configurar servicios, doctores y reglas globales del consultorio.</p>
+          <p>Panel operativo con metricas y buscador rapido de pacientes.</p>
+
+          <div className={styles.metricsGrid}>
+            <article className={styles.metricCard}><span>Total turnos</span><strong>{adminMetrics?.total ?? '-'}</strong></article>
+            <article className={styles.metricCard}><span>Turnos hoy</span><strong>{adminMetrics?.todayTotal ?? '-'}</strong></article>
+            <article className={styles.metricCard}><span>Pendientes</span><strong>{adminMetrics?.byEstado?.pendiente ?? '-'}</strong></article>
+            <article className={styles.metricCard}><span>Confirmados</span><strong>{adminMetrics?.byEstado?.confirmada ?? '-'}</strong></article>
+            <article className={styles.metricCard}><span>Atendidos</span><strong>{adminMetrics?.byEstado?.atendida ?? '-'}</strong></article>
+            <article className={styles.metricCard}><span>Ausentes</span><strong>{adminMetrics?.byEstado?.ausente ?? '-'}</strong></article>
+          </div>
+
+          <div className={styles.patientSearchBox}>
+            <h3>Buscador rápido de pacientes</h3>
+            <input
+              className={styles.input}
+              type="text"
+              value={patientSearch}
+              onChange={(e) => setPatientSearch(e.target.value)}
+              placeholder="Buscar por nombre, email, obra social o afiliado"
+            />
+
+            <div className={styles.patientList}>
+              {filteredSummaries.slice(0, 8).map((summary) => (
+                <article key={summary.pacienteId} className={styles.patientCard}>
+                  <div className={styles.patientTitle}>{summary.nombre}</div>
+                  <div className={styles.patientMeta}>{summary.email || 'Sin email'} | {summary.telefono || 'Sin telefono'}</div>
+                  <div className={styles.patientMeta}>Obra social: {summary.obraSocial || '-'} | Afiliado: {summary.numeroAfiliado || '-'}</div>
+                  <div className={styles.patientMeta}>Alergias: {summary.alergias || 'No registradas'}</div>
+                  <div className={styles.patientMeta}>Turnos totales: {summary.totalTurnos} | Próximos: {summary.proximosTurnos}</div>
+                  <div className={styles.patientMeta}>
+                    Ultimo turno: {summary.ultimoTurno ? `${new Date(summary.ultimoTurno.fecha).toLocaleDateString()} - ${summary.ultimoTurno.servicio}` : 'Sin turnos atendidos'}
+                  </div>
+                  <div className={styles.patientMeta}>
+                    Proximo turno: {summary.proximoTurno ? `${new Date(summary.proximoTurno.fecha).toLocaleDateString()} ${summary.proximoTurno.hora} - ${summary.proximoTurno.servicio}` : 'Sin turnos futuros'}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
+      )}
+
+      {rescheduleModal.open && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3>Reprogramar consulta</h3>
+            <p className={styles.modalSub}>Profesional: {rescheduleModal.medico?.nombre || '-'}</p>
+
+            <div className={styles.field}>
+              <label>Nueva fecha</label>
+              <input
+                className={styles.input}
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+                value={rescheduleModal.fecha}
+                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, fecha: e.target.value }))}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>Nuevo horario</label>
+              <select
+                className={styles.select}
+                value={rescheduleModal.hora}
+                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, hora: e.target.value }))}
+                disabled={rescheduleModal.loading}
+              >
+                <option value="">{rescheduleModal.loading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}</option>
+                {rescheduleModal.slots.map((slot) => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button className={styles.secondaryBtn} onClick={closeRescheduleModal} disabled={modalLoading}>Cancelar</button>
+              <button className={styles.primaryBtn} onClick={submitReschedule} disabled={modalLoading || rescheduleModal.loading}>
+                {modalLoading ? 'Guardando...' : 'Confirmar reprogramación'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {chatPartner && <Chat otroUsuario={chatPartner} onCerrar={() => setChatPartner(null)} />}
