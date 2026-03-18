@@ -35,6 +35,7 @@ export default function Recetas() {
   const [esFavorita, setEsFavorita] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [plantilla, setPlantilla] = useState('pami');
+  const [printOrientation, setPrintOrientation] = useState('landscape');
   const previewRef = useRef(null);
   const [formData, setFormData] = useState({
     obraSocial: '',
@@ -126,7 +127,59 @@ export default function Recetas() {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const printReceta = () => window.print();
+  const printReceta = () => {
+    if (!previewRef.current) return;
+
+    const printWindow = window.open('', '_blank', 'width=1280,height=900');
+    if (!printWindow) {
+      toast.error('No se pudo abrir la ventana de impresión');
+      return;
+    }
+
+    const styleNodes = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((node) => node.outerHTML)
+      .join('\n');
+
+    const isPortrait = printOrientation === 'portrait';
+    const targetWidth = isPortrait ? '198mm' : '285mm';
+    const targetHeight = isPortrait ? '285mm' : '198mm';
+
+    const printStyles = `
+      <style>
+        @page { size: A4 ${isPortrait ? 'portrait' : 'landscape'}; margin: 6mm; }
+        html, body { margin: 0; padding: 0; background: #fff; }
+        body { display: flex; justify-content: center; align-items: flex-start; }
+        .print-root { width: 100%; display: flex; justify-content: center; }
+        #receta-preview {
+          width: ${targetWidth} !important;
+          min-height: ${targetHeight} !important;
+          max-height: ${targetHeight} !important;
+          margin: 0 auto !important;
+        }
+      </style>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Receta para impresión</title>
+          ${styleNodes}
+          ${printStyles}
+        </head>
+        <body>
+          <div class="print-root">${previewRef.current.outerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  };
 
   const shareNative = async () => {
     if (navigator.share) {
@@ -147,7 +200,7 @@ export default function Recetas() {
     if (!previewRef.current) return;
     const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#f2f2f2' });
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({ orientation: printOrientation, unit: 'mm', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     pdf.addImage(imgData, 'PNG', 4, 4, pageWidth - 8, pageHeight - 8);
@@ -253,6 +306,20 @@ export default function Recetas() {
                   {plantillas.map((p) => (
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.row2}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Orientación de impresión</label>
+                <select
+                  className={styles.select}
+                  value={printOrientation}
+                  onChange={(e) => setPrintOrientation(e.target.value)}
+                >
+                  <option value="landscape">Horizontal (A4)</option>
+                  <option value="portrait">Vertical (A4)</option>
                 </select>
               </div>
               <div className={styles.formGroup}>
