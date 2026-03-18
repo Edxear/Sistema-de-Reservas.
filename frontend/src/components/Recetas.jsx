@@ -481,9 +481,6 @@ export default function Recetas() {
               <div className={styles.ticket}>TROQUEL 1</div>
               <div className={styles.ticket}>TROQUEL 2</div>
               <div className={styles.ticket}>TROQUEL 3</div>
-              <div className={styles.ticket}>TROQUEL 4</div>
-              <div className={styles.ticket}>TROQUEL 5</div>
-              <div className={styles.ticket}>TROQUEL 6</div>
             </aside>
           </article>
         </section>

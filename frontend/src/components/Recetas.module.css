@@ -140,6 +140,8 @@
   background: #0f172a;
   border-radius: 12px;
   padding: 18px;
+  display: flex;
+  justify-content: center;
 }
 
 .prescription {
@@ -151,7 +153,8 @@
   border: 2px solid #aeb4bf;
   display: grid;
   grid-template-columns: 1fr 200px;
-  min-height: 880px;
+  width: min(920px, 100%);
+  min-height: 650px;
 }
 
 .template_pami {
@@ -179,15 +182,15 @@
 }
 
 .left {
-  padding: 14px;
+  padding: 12px;
   border-right: 2px solid var(--receta-border);
 }
 
 .right {
-  padding: 14px 10px;
+  padding: 12px 10px;
   display: grid;
-  grid-template-rows: repeat(6, minmax(80px, auto));
-  gap: 10px;
+  grid-template-rows: repeat(3, minmax(92px, auto));
+  gap: 8px;
 }
 
 .topRow {
@@ -195,8 +198,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid var(--receta-border);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .brand {
@@ -225,12 +228,12 @@
 
 .infoGrid {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .infoLine {
   border-bottom: 2px solid var(--receta-border);
-  padding-bottom: 6px;
+  padding-bottom: 5px;
   display: grid;
   grid-template-columns: 130px 1fr;
   gap: 10px;
@@ -250,14 +253,14 @@
 }
 
 .medSection {
-  margin-top: 10px;
+  margin-top: 8px;
   border-top: 2px solid var(--receta-border);
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .medRow {
   border-bottom: 2px solid var(--receta-border);
-  padding: 10px 0;
+  padding: 8px 0;
   display: grid;
   grid-template-columns: 56px 1fr 42px;
   gap: 10px;
@@ -282,12 +285,12 @@
 }
 
 .signatureArea {
-  margin-top: 14px;
+  margin-top: 10px;
   border: 2px solid var(--receta-border);
-  min-height: 120px;
-  padding: 10px;
+  min-height: 96px;
+  padding: 8px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .qrWrap {
@@ -311,14 +314,14 @@
 .diagnosis {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .diagCard {
   border: 2px solid var(--receta-border);
-  padding: 8px;
-  min-height: 64px;
+  padding: 7px;
+  min-height: 58px;
 }
 
 .diagTitle {
@@ -382,6 +385,11 @@
 }
 
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
   body {
     background: #ffffff !important;
   }
@@ -404,6 +412,15 @@
   }
 
   .prescription {
+    width: 285mm;
+    min-height: 198mm;
+    max-height: 198mm;
     border: 1px solid #9ca3af;
+    margin: 0 auto;
+    break-inside: avoid;
+  }
+
+  .right {
+    grid-template-rows: repeat(3, minmax(56mm, auto));
   }
 }
