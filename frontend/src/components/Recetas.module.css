@@ -1,0 +1,409 @@
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d9dee8;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.formGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.formGroup {
+  display: grid;
+  gap: 5px;
+}
+
+.label {
+  font-size: 0.86rem;
+  color: #374151;
+  font-weight: 700;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid #cfd7e4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 0.92rem;
+}
+
+.textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.medsHeader {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.medCard {
+  border: 1px dashed #c6cedb;
+  border-radius: 10px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.medTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.medTitle {
+  font-size: 0.88rem;
+  color: #334155;
+  font-weight: 700;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.btn {
+  border: 1px solid #d0d8e3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1a3b5d;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  background: #1f4f80;
+  color: #ffffff;
+  border-color: #1f4f80;
+}
+
+.btnAccent {
+  background: #48a9a5;
+  color: #ffffff;
+  border-color: #48a9a5;
+}
+
+.btnDanger {
+  background: #fff1f2;
+  color: #b42318;
+  border-color: #fecdd3;
+}
+
+.previewWrap {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.prescription {
+  --receta-border: #9ca3af;
+  --receta-paper: #f2f2f2;
+  --receta-ink: #303030;
+  background: var(--receta-paper);
+  color: var(--receta-ink);
+  border: 2px solid #aeb4bf;
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  min-height: 880px;
+}
+
+.template_pami {
+  --receta-border: #9ca3af;
+  --receta-paper: #f2f2f2;
+  --receta-ink: #303030;
+}
+
+.template_osde {
+  --receta-border: #6b92bb;
+  --receta-paper: #eef4fb;
+  --receta-ink: #1f3f67;
+}
+
+.template_swiss {
+  --receta-border: #b27474;
+  --receta-paper: #faf1f1;
+  --receta-ink: #5f2c2c;
+}
+
+.template_generica {
+  --receta-border: #8a8f9a;
+  --receta-paper: #f3f4f6;
+  --receta-ink: #222;
+}
+
+.left {
+  padding: 14px;
+  border-right: 2px solid var(--receta-border);
+}
+
+.right {
+  padding: 14px 10px;
+  display: grid;
+  grid-template-rows: repeat(6, minmax(80px, auto));
+  gap: 10px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--receta-border);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #5a5a5a;
+}
+
+.unit {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.barcode {
+  width: 150px;
+  height: 42px;
+  border: 1px solid #555;
+  background: repeating-linear-gradient(
+    90deg,
+    #111 0,
+    #111 2px,
+    #f2f2f2 2px,
+    #f2f2f2 5px
+  );
+}
+
+.infoGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.infoLine {
+  border-bottom: 2px solid var(--receta-border);
+  padding-bottom: 6px;
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.infoLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #5a5a5a;
+  font-weight: 700;
+}
+
+.infoValue {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.medSection {
+  margin-top: 10px;
+  border-top: 2px solid var(--receta-border);
+  padding-top: 8px;
+}
+
+.medRow {
+  border-bottom: 2px solid var(--receta-border);
+  padding: 10px 0;
+  display: grid;
+  grid-template-columns: 56px 1fr 42px;
+  gap: 10px;
+  align-items: center;
+}
+
+.rp {
+  font-weight: 700;
+  color: #4b5563;
+  font-size: 0.85rem;
+}
+
+.medText {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.cant {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.signatureArea {
+  margin-top: 14px;
+  border: 2px solid var(--receta-border);
+  min-height: 120px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.qrWrap {
+  justify-self: start;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  padding: 4px;
+}
+
+.signatureTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5a5a5a;
+  text-transform: uppercase;
+}
+
+.signatureName {
+  font-weight: 700;
+}
+
+.diagnosis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.diagCard {
+  border: 2px solid var(--receta-border);
+  padding: 8px;
+  min-height: 64px;
+}
+
+.diagTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #5a5a5a;
+}
+
+.diagCode {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.ticket {
+  border: 2px dashed var(--receta-border);
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.shareRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.favoriteList {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.favoriteItem {
+  border: 1px solid #d4dbe6;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 8px;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .prescription {
+    grid-template-columns: 1fr;
+  }
+
+  .left {
+    border-right: none;
+    border-bottom: 2px solid var(--receta-border);
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  .header,
+  .panel {
+    display: none !important;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .previewWrap {
+    background: #ffffff;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .prescription {
+    border: 1px solid #9ca3af;
+  }
+}
