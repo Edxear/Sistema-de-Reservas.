@@ -6,7 +6,7 @@ exports.getDoctors = async (req, res) => {
     const [legacyDoctors, staffDoctors] = await Promise.all([
       Doctor.find(),
       User.find({ rol: { $in: ['medico', 'admin'] } })
-        .select('nombre email telefono especialidad')
+        .select('nombre email telefono especialidad horariosAtencion direccionConsultorio matriculaProfesional')
         .sort({ nombre: 1 })
     ]);
 
@@ -19,6 +19,9 @@ exports.getDoctors = async (req, res) => {
       email: d.email,
       telefono: d.phone,
       phone: d.phone,
+      horariosAtencion: [],
+      direccionConsultorio: '',
+      matriculaProfesional: '',
     }));
 
     const normalizedStaff = staffDoctors.map((u) => ({
@@ -30,6 +33,9 @@ exports.getDoctors = async (req, res) => {
       email: u.email,
       telefono: u.telefono,
       phone: u.telefono,
+      horariosAtencion: u.horariosAtencion || [],
+      direccionConsultorio: u.direccionConsultorio || '',
+      matriculaProfesional: u.matriculaProfesional || '',
     }));
 
     const dedupByEmail = new Map();

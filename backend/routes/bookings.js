@@ -10,6 +10,7 @@ router.post(
   [
     check('usuario', 'Usuario es obligatorio').isMongoId(),
     check('servicio', 'Servicio es obligatorio').isMongoId(),
+    check('medico', 'Profesional es obligatorio').isMongoId(),
     check('fecha', 'Fecha es obligatoria').isISO8601().toDate(),
     check('hora', 'Hora es obligatoria').notEmpty(),
     check('fechaHoraReserva', 'FechaHoraReserva es obligatoria').isISO8601().toDate(),
@@ -20,7 +21,11 @@ router.post(
 router.put('/:id',
   [
     check('id', 'ID inválido').isMongoId(),
-    check('estado').optional().isIn(['pendiente', 'confirmada', 'cancelada', 'completada'])
+    check('medico').optional().isMongoId(),
+    check('servicio').optional().isMongoId(),
+    check('fecha').optional().isISO8601().toDate(),
+    check('hora').optional().notEmpty(),
+    check('estado').optional().isIn(['pendiente', 'confirmada', 'cancelada', 'reprogramada', 'ausente', 'atendida'])
   ],
   validateRequest,
   updateBooking

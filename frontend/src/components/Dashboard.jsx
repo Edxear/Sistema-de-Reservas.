@@ -12,6 +12,53 @@ import Chat from './Chat';
 import { crearPreferencia } from '../services/pagoService';
 import styles from './Dashboard.module.css';
 
+const normalizarTexto = (valor = '') => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+const formatDia = (fecha) => {
+  const date = new Date(`${fecha}T00:00:00`);
+  return new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date);
+};
+
+const horaAMinutos = (hora) => {
+  const [hours, minutes] = hora.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
+const minutosAHora = (minutos) => {
+  const hours = String(Math.floor(minutos / 60)).padStart(2, '0');
+  const mins = String(minutos % 60).padStart(2, '0');
+  return `${hours}:${mins}`;
+};
+
+const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings }) => {
+  if (!doctor || !fecha || !duration) return [];
+
+  const dia = normalizarTexto(formatDia(fecha));
+  const bloques = (doctor.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === dia);
+  if (bloques.length === 0) return [];
+
+  const bookedTimes = new Set(
+    reservedBookings
+      .filter((booking) => ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado))
+      .map((booking) => booking.hora)
+  );
+
+  const slots = [];
+  for (const bloque of bloques) {
+    const inicio = horaAMinutos(bloque.horaInicio);
+    const fin = horaAMinutos(bloque.horaFin);
+
+    for (let current = inicio; current + duration <= fin; current += duration) {
+      const slot = minutosAHora(current);
+      if (!bookedTimes.has(slot)) {
+        slots.push(slot);
+      }
+    }
+  }
+
+  return slots;
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   // Obtenemos el usuario y la función de logout del contexto
@@ -23,12 +70,15 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({ estado: '', page: 1, limit: 10 });
   const [bookingData, setBookingData] = useState({
     servicio: '',
+    medico: '',
     fecha: '',
     hora: '',
     notas: '',
   });
   const [loading, setLoading] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState('');
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [chatPartner, setChatPartner] = useState(null); // { _id, nombre }
 
   const inferirEspecialidadPorServicio = useCallback((serviceName = '') => {
@@ -42,6 +92,7 @@ export default function Dashboard() {
   }, []);
 
   const servicioSeleccionado = services.find((s) => s._id === bookingData.servicio);
+  const doctorSeleccionado = doctors.find((d) => d._id === bookingData.medico);
   const especialidadRequerida = inferirEspecialidadPorServicio(servicioSeleccionado?.nombre || '');
 
   const doctorsFiltrados = doctors.filter((d) => {
@@ -50,10 +101,20 @@ export default function Dashboard() {
     return especialidadDoctor.includes(especialidadRequerida);
   });
 
+  useEffect(() => {
+    if (bookingData.medico && !doctorsFiltrados.some((doctor) => doctor._id === bookingData.medico)) {
+      setBookingData((prev) => ({ ...prev, medico: '', hora: '' }));
+      setAvailableSlots([]);
+    }
+  }, [bookingData.medico, doctorsFiltrados]);
+
   const getStatusClass = (estado) => {
     if (estado === 'confirmada') return styles.statusConfirmada;
     if (estado === 'cancelada') return styles.statusCancelada;
     if (estado === 'completada') return styles.statusCompletada;
+    if (estado === 'atendida') return styles.statusAtendida;
+    if (estado === 'ausente') return styles.statusAusente;
+    if (estado === 'reprogramada') return styles.statusReprogramada;
     return styles.statusPendiente;
   };
 
@@ -68,6 +129,37 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    const loadAvailability = async () => {
+      if (!bookingData.medico || !bookingData.fecha || !servicioSeleccionado) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      setAvailabilityLoading(true);
+      try {
+        const res = await getBookings({ medico: bookingData.medico, fecha: bookingData.fecha, limit: 200, page: 1 });
+        const slots = buildAvailableSlots({
+          doctor: doctorSeleccionado,
+          fecha: bookingData.fecha,
+          duration: servicioSeleccionado.duracion,
+          reservedBookings: res.data.bookings || [],
+        });
+        setAvailableSlots(slots);
+        if (bookingData.hora && !slots.includes(bookingData.hora)) {
+          setBookingData((prev) => ({ ...prev, hora: '' }));
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'No se pudo calcular la disponibilidad del profesional');
+        setAvailableSlots([]);
+      } finally {
+        setAvailabilityLoading(false);
+      }
+    };
+
+    loadAvailability();
+  }, [bookingData.medico, bookingData.fecha, bookingData.hora, servicioSeleccionado, doctorSeleccionado]);
+
   const handleBookingStatus = async (bookingId, estado) => {
     setStatusUpdatingId(bookingId);
     try {
@@ -76,6 +168,25 @@ export default function Dashboard() {
       await loadData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo actualizar el estado de la consulta');
+    } finally {
+      setStatusUpdatingId('');
+    }
+  };
+
+  const handleReschedule = async (booking) => {
+    const nuevaFecha = window.prompt('Nueva fecha del turno (YYYY-MM-DD)', String(booking.fecha).slice(0, 10));
+    if (!nuevaFecha) return;
+
+    const nuevaHora = window.prompt('Nueva hora del turno (HH:mm)', booking.hora);
+    if (!nuevaHora) return;
+
+    setStatusUpdatingId(booking._id);
+    try {
+      await updateBooking(booking._id, { fecha: nuevaFecha, hora: nuevaHora, estado: 'reprogramada' });
+      toast.success('Consulta reprogramada correctamente');
+      await loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo reprogramar la consulta');
     } finally {
       setStatusUpdatingId('');
     }
@@ -92,11 +203,11 @@ export default function Dashboard() {
 
       // Cargamos las reservas con los filtros
       const bookingsRes = await getBookings(filters);
-      // Asumimos que la respuesta es { bookings: [], totalPages: ... }
+    
       setBookings(bookingsRes.data.bookings || []);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error cargando datos');
-      // Si el error es de autenticación (401), cerramos sesión
+      
       if (error.response?.status === 401) {
         logout();
         navigate('/');
@@ -132,6 +243,7 @@ export default function Dashboard() {
       await createBooking({
         usuario: user?.id, // El backend espera el ID del usuario
         servicio: bookingData.servicio,
+        medico: bookingData.medico,
         fecha: bookingData.fecha,
         hora: bookingData.hora,
         fechaHoraReserva: new Date().toISOString(),
@@ -140,7 +252,8 @@ export default function Dashboard() {
 
       toast.success('Reserva creada');
       // Limpiar el formulario
-      setBookingData({ servicio: '', fecha: '', hora: '', notas: '' });
+      setBookingData({ servicio: '', medico: '', fecha: '', hora: '', notas: '' });
+      setAvailableSlots([]);
       // Recargar la lista de reservas
       loadData();
     } catch (error) {
@@ -206,8 +319,9 @@ export default function Dashboard() {
               <label>Doctor</label>
               <select
                 className={styles.select}
-                value={bookingData.doctor || ''}
-                onChange={(e) => setBookingData({ ...bookingData, doctor: e.target.value })}
+                value={bookingData.medico}
+                onChange={(e) => setBookingData({ ...bookingData, medico: e.target.value, hora: '' })}
+                required
               >
                 <option value="">Seleccionar doctor</option>
                 {doctors.length === 0 && (
@@ -230,20 +344,31 @@ export default function Dashboard() {
                 className={styles.input}
                 type="date"
                 value={bookingData.fecha}
-                onChange={(e) => setBookingData({ ...bookingData, fecha: e.target.value })}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setBookingData({ ...bookingData, fecha: e.target.value, hora: '' })}
                 required
               />
             </div>
 
             <div className={styles.field}>
               <label>Hora</label>
-              <input
-                className={styles.input}
-                type="time"
+              <select
+                className={styles.select}
                 value={bookingData.hora}
                 onChange={(e) => setBookingData({ ...bookingData, hora: e.target.value })}
+                disabled={!bookingData.medico || !bookingData.fecha || !bookingData.servicio || availabilityLoading}
                 required
-              />
+              >
+                <option value="">
+                  {availabilityLoading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}
+                </option>
+                {availableSlots.map((slot) => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+              {!availabilityLoading && bookingData.medico && bookingData.fecha && bookingData.servicio && availableSlots.length === 0 && (
+                <small className={styles.helperText}>No hay horarios disponibles para ese profesional en la fecha elegida.</small>
+              )}
             </div>
           </div>
 
@@ -297,6 +422,7 @@ export default function Dashboard() {
                 <div>
                   <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
+                  <div className={styles.bookingMeta}>Profesional: {b.medico?.nombre || '-'}</div>
                   <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
                   {b.estado === 'confirmada' && (
                     <div className={styles.bookingMeta}>
@@ -346,6 +472,40 @@ export default function Dashboard() {
                         Rechazar consulta
                       </button>
                     </>
+                  )}
+                  {user?.rol === 'admin' && ['confirmada', 'reprogramada'].includes(b.estado) && (
+                    <>
+                      <button
+                        className={styles.secondaryBtn}
+                        onClick={() => handleReschedule(b)}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Reprogramar
+                      </button>
+                      <button
+                        className={styles.approveBtn}
+                        onClick={() => handleBookingStatus(b._id, 'atendida')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Marcar atendida
+                      </button>
+                      <button
+                        className={styles.rejectBtn}
+                        onClick={() => handleBookingStatus(b._id, 'ausente')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Marcar ausente
+                      </button>
+                    </>
+                  )}
+                  {user?.rol === 'paciente' && ['pendiente', 'confirmada', 'reprogramada'].includes(b.estado) && (
+                    <button
+                      className={styles.rejectBtn}
+                      onClick={() => handleBookingStatus(b._id, 'cancelada')}
+                      disabled={statusUpdatingId === b._id}
+                    >
+                      Cancelar turno
+                    </button>
                   )}
                   {user?.rol === 'paciente' && b.estado === 'pendiente' && (
                     <button className={styles.primaryBtn} onClick={() => handlePagar(b._id)}>Pagar</button>

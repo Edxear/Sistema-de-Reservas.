@@ -53,6 +53,34 @@ const serviciosBase = [
   { nombre: 'Consulta Traumatologica', descripcion: 'Evaluacion osteomuscular', duracion: 35, precio: 21000, activo: true }
 ];
 
+const horariosPorEspecialidad = {
+  Enfermeria: [
+    { dia: 'Lunes', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Martes', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Jueves', horaInicio: '14:00', horaFin: '18:00' }
+  ],
+  'Clinica Medica': [
+    { dia: 'Lunes', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Miercoles', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Viernes', horaInicio: '14:00', horaFin: '18:00' }
+  ],
+  Traumatologia: [
+    { dia: 'Martes', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Jueves', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Viernes', horaInicio: '15:00', horaFin: '18:00' }
+  ],
+  Neurologia: [
+    { dia: 'Lunes', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Miercoles', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Viernes', horaInicio: '09:00', horaFin: '13:00' }
+  ],
+  Pediatria: [
+    { dia: 'Martes', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Jueves', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Sabado', horaInicio: '09:00', horaFin: '12:00' }
+  ]
+};
+
 function randomFrom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -97,7 +125,7 @@ async function run() {
         instagram: 'https://instagram.com/consultoriosanpablo',
         linkedin: 'https://linkedin.com/company/consultorio-san-pablo'
       },
-      horariosAtencion: [
+      horariosAtencion: horariosPorEspecialidad[m.especialidad] || [
         { dia: 'Lunes', horaInicio: '09:00', horaFin: '13:00' },
         { dia: 'Miercoles', horaInicio: '14:00', horaFin: '18:00' }
       ]
@@ -155,6 +183,7 @@ async function run() {
     await Booking.create({
       usuario: paciente._id,
       servicio: servicio._id,
+      medico: medico._id,
       fecha,
       hora,
       fechaHoraReserva: new Date(),

@@ -26,6 +26,9 @@ export default function Turnos() {
     if (estado === 'confirmada') return styles.statusConfirmada;
     if (estado === 'cancelada') return styles.statusCancelada;
     if (estado === 'completada') return styles.statusCompletada;
+    if (estado === 'atendida') return styles.statusAtendida;
+    if (estado === 'ausente') return styles.statusAusente;
+    if (estado === 'reprogramada') return styles.statusReprogramada;
     return styles.statusPendiente;
   };
 
@@ -88,6 +91,25 @@ export default function Turnos() {
     }
   };
 
+  const handleReschedule = async (booking) => {
+    const nuevaFecha = window.prompt('Nueva fecha del turno (YYYY-MM-DD)', String(booking.fecha).slice(0, 10));
+    if (!nuevaFecha) return;
+
+    const nuevaHora = window.prompt('Nueva hora del turno (HH:mm)', booking.hora);
+    if (!nuevaHora) return;
+
+    setStatusUpdatingId(booking._id);
+    try {
+      await updateBooking(booking._id, { fecha: nuevaFecha, hora: nuevaHora, estado: 'reprogramada' });
+      toast.success('Consulta reprogramada correctamente');
+      await loadBookings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo reprogramar la consulta');
+    } finally {
+      setStatusUpdatingId('');
+    }
+  };
+
   if (!user) return <div>Cargando sesión...</div>;
 
   return (
@@ -144,6 +166,7 @@ export default function Turnos() {
                   <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
                   <div className={styles.bookingMeta}>Paciente: {b.usuario?.nombre || '-'}</div>
+                  <div className={styles.bookingMeta}>Profesional: {b.medico?.nombre || '-'}</div>
                   <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
                   {b.estado === 'confirmada' && (
                     <div className={styles.bookingMeta}>
@@ -191,6 +214,40 @@ export default function Turnos() {
                         Rechazar consulta
                       </button>
                     </>
+                  )}
+                  {user?.rol === 'admin' && ['confirmada', 'reprogramada'].includes(b.estado) && (
+                    <>
+                      <button
+                        className={styles.secondaryBtn}
+                        onClick={() => handleReschedule(b)}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Reprogramar
+                      </button>
+                      <button
+                        className={styles.approveBtn}
+                        onClick={() => handleBookingStatus(b._id, 'atendida')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Marcar atendida
+                      </button>
+                      <button
+                        className={styles.rejectBtn}
+                        onClick={() => handleBookingStatus(b._id, 'ausente')}
+                        disabled={statusUpdatingId === b._id}
+                      >
+                        Marcar ausente
+                      </button>
+                    </>
+                  )}
+                  {user?.rol === 'paciente' && ['pendiente', 'confirmada', 'reprogramada'].includes(b.estado) && (
+                    <button
+                      className={styles.rejectBtn}
+                      onClick={() => handleBookingStatus(b._id, 'cancelada')}
+                      disabled={statusUpdatingId === b._id}
+                    >
+                      Cancelar turno
+                    </button>
                   )}
                   {user?.rol === 'paciente' && b.estado === 'pendiente' && (
                     <button className={styles.primaryBtn} onClick={() => handlePagar(b._id)}>Pagar</button>

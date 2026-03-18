@@ -95,6 +95,11 @@
   resize: vertical;
 }
 
+.helperText {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
 .submitRow {
   margin-top: 12px;
 }
@@ -220,6 +225,21 @@
 .statusCompletada {
   background: #e1f2ff;
   color: #175cd3;
+}
+
+.statusAtendida {
+  background: #e7f8f1;
+  color: #05603a;
+}
+
+.statusAusente {
+  background: #fff4e5;
+  color: #b54708;
+}
+
+.statusReprogramada {
+  background: #ede9fe;
+  color: #6d28d9;
 }
 
 .actions {

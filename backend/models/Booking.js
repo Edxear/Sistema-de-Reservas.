@@ -11,6 +11,12 @@ const bookingSchema = new mongoose.Schema({
     ref: 'Service',
     required: true
   },
+  medico: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   fecha: {
     type: Date,
     required: true
@@ -25,10 +31,14 @@ const bookingSchema = new mongoose.Schema({
   },
   estado: {
     type: String,
-    enum: ['pendiente', 'confirmada', 'cancelada', 'completada'],
+    enum: ['pendiente', 'confirmada', 'cancelada', 'reprogramada', 'ausente', 'atendida'],
     default: 'pendiente'
   },
   notas: String,
+  motivoEstado: {
+    type: String,
+    default: ''
+  },
   fechaCreacion: {
     type: Date,
     default: Date.now
@@ -37,6 +47,9 @@ const bookingSchema = new mongoose.Schema({
   timestamps: true
 });
 
-bookingSchema.index({ fecha: 1, hora: 1, servicio: 1 }, { unique: true });
+bookingSchema.index(
+  { fecha: 1, hora: 1, medico: 1 },
+  { unique: true, partialFilterExpression: { medico: { $exists: true } } }
+);
 
 module.exports = mongoose.model('Booking', bookingSchema);
