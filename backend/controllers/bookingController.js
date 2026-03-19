@@ -283,7 +283,9 @@ exports.getBookings = async (req, res) => {
     const skip = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
     const total = await Booking.countDocuments(query);
     const bookings = await Booking.find(query)
-      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional horariosAtencion')
+      .populate('usuario', 'nombre telefono email obraSocial numeroAfiliado alergias')
+      .populate('servicio', 'nombre duracion precio descripcion')
+      .populate('medico', 'nombre especialidad matriculaProfesional horariosAtencion')
       .sort({ fecha: 1, hora: 1 })
       .skip(skip)
       .limit(parseInt(limit, 10));

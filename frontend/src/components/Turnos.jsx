@@ -351,7 +351,7 @@ export default function Turnos() {
                   <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>
                   <div className={styles.bookingMeta}>Paciente: {b.usuario?.nombre || '-'}</div>
-                  <div className={styles.bookingMeta}>Profesional: {b.medico?.nombre || '-'}</div>
+                  <div className={styles.bookingMeta}>Profesional: {b.medico?.nombre || '-'}{b.medico?.especialidad ? ` (${b.medico.especialidad})` : ''}</div>
                   <div className={styles.bookingMeta}>Notas: {b.notas || '-'}</div>
                   {b.estado === 'confirmada' && (
                     <div className={styles.bookingMeta}>
