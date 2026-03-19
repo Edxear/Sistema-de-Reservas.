@@ -117,6 +117,70 @@ function makeDate(daysAhead) {
   return d;
 }
 
+function normalizarTexto(valor = '') {
+  return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function obtenerDiaSemana(fecha) {
+  const dias = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+  return dias[fecha.getDay()];
+}
+
+function horaAMinutos(hora) {
+  const [hours, minutes] = hora.split(':').map(Number);
+  return (hours * 60) + minutes;
+}
+
+function encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos = {}) {
+  const diaSemana = obtenerDiaSemana(fecha);
+  const medicosDisponibles = medicosAdmins.filter((medico) => {
+    const horarios = medico.horariosAtencion || [];
+    return horarios.some((bloque) => normalizarTexto(bloque.dia) === normalizarTexto(diaSemana));
+  });
+
+  if (medicosDisponibles.length === 0) return null;
+
+  let medico = randomFrom(medicosDisponibles);
+  while (horariosBooleanos[`${medico._id}-${fecha.toISOString().slice(0, 10)}`] && medicosDisponibles.length > 1) {
+    const idx = medicosDisponibles.indexOf(medico);
+    medicosDisponibles.splice(idx, 1);
+    if (medicosDisponibles.length === 0) break;
+    medico = randomFrom(medicosDisponibles);
+  }
+
+  return medico;
+}
+
+function obtenerHoraDisponible(medico, fecha, horariosBooleanos = {}) {
+  const diaSemana = obtenerDiaSemana(fecha);
+  const horarios = (medico.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === normalizarTexto(diaSemana));
+
+  if (horarios.length === 0) return null;
+
+  const horas = [];
+  for (const bloque of horarios) {
+    const inicio = horaAMinutos(bloque.horaInicio);
+    const fin = horaAMinutos(bloque.horaFin);
+    for (let m = inicio; m < fin; m += 30) {
+      const h = String(Math.floor(m / 60)).padStart(2, '0');
+      const min = String(m % 60).padStart(2, '0');
+      horas.push(`${h}:${min}`);
+    }
+  }
+
+  if (horas.length === 0) return null;
+
+  let hora = randomFrom(horas);
+  const key = `${medico._id}-${fecha.toISOString().slice(0, 10)}-${hora}`;
+  let intentos = 0;
+  while (horariosBooleanos[key] && intentos < 5) {
+    hora = randomFrom(horas);
+    intentos += 1;
+  }
+
+  return hora;
+}
+
 async function run() {
   await mongoose.connect(MONGODB_URI);
   console.log('Mongo conectado para seed inicial');
@@ -196,14 +260,30 @@ async function run() {
 
   const horas = ['09:00', '09:45', '10:30', '11:15', '12:00', '14:00', '15:00', '16:00'];
 
+  const horariosBooleanos = {};
+
   for (let i = 0; i < pacientes.length; i += 1) {
     const paciente = pacientes[i];
-    const medico = medicosAdmins[i % medicosAdmins.length];
     const servicio = randomFrom(servicios);
     const enfermedad = paciente.enfermedadPrincipal || randomFrom(enfermedades);
 
     const fecha = makeDate((i % 7) + 1);
-    const hora = horas[i % horas.length];
+    const medico = encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos);
+
+    if (!medico) {
+      console.warn(`No se encontró médico disponible para ${fecha.toISOString().slice(0, 10)}`);
+      continue;
+    }
+
+    const hora = obtenerHoraDisponible(medico, fecha, horariosBooleanos);
+
+    if (!hora) {
+      console.warn(`No se encontró hora disponible para ${medico.nombre} el ${fecha.toISOString().slice(0, 10)}`);
+      continue;
+    }
+
+    const fechaKey = `${medico._id}-${fecha.toISOString().slice(0, 10)}-${hora}`;
+    horariosBooleanos[fechaKey] = true;
 
     await Booking.create({
       usuario: paciente._id,
@@ -237,14 +317,18 @@ async function run() {
     });
   }
 
+  const conteoTurnos = await Booking.countDocuments({});
+  const conteoHistorias = await HistoriaClinica.countDocuments({});
+  const conteoRecetas = await Receta.countDocuments({});
+
   console.log('Seed inicial completado:');
   console.log(`- Medicos administradores: ${medicosAdmins.length}`);
   console.log(`- Secretarias: ${secretarias.length}`);
   console.log(`- Pacientes: ${pacientes.length}`);
   console.log(`- Servicios: ${servicios.length}`);
-  console.log(`- Turnos: ${pacientes.length}`);
-  console.log(`- Historias clinicas: ${pacientes.length}`);
-  console.log(`- Recetas: ${pacientes.length}`);
+  console.log(`- Turnos: ${conteoTurnos}`);
+  console.log(`- Historias clinicas: ${conteoHistorias}`);
+  console.log(`- Recetas: ${conteoRecetas}`);
   console.log(`Password comun de acceso: ${seedUsers.passwordComun}`);
 
   await mongoose.disconnect();
