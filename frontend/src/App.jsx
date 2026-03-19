@@ -15,6 +15,7 @@ import Recetas from './components/Recetas';
 import Header from './components/Header';
 import Perfil from './components/Perfil';
 import Turnos from './components/Turnos';
+import PacienteDetalle from './components/PacienteDetalle';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -87,6 +88,11 @@ function App() {
           <Route path="/turnos" element={
             <ProtectedRoute>
               <Turnos />
+            </ProtectedRoute>
+          } />
+          <Route path="/pacientes/:pacienteId" element={
+            <ProtectedRoute>
+              <PacienteDetalle />
             </ProtectedRoute>
           } />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />

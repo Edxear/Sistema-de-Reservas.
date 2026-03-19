@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
+import { jsPDF } from 'jspdf';
 
 // Importamos nuestro hook personalizado y los servicios
 import { useAuth } from '../context/AuthContext';
@@ -81,6 +82,7 @@ export default function Dashboard() {
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [adminMetrics, setAdminMetrics] = useState(null);
+  const [metricsPeriod, setMetricsPeriod] = useState('7d');
   const [patientSummaries, setPatientSummaries] = useState([]);
   const [patientSearch, setPatientSearch] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
@@ -291,6 +293,63 @@ export default function Dashboard() {
     { key: 'cancelada', label: 'Canceladas', value: adminMetrics?.byEstado?.cancelada ?? 0 },
   ];
   const maxStatusValue = Math.max(1, ...statusChartRows.map((row) => row.value));
+  const maxTrendValue = Math.max(1, ...(adminMetrics?.trend || []).map((item) => item.total));
+
+  const exportPatientCSV = () => {
+    if (!patientSummaries.length) {
+      toast.info('No hay pacientes para exportar');
+      return;
+    }
+
+    const header = ['Nombre', 'Email', 'Telefono', 'Obra Social', 'Afiliado', 'Alergias', 'Total Turnos', 'Proximos Turnos'];
+    const lines = patientSummaries.map((p) => [
+      p.nombre,
+      p.email,
+      p.telefono,
+      p.obraSocial,
+      p.numeroAfiliado,
+      p.alergias,
+      p.totalTurnos,
+      p.proximosTurnos,
+    ]);
+
+    const csv = [header, ...lines]
+      .map((row) => row.map((cell) => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'reporte_pacientes.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportMetricsPDF = () => {
+    if (!adminMetrics) {
+      toast.info('No hay metricas para exportar');
+      return;
+    }
+
+    const pdf = new jsPDF();
+    pdf.setFontSize(16);
+    pdf.text('Reporte de Consultas', 14, 18);
+    pdf.setFontSize(11);
+    pdf.text(`Periodo: ${metricsPeriod}`, 14, 28);
+    pdf.text(`Total turnos: ${adminMetrics.total}`, 14, 36);
+    pdf.text(`Turnos hoy: ${adminMetrics.todayTotal}`, 14, 43);
+
+    let y = 54;
+    statusChartRows.forEach((row) => {
+      pdf.text(`${row.label}: ${row.value}`, 14, y);
+      y += 7;
+    });
+
+    pdf.save(`reporte_consultas_${metricsPeriod}.pdf`);
+  };
 
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
@@ -308,7 +367,7 @@ export default function Dashboard() {
 
       if (user?.rol === 'admin') {
         const [metricsRes, patientRes] = await Promise.all([
-          getBookingMetrics(),
+          getBookingMetrics(metricsPeriod),
           getPatientSummaries(),
         ]);
         setAdminMetrics(metricsRes.data || null);
@@ -324,7 +383,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters, logout, navigate, user?.rol]); // Dependencias: filters, logout, navigate
+  }, [filters, logout, navigate, user?.rol, metricsPeriod]); // Dependencias: filters, logout, navigate
 
   // Efecto para cargar datos al montar el componente o cuando cambian los filtros
   useEffect(() => {
@@ -642,6 +701,21 @@ export default function Dashboard() {
             <article className={styles.metricCard}><span>Ausentes</span><strong>{adminMetrics?.byEstado?.ausente ?? '-'}</strong></article>
           </div>
 
+          <div className={styles.metricsControls}>
+            <div className={styles.field}>
+              <label>Periodo</label>
+              <select className={styles.select} value={metricsPeriod} onChange={(e) => setMetricsPeriod(e.target.value)}>
+                <option value="today">Hoy</option>
+                <option value="7d">Ultimos 7 dias</option>
+                <option value="30d">Ultimos 30 dias</option>
+              </select>
+            </div>
+            <div className={styles.actions}>
+              <button className={styles.secondaryBtn} onClick={exportMetricsPDF}>Exportar metricas PDF</button>
+              <button className={styles.secondaryBtn} onClick={exportPatientCSV}>Exportar pacientes CSV</button>
+            </div>
+          </div>
+
           <div className={styles.chartBox}>
             <h3>Estado de consultas</h3>
             <div className={styles.chartRows}>
@@ -654,6 +728,22 @@ export default function Dashboard() {
                   <span className={styles.chartValue}>{row.value}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className={styles.chartBox}>
+            <h3>Tendencia de consultas</h3>
+            <div className={styles.chartRows}>
+              {(adminMetrics?.trend || []).map((row) => (
+                <div className={styles.chartRow} key={row.label}>
+                  <span className={styles.chartLabel}>{row.label}</span>
+                  <div className={styles.chartBarTrack}>
+                    <div className={styles.chartBarFill} style={{ width: `${(row.total / maxTrendValue) * 100}%` }} />
+                  </div>
+                  <span className={styles.chartValue}>{row.total}</span>
+                </div>
+              ))}
+              {(adminMetrics?.trend || []).length === 0 && <p className={styles.chartEmpty}>Sin datos para el periodo seleccionado.</p>}
             </div>
           </div>
 
@@ -682,8 +772,8 @@ export default function Dashboard() {
                     Proximo turno: {summary.proximoTurno ? `${new Date(summary.proximoTurno.fecha).toLocaleDateString()} ${summary.proximoTurno.hora} - ${summary.proximoTurno.servicio}` : 'Sin turnos futuros'}
                   </div>
                   <div className={styles.patientActions}>
-                    <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${summary.pacienteId}`)}>
-                      Ver historial
+                    <button className={styles.secondaryBtn} onClick={() => navigate(`/pacientes/${summary.pacienteId}`)}>
+                      Ver ficha completa
                     </button>
                     <button className={styles.secondaryBtn} onClick={() => navigate(`/recetas?pacienteId=${summary.pacienteId}`)}>
                       Crear receta

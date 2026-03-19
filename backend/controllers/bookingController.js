@@ -119,15 +119,46 @@ exports.getBookingMetrics = async (req, res) => {
       return res.status(403).json({ message: 'Solo administradores pueden ver metricas' });
     }
 
+    const period = req.query.period || '7d';
+    const now = new Date();
+    const startRange = new Date(now);
+
+    if (period === 'today') {
+      startRange.setHours(0, 0, 0, 0);
+    } else if (period === '30d') {
+      startRange.setDate(startRange.getDate() - 29);
+      startRange.setHours(0, 0, 0, 0);
+    } else {
+      startRange.setDate(startRange.getDate() - 6);
+      startRange.setHours(0, 0, 0, 0);
+    }
+
     const startToday = new Date();
     startToday.setHours(0, 0, 0, 0);
     const endToday = new Date(startToday);
     endToday.setDate(endToday.getDate() + 1);
 
-    const [total, byEstadoAgg, todayTotal] = await Promise.all([
+    const [total, byEstadoAgg, todayTotal, trendAgg] = await Promise.all([
       Booking.countDocuments({}),
-      Booking.aggregate([{ $group: { _id: '$estado', count: { $sum: 1 } } }]),
-      Booking.countDocuments({ fecha: { $gte: startToday, $lt: endToday } })
+      Booking.aggregate([
+        { $match: { fecha: { $gte: startRange } } },
+        { $group: { _id: '$estado', count: { $sum: 1 } } }
+      ]),
+      Booking.countDocuments({ fecha: { $gte: startToday, $lt: endToday } }),
+      Booking.aggregate([
+        { $match: { fecha: { $gte: startRange } } },
+        {
+          $group: {
+            _id: {
+              y: { $year: '$fecha' },
+              m: { $month: '$fecha' },
+              d: { $dayOfMonth: '$fecha' }
+            },
+            total: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id.y': 1, '_id.m': 1, '_id.d': 1 } }
+      ])
     ]);
 
     const byEstado = {
@@ -145,7 +176,12 @@ exports.getBookingMetrics = async (req, res) => {
       }
     }
 
-    res.json({ total, todayTotal, byEstado });
+    const trend = trendAgg.map((row) => ({
+      label: `${String(row._id.d).padStart(2, '0')}/${String(row._id.m).padStart(2, '0')}`,
+      total: row.total,
+    }));
+
+    res.json({ total, todayTotal, byEstado, period, trend });
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo metricas de turnos', error });
   }
