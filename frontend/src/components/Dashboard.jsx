@@ -282,6 +282,16 @@ export default function Dashboard() {
       .some((value) => (value || '').toLowerCase().includes(search));
   });
 
+  const statusChartRows = [
+    { key: 'pendiente', label: 'Pendientes', value: adminMetrics?.byEstado?.pendiente ?? 0 },
+    { key: 'confirmada', label: 'Confirmadas', value: adminMetrics?.byEstado?.confirmada ?? 0 },
+    { key: 'reprogramada', label: 'Reprogramadas', value: adminMetrics?.byEstado?.reprogramada ?? 0 },
+    { key: 'atendida', label: 'Atendidas', value: adminMetrics?.byEstado?.atendida ?? 0 },
+    { key: 'ausente', label: 'Ausentes', value: adminMetrics?.byEstado?.ausente ?? 0 },
+    { key: 'cancelada', label: 'Canceladas', value: adminMetrics?.byEstado?.cancelada ?? 0 },
+  ];
+  const maxStatusValue = Math.max(1, ...statusChartRows.map((row) => row.value));
+
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -578,7 +588,7 @@ export default function Dashboard() {
                     <>
                       <button
                         className={styles.secondaryBtn}
-                        onClick={() => handleReschedule(b)}
+                        onClick={() => openRescheduleModal(b)}
                         disabled={statusUpdatingId === b._id}
                       >
                         Reprogramar
@@ -632,6 +642,21 @@ export default function Dashboard() {
             <article className={styles.metricCard}><span>Ausentes</span><strong>{adminMetrics?.byEstado?.ausente ?? '-'}</strong></article>
           </div>
 
+          <div className={styles.chartBox}>
+            <h3>Estado de consultas</h3>
+            <div className={styles.chartRows}>
+              {statusChartRows.map((row) => (
+                <div className={styles.chartRow} key={row.key}>
+                  <span className={styles.chartLabel}>{row.label}</span>
+                  <div className={styles.chartBarTrack}>
+                    <div className={styles.chartBarFill} style={{ width: `${(row.value / maxStatusValue) * 100}%` }} />
+                  </div>
+                  <span className={styles.chartValue}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className={styles.patientSearchBox}>
             <h3>Buscador rápido de pacientes</h3>
             <input
@@ -655,6 +680,14 @@ export default function Dashboard() {
                   </div>
                   <div className={styles.patientMeta}>
                     Proximo turno: {summary.proximoTurno ? `${new Date(summary.proximoTurno.fecha).toLocaleDateString()} ${summary.proximoTurno.hora} - ${summary.proximoTurno.servicio}` : 'Sin turnos futuros'}
+                  </div>
+                  <div className={styles.patientActions}>
+                    <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${summary.pacienteId}`)}>
+                      Ver historial
+                    </button>
+                    <button className={styles.secondaryBtn} onClick={() => navigate(`/recetas?pacienteId=${summary.pacienteId}`)}>
+                      Crear receta
+                    </button>
                   </div>
                 </article>
               ))}

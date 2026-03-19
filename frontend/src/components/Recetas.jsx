@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../services/api';
 import html2canvas from 'html2canvas';
@@ -27,6 +28,7 @@ const plantillaDesdeObraSocial = (obraSocial = '') => {
 };
 
 export default function Recetas() {
+  const location = useLocation();
   const [medicamentos, setMedicamentos] = useState([initialMed]);
   const [favoritas, setFavoritas] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -81,6 +83,19 @@ export default function Recetas() {
     () => pacientes.find((p) => p._id === pacienteId) || null,
     [pacientes, pacienteId]
   );
+
+  const pacienteIdQuery = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('pacienteId') || '';
+  }, [location.search]);
+
+  useEffect(() => {
+    if (!pacienteIdQuery || pacientes.length === 0) return;
+    const found = pacientes.find((p) => p._id === pacienteIdQuery);
+    if (!found) return;
+    setPacienteId(found._id);
+    setPacienteQuery(`${found.nombre} (${found.email})`);
+  }, [pacienteIdQuery, pacientes]);
 
   useEffect(() => {
     if (!pacienteSeleccionado) return;

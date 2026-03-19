@@ -8,6 +8,52 @@ import { crearPreferencia } from '../services/pagoService';
 import Chat from './Chat';
 import styles from './Dashboard.module.css';
 
+const normalizarTexto = (valor = '') => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+const formatDia = (fecha) => {
+  const date = new Date(`${fecha}T00:00:00`);
+  return new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date);
+};
+
+const horaAMinutos = (hora) => {
+  const [hours, minutes] = hora.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
+const minutosAHora = (minutos) => {
+  const hours = String(Math.floor(minutos / 60)).padStart(2, '0');
+  const mins = String(minutos % 60).padStart(2, '0');
+  return `${hours}:${mins}`;
+};
+
+const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings, excludeBookingId = '' }) => {
+  if (!doctor || !fecha || !duration) return [];
+
+  const dia = normalizarTexto(formatDia(fecha));
+  const bloques = (doctor.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === dia);
+  if (bloques.length === 0) return [];
+
+  const bookedTimes = new Set(
+    reservedBookings
+      .filter((booking) => String(booking._id) !== String(excludeBookingId))
+      .filter((booking) => ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado))
+      .map((booking) => booking.hora)
+  );
+
+  const slots = [];
+  for (const bloque of bloques) {
+    const inicio = horaAMinutos(bloque.horaInicio);
+    const fin = horaAMinutos(bloque.horaFin);
+
+    for (let current = inicio; current + duration <= fin; current += duration) {
+      const slot = minutosAHora(current);
+      if (!bookedTimes.has(slot)) slots.push(slot);
+    }
+  }
+
+  return slots;
+};
+
 export default function Turnos() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -17,6 +63,17 @@ export default function Turnos() {
   const [total, setTotal] = useState(0);
   const [chatPartner, setChatPartner] = useState(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+  const [rescheduleModal, setRescheduleModal] = useState({
+    open: false,
+    bookingId: '',
+    servicio: null,
+    medico: null,
+    fecha: '',
+    hora: '',
+    slots: [],
+    loading: false,
+  });
   const [filters, setFilters] = useState({ estado: '', page: 1, limit: 10 });
   const bookingsSectionRef = useRef(null);
 
@@ -97,22 +154,83 @@ export default function Turnos() {
     }
   };
 
-  const handleReschedule = async (booking) => {
-    const nuevaFecha = window.prompt('Nueva fecha del turno (YYYY-MM-DD)', String(booking.fecha).slice(0, 10));
-    if (!nuevaFecha) return;
+  useEffect(() => {
+    const loadRescheduleAvailability = async () => {
+      if (!rescheduleModal.open || !rescheduleModal.medico?._id || !rescheduleModal.fecha || !rescheduleModal.servicio?.duracion) {
+        return;
+      }
 
-    const nuevaHora = window.prompt('Nueva hora del turno (HH:mm)', booking.hora);
-    if (!nuevaHora) return;
+      setRescheduleModal((prev) => ({ ...prev, loading: true }));
+      try {
+        const res = await getBookings({ medico: rescheduleModal.medico._id, fecha: rescheduleModal.fecha, limit: 200, page: 1 });
+        const slots = buildAvailableSlots({
+          doctor: rescheduleModal.medico,
+          fecha: rescheduleModal.fecha,
+          duration: rescheduleModal.servicio.duracion,
+          reservedBookings: res.data.bookings || [],
+          excludeBookingId: rescheduleModal.bookingId,
+        });
+        setRescheduleModal((prev) => ({
+          ...prev,
+          slots,
+          hora: slots.includes(prev.hora) ? prev.hora : '',
+          loading: false,
+        }));
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'No se pudo consultar horarios para reprogramar');
+        setRescheduleModal((prev) => ({ ...prev, slots: [], loading: false }));
+      }
+    };
 
-    setStatusUpdatingId(booking._id);
+    loadRescheduleAvailability();
+  }, [rescheduleModal.open, rescheduleModal.medico, rescheduleModal.fecha, rescheduleModal.servicio, rescheduleModal.bookingId]);
+
+  const openRescheduleModal = (booking) => {
+    setRescheduleModal({
+      open: true,
+      bookingId: booking._id,
+      servicio: booking.servicio,
+      medico: booking.medico,
+      fecha: String(booking.fecha).slice(0, 10),
+      hora: booking.hora,
+      slots: [],
+      loading: false,
+    });
+  };
+
+  const closeRescheduleModal = () => {
+    setRescheduleModal({
+      open: false,
+      bookingId: '',
+      servicio: null,
+      medico: null,
+      fecha: '',
+      hora: '',
+      slots: [],
+      loading: false,
+    });
+  };
+
+  const submitReschedule = async () => {
+    if (!rescheduleModal.fecha || !rescheduleModal.hora) {
+      toast.error('Selecciona fecha y horario para reprogramar');
+      return;
+    }
+
+    setModalLoading(true);
     try {
-      await updateBooking(booking._id, { fecha: nuevaFecha, hora: nuevaHora, estado: 'reprogramada' });
+      await updateBooking(rescheduleModal.bookingId, {
+        fecha: rescheduleModal.fecha,
+        hora: rescheduleModal.hora,
+        estado: 'reprogramada'
+      });
       toast.success('Consulta reprogramada correctamente');
+      closeRescheduleModal();
       await loadBookings();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo reprogramar la consulta');
     } finally {
-      setStatusUpdatingId('');
+      setModalLoading(false);
     }
   };
 
@@ -227,7 +345,7 @@ export default function Turnos() {
                     <>
                       <button
                         className={styles.secondaryBtn}
-                        onClick={() => handleReschedule(b)}
+                        onClick={() => openRescheduleModal(b)}
                         disabled={statusUpdatingId === b._id}
                       >
                         Reprogramar
@@ -266,6 +384,48 @@ export default function Turnos() {
           </div>
         )}
       </section>
+
+      {rescheduleModal.open && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3>Reprogramar consulta</h3>
+            <p className={styles.modalSub}>Profesional: {rescheduleModal.medico?.nombre || '-'}</p>
+
+            <div className={styles.field}>
+              <label>Nueva fecha</label>
+              <input
+                className={styles.input}
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+                value={rescheduleModal.fecha}
+                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, fecha: e.target.value }))}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label>Nuevo horario</label>
+              <select
+                className={styles.select}
+                value={rescheduleModal.hora}
+                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, hora: e.target.value }))}
+                disabled={rescheduleModal.loading}
+              >
+                <option value="">{rescheduleModal.loading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}</option>
+                {rescheduleModal.slots.map((slot) => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button className={styles.secondaryBtn} onClick={closeRescheduleModal} disabled={modalLoading}>Cancelar</button>
+              <button className={styles.primaryBtn} onClick={submitReschedule} disabled={modalLoading || rescheduleModal.loading}>
+                {modalLoading ? 'Guardando...' : 'Confirmar reprogramación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {chatPartner && <Chat otroUsuario={chatPartner} onCerrar={() => setChatPartner(null)} />}
     </div>
