@@ -40,6 +40,46 @@
       "rol": "admin",
       "especialidad": "Pediatria",
       "matriculaProfesional": "MP-PDT-47813"
+    },
+    {
+      "nombre": "Dr. Bruno Herrera",
+      "email": "bruno.herrera@consultoriosanpablo.com",
+      "telefono": "3415101006",
+      "rol": "admin",
+      "especialidad": "Dermatologia",
+      "matriculaProfesional": "MP-DRM-61592"
+    },
+    {
+      "nombre": "Dra. Julia Ferrero",
+      "email": "julia.ferrero@consultoriosanpablo.com",
+      "telefono": "3415101007",
+      "rol": "admin",
+      "especialidad": "Endocrinologia",
+      "matriculaProfesional": "MP-END-70211"
+    },
+    {
+      "nombre": "Dra. Camila Suárez",
+      "email": "camila.suarez@consultoriosanpablo.com",
+      "telefono": "3415101008",
+      "rol": "admin",
+      "especialidad": "Ginecologia",
+      "matriculaProfesional": "MP-GIN-55844"
+    },
+    {
+      "nombre": "Dr. Esteban Loyola",
+      "email": "esteban.loyola@consultoriosanpablo.com",
+      "telefono": "3415101009",
+      "rol": "admin",
+      "especialidad": "Urologia",
+      "matriculaProfesional": "MP-URO-64009"
+    },
+    {
+      "nombre": "Dr. Alan Murua",
+      "email": "alan.murua@consultoriosanpablo.com",
+      "telefono": "3415101010",
+      "rol": "admin",
+      "especialidad": "Otorrinolaringologia",
+      "matriculaProfesional": "MP-ORL-73390"
     }
   ],
   "secretarias": [

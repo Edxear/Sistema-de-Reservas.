@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import API from '../services/api';
 
 export default function HistoriaClinica() {
+  const navigate = useNavigate();
   const { pacienteId } = useParams();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,13 @@ export default function HistoriaClinica() {
 
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: 'auto' }}>
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        style={{ marginBottom: 10, border: '1px solid #cbd5e1', borderRadius: 8, padding: '8px 12px', background: '#fff' }}
+      >
+        Volver
+      </button>
       <h1>Historia Clínica</h1>
       {entries.length === 0 ? (
         <p>Este paciente no tiene historial clínico registrado todavía.</p>

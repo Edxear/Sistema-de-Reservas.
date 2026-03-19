@@ -37,6 +37,16 @@ export default function PacienteDetalle() {
     load();
   }, [pacienteId]);
 
+  useEffect(() => {
+    const saved = sessionStorage.getItem('scroll:pacienteDetalle');
+    if (!saved) return;
+    const y = Number(saved);
+    if (!Number.isNaN(y)) {
+      requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: 'auto' }));
+    }
+    sessionStorage.removeItem('scroll:pacienteDetalle');
+  }, []);
+
   const paciente = useMemo(() => {
     if (!bookings.length) return null;
     return bookings[0]?.usuario || null;
@@ -68,7 +78,10 @@ export default function PacienteDetalle() {
           )}
         </div>
         <div className={styles.actions}>
-          <button className={styles.btn} onClick={() => navigate(`/historial/${pacienteId}`)}>Historia completa</button>
+          <button className={styles.btn} onClick={() => {
+            sessionStorage.setItem('scroll:pacienteDetalle', String(window.scrollY));
+            navigate(`/historial/${pacienteId}`);
+          }}>Historia completa</button>
           <button className={styles.btn} onClick={() => navigate(`/recetas?pacienteId=${pacienteId}`)}>Nueva receta</button>
           <button className={styles.btn} onClick={() => navigate('/dashboard')}>Volver</button>
         </div>

@@ -100,6 +100,11 @@
   font-size: 0.82rem;
 }
 
+.helperTextError {
+  color: #b42318;
+  font-size: 0.82rem;
+}
+
 .submitRow {
   margin-top: 12px;
 }
@@ -264,6 +269,15 @@
   gap: 10px;
 }
 
+.metricsControls {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .metricCard {
   border: 1px solid #d6e3f1;
   border-radius: 10px;
@@ -305,6 +319,12 @@
 .chartRows {
   display: grid;
   gap: 8px;
+}
+
+.chartEmpty {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .chartRow {
@@ -397,6 +417,40 @@
   margin: 0;
 }
 
+.scheduleLegend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dayChip {
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  gap: 3px;
+  border: 1px solid;
+}
+
+.dayChip strong {
+  font-size: 0.85rem;
+}
+
+.dayChip span {
+  font-size: 0.8rem;
+}
+
+.dayAvailable {
+  background: #ecfdf3;
+  border-color: #b7ebcd;
+  color: #067647;
+}
+
+.dayUnavailable {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #b42318;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;
@@ -415,6 +469,10 @@
 
   .metricsGrid,
   .patientList {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleLegend {
     grid-template-columns: 1fr;
   }
 }

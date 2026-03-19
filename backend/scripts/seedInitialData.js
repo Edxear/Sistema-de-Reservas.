@@ -78,6 +78,31 @@ const horariosPorEspecialidad = {
     { dia: 'Martes', horaInicio: '14:00', horaFin: '18:00' },
     { dia: 'Jueves', horaInicio: '14:00', horaFin: '18:00' },
     { dia: 'Sabado', horaInicio: '09:00', horaFin: '12:00' }
+  ],
+  Dermatologia: [
+    { dia: 'Lunes', horaInicio: '10:00', horaFin: '14:00' },
+    { dia: 'Miercoles', horaInicio: '10:00', horaFin: '14:00' },
+    { dia: 'Viernes', horaInicio: '15:00', horaFin: '19:00' }
+  ],
+  Endocrinologia: [
+    { dia: 'Martes', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Jueves', horaInicio: '09:00', horaFin: '13:00' },
+    { dia: 'Viernes', horaInicio: '14:00', horaFin: '17:00' }
+  ],
+  Ginecologia: [
+    { dia: 'Lunes', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Miercoles', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Sabado', horaInicio: '09:00', horaFin: '12:00' }
+  ],
+  Urologia: [
+    { dia: 'Martes', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Jueves', horaInicio: '14:00', horaFin: '18:00' },
+    { dia: 'Viernes', horaInicio: '09:00', horaFin: '12:00' }
+  ],
+  Otorrinolaringologia: [
+    { dia: 'Lunes', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Miercoles', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Viernes', horaInicio: '13:00', horaFin: '17:00' }
   ]
 };
 
