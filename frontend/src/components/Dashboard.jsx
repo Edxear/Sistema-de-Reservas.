@@ -138,8 +138,7 @@ export default function Dashboard() {
     if (n.includes('neurolog')) return 'neurologia';
     if (n.includes('traumatolog') || n.includes('osteo')) return 'traumatologia';
     if (n.includes('pediatr')) return 'pediatria';
-    if (n.includes('cardiolog')) return 'cardiologia';
-    if (n.includes('clinica')) return 'clinica medica';
+    if (n.includes('clinica medica')) return 'clinica medica';
     return '';
   }, []);
 

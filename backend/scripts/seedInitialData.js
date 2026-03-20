@@ -48,11 +48,20 @@ const medicamentosPorEnfermedad = {
 
 const serviciosBase = [
   { nombre: 'Consulta Clinica General', descripcion: 'Control clinico integral', duracion: 30, precio: 15000, activo: true },
-  { nombre: 'Control Cardiologico', descripcion: 'Seguimiento cardiovascular', duracion: 40, precio: 22000, activo: true },
+  { nombre: 'Seguimiento Preventivo', descripcion: 'Control preventivo periodico de salud', duracion: 30, precio: 14000, activo: true },
   { nombre: 'Consulta Pediatrica', descripcion: 'Atencion pediatrica de rutina', duracion: 30, precio: 16000, activo: true },
   { nombre: 'Consulta Neurologica', descripcion: 'Evaluacion neurologica especializada', duracion: 45, precio: 26000, activo: true },
   { nombre: 'Consulta Traumatologica', descripcion: 'Evaluacion osteomuscular', duracion: 35, precio: 21000, activo: true }
 ];
+
+// Mapa especialidad → servicio compatible con la validación del backend
+const SERVICIO_POR_ESPECIALIDAD = {
+  'Clinica Medica': 'Consulta Clinica General',
+  'Pediatria': 'Consulta Pediatrica',
+  'Neurologia': 'Consulta Neurologica',
+  'Traumatologia': 'Consulta Traumatologica',
+  // El resto usa 'Seguimiento Preventivo' (no requiere especialidad específica)
+};
 
 const horariosPorEspecialidad = {
   Enfermeria: [
@@ -194,7 +203,7 @@ async function run() {
         { email: /@paciente\.demo$/ }
       ]
     }),
-    Service.deleteMany({ nombre: { $in: serviciosBase.map((s) => s.nombre) } }),
+    Service.deleteMany({}),  // Limpiar todos los servicios para evitar inconsistencias al renombrar
     Booking.deleteMany({}),
     Receta.deleteMany({}),
     HistoriaClinica.deleteMany({}),
@@ -261,7 +270,6 @@ async function run() {
 
   for (let i = 0; i < pacientes.length; i += 1) {
     const paciente = pacientes[i];
-    const servicio = randomFrom(servicios);
     const enfermedad = paciente.enfermedadPrincipal || randomFrom(enfermedades);
 
     const fecha = makeDate((i % 7) + 1);
@@ -271,6 +279,9 @@ async function run() {
       console.warn(`No se encontró médico disponible para ${fecha.toISOString().slice(0, 10)}`);
       continue;
     }
+
+    const servicioNombre = SERVICIO_POR_ESPECIALIDAD[medico.especialidad] || 'Seguimiento Preventivo';
+    const servicio = servicios.find((s) => s.nombre === servicioNombre) || servicios[0];
 
     const hora = obtenerHoraDisponible(medico, fecha, horariosBooleanos);
 

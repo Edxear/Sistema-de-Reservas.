@@ -31,8 +31,7 @@ function inferirEspecialidadPorServicio(serviceName = '') {
   if (n.includes('neurolog')) return 'neurologia';
   if (n.includes('traumatolog') || n.includes('osteo')) return 'traumatologia';
   if (n.includes('pediatr')) return 'pediatria';
-  if (n.includes('cardiolog')) return 'cardiologia';
-  if (n.includes('clinica')) return 'clinica medica';
+  if (n.includes('clinica medica')) return 'clinica medica';
   return '';
 }
 
@@ -74,7 +73,8 @@ async function validarDisponibilidad({ medicoId, fecha, hora, servicioId, bookin
 
   const especialidadRequerida = inferirEspecialidadPorServicio(servicio.nombre);
   const especialidadMedico = (medico.especialidad || '').toLowerCase();
-  if (especialidadRequerida && !especialidadMedico.includes(especialidadRequerida)) {
+  // Solo verificar especialidad en nuevos turnos; al reprogramar (bookingId presente) solo verificar disponibilidad horaria
+  if (!bookingId && especialidadRequerida && !especialidadMedico.includes(especialidadRequerida)) {
     return { ok: false, status: 409, message: 'El profesional seleccionado no atiende ese tipo de consulta' };
   }
 
