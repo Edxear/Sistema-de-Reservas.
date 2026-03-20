@@ -1,5 +1,11 @@
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const Booking = require('../models/Booking');
+const User = require('../models/User');
+const {
+  enviarEmailBackground,
+  emailConfirmarReserva,
+  emailReservaAlMedico,
+} = require('../utils/mailer');
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
@@ -65,7 +71,64 @@ const webhook = async (req, res) => {
       const payment = await paymentClient.get({ id: data.id });
 
       if (payment.status === 'approved') {
-        await Booking.findByIdAndUpdate(payment.external_reference, { estado: 'confirmada' });
+        // Actualizar estado a confirmada
+        const booking = await Booking.findByIdAndUpdate(
+          payment.external_reference,
+          { estado: 'confirmada' },
+          { new: true }
+        )
+          .populate('usuario', 'nombre email telefono')
+          .populate('servicio', 'nombre precio')
+          .populate('medico', 'nombre email especialidad');
+
+        // Enviar emails de confirmación en background
+        if (booking) {
+          setImmediate(async () => {
+            try {
+              const paciente = booking.usuario;
+              const medico = booking.medico;
+              const servicio = booking.servicio;
+
+              // Email al paciente
+              if (paciente?.email) {
+                const html = emailConfirmarReserva(
+                  paciente.nombre,
+                  medico?.nombre || 'Profesional',
+                  booking.fecha,
+                  booking.hora,
+                  servicio?.nombre || 'Servicio',
+                  servicio?.precio || 0
+                );
+                enviarEmailBackground(
+                  paciente.email,
+                  '✅ ¡Tu reserva ha sido confirmada!',
+                  html
+                );
+              }
+
+              // Email al médico
+              if (medico?.email) {
+                const html = emailReservaAlMedico(
+                  medico.nombre,
+                  paciente?.nombre || 'Paciente',
+                  booking.fecha,
+                  booking.hora,
+                  servicio?.nombre || 'Servicio',
+                  paciente?.telefono
+                );
+                enviarEmailBackground(
+                  medico.email,
+                  '📅 Nuevo turno asignado en tu agenda',
+                  html
+                );
+              }
+
+              console.log(`✓ [WEBHOOK] Emails de confirmación enviados para booking ${payment.external_reference}`);
+            } catch (emailErr) {
+              console.error(`✗ [WEBHOOK] Error enviando emails:`, emailErr.message);
+            }
+          });
+        }
       }
     }
     res.sendStatus(200);
