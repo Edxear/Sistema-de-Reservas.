@@ -1,5 +1,16 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
+
+process.env.NODE_ENV = 'test';
+jest.mock('../config/db', () => jest.fn(async () => {}));
+
 const app = require('../server');
+
+afterAll(async () => {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+});
 
 describe('Auth validations', () => {
   it('should return 400 when register data is invalid', async () => {

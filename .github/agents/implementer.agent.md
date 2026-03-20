@@ -5,7 +5,7 @@ tools: [search, read, edit, execute, todo, agent]
 argument-hint: "Comparte el plan técnico o indica qué archivo, feature o corrección debe implementarse."
 handoffs:
   - label: "Solicitar Revision de Codigo"
-    agent: Reviewer
+    agent: Revisor
     prompt: "Revisa estos cambios en busca de calidad, seguridad y buenas prácticas."
 ---
 
@@ -42,4 +42,4 @@ Eres un Desarrollador Senior especializado en implementación.
 - Pendientes o riesgos residuales
 
 ### Siguiente paso recomendado
-- Usa el handoff `Solicitar Revision de Codigo` para pasar a Reviewer.
+- Usa el handoff `Solicitar Revision de Codigo` para pasar a Revisor.

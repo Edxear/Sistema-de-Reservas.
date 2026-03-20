@@ -13,25 +13,10 @@ const seedUsers = require('../seeds/usuarios-iniciales.json');
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD;
+const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD || seedUsers.passwordComun || 'clinica123';
 
 if (!MONGODB_URI) {
   console.error('Falta MONGODB_URI en .env');
-  process.exit(1);
-}
-
-if (!SEED_INITIAL_PASSWORD) {
-  console.error('Falta SEED_INITIAL_PASSWORD en .env para ejecutar el seed inicial');
-  process.exit(1);
-}
-
-if (SEED_INITIAL_PASSWORD.length < 12) {
-  console.error('SEED_INITIAL_PASSWORD debe tener al menos 12 caracteres');
-  process.exit(1);
-}
-
-if (!/[A-Z]/.test(SEED_INITIAL_PASSWORD) || !/[a-z]/.test(SEED_INITIAL_PASSWORD) || !/[0-9]/.test(SEED_INITIAL_PASSWORD)) {
-  console.error('SEED_INITIAL_PASSWORD debe incluir mayúsculas, minúsculas y números');
   process.exit(1);
 }
 
@@ -73,7 +58,11 @@ const horariosPorEspecialidad = {
   Enfermeria: [
     { dia: 'Lunes', horaInicio: '08:00', horaFin: '12:00' },
     { dia: 'Martes', horaInicio: '08:00', horaFin: '12:00' },
-    { dia: 'Jueves', horaInicio: '14:00', horaFin: '18:00' }
+    { dia: 'Miercoles', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Jueves', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Viernes', horaInicio: '08:00', horaFin: '12:00' },
+    { dia: 'Sabado', horaInicio: '09:00', horaFin: '12:00' },
+    { dia: 'Domingo', horaInicio: '10:00', horaFin: '12:00' }
   ],
   'Clinica Medica': [
     { dia: 'Lunes', horaInicio: '09:00', horaFin: '13:00' },
@@ -96,9 +85,8 @@ const horariosPorEspecialidad = {
     { dia: 'Sabado', horaInicio: '09:00', horaFin: '12:00' }
   ],
   Dermatologia: [
-    { dia: 'Lunes', horaInicio: '10:00', horaFin: '14:00' },
-    { dia: 'Miercoles', horaInicio: '10:00', horaFin: '14:00' },
-    { dia: 'Viernes', horaInicio: '15:00', horaFin: '19:00' }
+    { dia: 'Martes', horaInicio: '10:00', horaFin: '14:00' },
+    { dia: 'Jueves', horaInicio: '15:00', horaFin: '19:00' }
   ],
   Endocrinologia: [
     { dia: 'Martes', horaInicio: '09:00', horaFin: '13:00' },
@@ -155,7 +143,7 @@ function construirBioAdmin(especialidad = '') {
   return `${especialidad}. Medico con permisos administrativos.`;
 }
 
-function encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos = {}) {
+function encontrarMedicoDisponible(fecha, medicosAdmins) {
   const diaSemana = obtenerDiaSemana(fecha);
   const medicosDisponibles = medicosAdmins.filter((medico) => {
     const horarios = medico.horariosAtencion || [];
@@ -164,18 +152,11 @@ function encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos = {})
 
   if (medicosDisponibles.length === 0) return null;
 
-  let medico = randomFrom(medicosDisponibles);
-  while (horariosBooleanos[`${medico._id}-${fecha.toISOString().slice(0, 10)}`] && medicosDisponibles.length > 1) {
-    const idx = medicosDisponibles.indexOf(medico);
-    medicosDisponibles.splice(idx, 1);
-    if (medicosDisponibles.length === 0) break;
-    medico = randomFrom(medicosDisponibles);
-  }
-
-  return medico;
+  return randomFrom(medicosDisponibles);
 }
 
 function obtenerHoraDisponible(medico, fecha, horariosBooleanos = {}) {
+  const fechaISO = fecha.toISOString().slice(0, 10);
   const diaSemana = obtenerDiaSemana(fecha);
   const horarios = (medico.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === normalizarTexto(diaSemana));
 
@@ -194,15 +175,10 @@ function obtenerHoraDisponible(medico, fecha, horariosBooleanos = {}) {
 
   if (horas.length === 0) return null;
 
-  let hora = randomFrom(horas);
-  const key = `${medico._id}-${fecha.toISOString().slice(0, 10)}-${hora}`;
-  let intentos = 0;
-  while (horariosBooleanos[key] && intentos < 5) {
-    hora = randomFrom(horas);
-    intentos += 1;
-  }
+  const horasLibres = horas.filter((hora) => !horariosBooleanos[`${medico._id}-${fechaISO}-${hora}`]);
+  if (horasLibres.length === 0) return null;
 
-  return hora;
+  return randomFrom(horasLibres);
 }
 
 async function run() {
@@ -219,6 +195,9 @@ async function run() {
       ]
     }),
     Service.deleteMany({ nombre: { $in: serviciosBase.map((s) => s.nombre) } }),
+    Booking.deleteMany({}),
+    Receta.deleteMany({}),
+    HistoriaClinica.deleteMany({}),
   ]);
 
   const medicosAdmins = [];
@@ -278,12 +257,6 @@ async function run() {
 
   const servicios = await Service.insertMany(serviciosBase);
 
-  await Booking.deleteMany({ usuario: { $in: pacientes.map((p) => p._id) } });
-  await Receta.deleteMany({ paciente: { $in: pacientes.map((p) => p._id) } });
-  await HistoriaClinica.deleteMany({ paciente: { $in: pacientes.map((p) => p._id) } });
-
-  const horas = ['09:00', '09:45', '10:30', '11:15', '12:00', '14:00', '15:00', '16:00'];
-
   const horariosBooleanos = {};
 
   for (let i = 0; i < pacientes.length; i += 1) {
@@ -292,7 +265,7 @@ async function run() {
     const enfermedad = paciente.enfermedadPrincipal || randomFrom(enfermedades);
 
     const fecha = makeDate((i % 7) + 1);
-    const medico = encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos);
+    const medico = encontrarMedicoDisponible(fecha, medicosAdmins);
 
     if (!medico) {
       console.warn(`No se encontró médico disponible para ${fecha.toISOString().slice(0, 10)}`);
