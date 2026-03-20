@@ -13,9 +13,25 @@ const seedUsers = require('../seeds/usuarios-iniciales.json');
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD;
 
 if (!MONGODB_URI) {
   console.error('Falta MONGODB_URI en .env');
+  process.exit(1);
+}
+
+if (!SEED_INITIAL_PASSWORD) {
+  console.error('Falta SEED_INITIAL_PASSWORD en .env para ejecutar el seed inicial');
+  process.exit(1);
+}
+
+if (SEED_INITIAL_PASSWORD.length < 12) {
+  console.error('SEED_INITIAL_PASSWORD debe tener al menos 12 caracteres');
+  process.exit(1);
+}
+
+if (!/[A-Z]/.test(SEED_INITIAL_PASSWORD) || !/[a-z]/.test(SEED_INITIAL_PASSWORD) || !/[0-9]/.test(SEED_INITIAL_PASSWORD)) {
+  console.error('SEED_INITIAL_PASSWORD debe incluir mayúsculas, minúsculas y números');
   process.exit(1);
 }
 
@@ -131,6 +147,14 @@ function horaAMinutos(hora) {
   return (hours * 60) + minutes;
 }
 
+function construirBioAdmin(especialidad = '') {
+  if (normalizarTexto(especialidad) === 'enfermeria') {
+    return 'Enfermeria con permisos administrativos.';
+  }
+
+  return `${especialidad}. Medico con permisos administrativos.`;
+}
+
 function encontrarMedicoDisponible(fecha, medicosAdmins, horariosBooleanos = {}) {
   const diaSemana = obtenerDiaSemana(fecha);
   const medicosDisponibles = medicosAdmins.filter((medico) => {
@@ -204,10 +228,10 @@ async function run() {
       email: m.email,
       telefono: m.telefono,
       rol: 'admin',
-      password: seedUsers.passwordComun,
+      password: SEED_INITIAL_PASSWORD,
       especialidad: m.especialidad,
       matriculaProfesional: m.matriculaProfesional,
-      bio: `${m.especialidad}. Medico con permisos administrativos.`,
+      bio: construirBioAdmin(m.especialidad),
       direccionConsultorio: 'Av. Salud 123, Rosario',
       mapaEmbed: '',
       redesSociales: {
@@ -229,7 +253,7 @@ async function run() {
       email: s.email,
       telefono: s.telefono,
       rol: s.rol,
-      password: seedUsers.passwordComun,
+      password: SEED_INITIAL_PASSWORD,
       areaSecretaria: s.areaSecretaria,
       turnoLaboral: s.turnoLaboral,
       bio: 'Secretaria administrativa del consultorio'
@@ -244,7 +268,7 @@ async function run() {
       email: p.email,
       telefono: p.telefono,
       rol: p.rol,
-      password: seedUsers.passwordComun,
+      password: SEED_INITIAL_PASSWORD,
       obraSocial: p.obraSocial,
       numeroAfiliado: p.numeroAfiliado,
       bio: `Paciente con antecedente de ${p.enfermedadPrincipal}`
@@ -329,7 +353,7 @@ async function run() {
   console.log(`- Turnos: ${conteoTurnos}`);
   console.log(`- Historias clinicas: ${conteoHistorias}`);
   console.log(`- Recetas: ${conteoRecetas}`);
-  console.log(`Password comun de acceso: ${seedUsers.passwordComun}`);
+  console.log('- Password inicial configurada por variable de entorno: SEED_INITIAL_PASSWORD');
 
   await mongoose.disconnect();
 }
