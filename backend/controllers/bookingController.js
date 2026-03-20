@@ -2,6 +2,15 @@ const Booking = require('../models/Booking');
 const HistoriaClinica = require('../models/HistoriaClinica');
 const Service = require('../models/Service');
 const User = require('../models/User');
+const {
+  enviarEmailBackground,
+  emailCrearReserva,
+  emailConfirmarReserva,
+  emailReprogramar,
+  emailCancelar,
+  emailAtendida,
+  emailReservaAlMedico,
+} = require('../utils/mailer');
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -352,6 +361,31 @@ exports.createBooking = async (req, res) => {
       fecha: disponibilidad.fechaNormalizada,
     });
     await booking.save();
+
+    // Enviar email de confirmación de solicitud al paciente (en background)
+    (async () => {
+      try {
+        const paciente = await User.findById(booking.usuario);
+        if (paciente && paciente.email) {
+          const html = emailCrearReserva(
+            paciente.nombre,
+            disponibilidad.medico.nombre,
+            booking.fecha,
+            booking.hora,
+            disponibilidad.servicio.nombre,
+            disponibilidad.servicio.precio || 0
+          );
+          enviarEmailBackground(
+            paciente.email,
+            'Confirmación de tu solicitud de reserva',
+            html
+          );
+        }
+      } catch (err) {
+        console.error('Error enviando email de creación de reserva:', err.message);
+      }
+    })();
+
     res.status(201).json(booking);
   } catch (error) {
     if (error.code === 11000) {
@@ -364,13 +398,18 @@ exports.createBooking = async (req, res) => {
 exports.updateBooking = async (req, res) => {
   try {
     await syncBookingIndexes();
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id)
+      .populate('usuario', 'nombre email telefono')
+      .populate('servicio', 'nombre precio')
+      .populate('medico', 'nombre email especialidad');
+
     if (!booking) return res.status(404).json({ message: 'Reserva no encontrada' });
 
     if (req.body?.estado && !puedeCambiarEstado(req.user, booking, req.body.estado)) {
       return res.status(403).json({ message: 'No tienes permisos para cambiar el estado del turno' });
     }
 
+    const estadoAnterior = booking.estado;
     const payload = { ...req.body };
 
     if (payload.fecha || payload.hora || payload.medico || payload.servicio) {
@@ -397,7 +436,141 @@ exports.updateBooking = async (req, res) => {
     }
 
     const updated = await Booking.findByIdAndUpdate(req.params.id, payload, { new: true })
-      .populate('usuario servicio medico', 'nombre especialidad matriculaProfesional horariosAtencion');
+      .populate('usuario', 'nombre email telefono')
+      .populate('servicio', 'nombre precio')
+      .populate('medico', 'nombre email especialidad');
+
+    // Disparar emails según el cambio de estado (en background)
+    (async () => {
+      try {
+        const paciente = updated.usuario;
+        const medico = updated.medico;
+        const servicio = updated.servicio;
+        const nuevoEstado = updated.estado;
+
+        // Email si se confirma la reserva
+        if (estadoAnterior !== 'confirmada' && nuevoEstado === 'confirmada' && paciente?.email) {
+          const html = emailConfirmarReserva(
+            paciente.nombre,
+            medico?.nombre || 'Profesional',
+            updated.fecha,
+            updated.hora,
+            servicio?.nombre || 'Servicio',
+            servicio?.precio || 0
+          );
+          enviarEmailBackground(
+            paciente.email,
+            '¡Tu reserva ha sido confirmada!',
+            html
+          );
+
+          // También notificar al médico
+          if (medico?.email) {
+            const htmlMedico = emailReservaAlMedico(
+              medico.nombre,
+              paciente.nombre,
+              updated.fecha,
+              updated.hora,
+              servicio?.nombre || 'Servicio',
+              paciente.telefono
+            );
+            enviarEmailBackground(
+              medico.email,
+              'Nuevo turno asignado en tu agenda',
+              htmlMedico
+            );
+          }
+        }
+
+        // Email si se cancela
+        if (nuevoEstado === 'cancelada' && ['pendiente', 'confirmada', 'reprogramada'].includes(estadoAnterior)) {
+          if (paciente?.email) {
+            const html = emailCancelar(
+              paciente.nombre,
+              medico?.nombre || 'Profesional',
+              updated.fecha,
+              updated.hora,
+              servicio?.nombre || 'Servicio',
+              updated.motivoEstado || ''
+            );
+            enviarEmailBackground(
+              paciente.email,
+              'Tu turno ha sido cancelado',
+              html
+            );
+          }
+
+          if (medico?.email) {
+            const html = emailCancelar(
+              medico.nombre,
+              paciente?.nombre || 'Paciente',
+              updated.fecha,
+              updated.hora,
+              servicio?.nombre || 'Servicio',
+              updated.motivoEstado || ''
+            );
+            enviarEmailBackground(
+              medico.email,
+              'Un turno ha sido cancelado',
+              html
+            );
+          }
+        }
+
+        // Email si se reprograma
+        if (nuevoEstado === 'reprogramada' && estadoAnterior !== 'reprogramada') {
+          if (paciente?.email) {
+            const html = emailReprogramar(
+              paciente.nombre,
+              medico?.nombre || 'Profesional',
+              updated.fecha,
+              updated.hora,
+              servicio?.nombre || 'Servicio'
+            );
+            enviarEmailBackground(
+              paciente.email,
+              'Tu turno ha sido reprogramado',
+              html
+            );
+          }
+
+          if (medico?.email) {
+            const html = emailReprogramar(
+              medico.nombre,
+              paciente?.nombre || 'Paciente',
+              updated.fecha,
+              updated.hora,
+              servicio?.nombre || 'Servicio'
+            );
+            enviarEmailBackground(
+              medico.email,
+              'Un turno ha sido reprogramado',
+              html
+            );
+          }
+        }
+
+        // Email si se marca como atendida
+        if (nuevoEstado === 'atendida' && ['confirmada', 'reprogramada'].includes(estadoAnterior)) {
+          if (paciente?.email) {
+            const html = emailAtendida(
+              paciente.nombre,
+              medico?.nombre || 'Profesional',
+              updated.fecha,
+              servicio?.nombre || 'Servicio'
+            );
+            enviarEmailBackground(
+              paciente.email,
+              '¡Tu turno fue completado!',
+              html
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Error en lógica de emails de estado:', err.message);
+      }
+    })();
+
     res.json(updated);
   } catch (error) {
     if (error.code === 11000) {

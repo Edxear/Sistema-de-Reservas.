@@ -1,16 +1,6 @@
 const cron = require('node-cron');
-const nodemailer = require('nodemailer');
 const Booking = require('../models/Booking');
-
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const { sendEmail } = require('../utils/mailer');
 
 async function enviarRecordatorios() {
   const ahora = new Date();
@@ -28,18 +18,46 @@ async function enviarRecordatorios() {
     for (const reserva of reservas) {
       if (!reserva.usuario || !reserva.usuario.email) continue;
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-        to: reserva.usuario.email,
-        subject: 'Recordatorio de tu turno para mañana',
-        html: `
-          <h2>Hola, ${reserva.usuario.nombre}!</h2>
-          <p>Te recordamos que tienes un turno programado para <strong>mañana ${fechaStr}</strong> a las <strong>${reserva.hora}</strong>.</p>
-          <p>Estado: <strong>${reserva.estado}</strong></p>
-          ${reserva.notas ? `<p>Notas: ${reserva.notas}</p>` : ''}
-          <p>Si necesitas cancelar o reprogramar, ingresa a la plataforma.</p>
-        `,
-      });
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+            <title>Recordatorio de tu turno</title>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #4285f4; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; border: 1px solid #ddd; }
+              .footer { font-size: 12px; color: #666; margin-top: 20px; text-align: center; }
+              strong { color: #4285f4; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h2>Recordatorio de Tu Turno</h2>
+              </div>
+              <div class="content">
+                <p>Hola <strong>${reserva.usuario.nombre}</strong>,</p>
+                <p>Te recordamos que tienes un turno programado para <strong>mañana ${fechaStr}</strong> a las <strong>${reserva.hora}</strong>.</p>
+                <p>Estado: <strong>${reserva.estado}</strong></p>
+                ${reserva.notas ? `<p>Notas: ${reserva.notas}</p>` : ''}
+                <p>Si necesitas cancelar o reprogramar, ingresa a la plataforma.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      await sendEmail(
+        reserva.usuario.email,
+        'Recordatorio de tu turno para mañana',
+        html
+      );
 
       console.log(`Recordatorio enviado a ${reserva.usuario.email} para el turno del ${fechaStr}`);
     }
