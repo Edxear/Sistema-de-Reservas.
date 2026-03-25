@@ -2,6 +2,10 @@ const Notificacion = require('../models/Notificacion');
 
 /**
  * Obtiene todas las notificaciones del usuario actual
+const { emitirNotificacion } = require('../utils/socketManager');
+
+/**
+ * Obtiene todas las notificaciones del usuario actual
  * Query params:
  *   - leido: false (solo no leídas, default: mostrar todas)
  *   - limite: número (default: 50)
@@ -114,6 +118,8 @@ exports.crearNotificacion = async (
     });
 
     const saved = await notificacion.save();
+    // Emitir evento socket para notificación en tiempo real
+    emitirNotificacion(usuarioId, saved);
     return saved;
   } catch (error) {
     console.error('Error en crearNotificacion:', error);
