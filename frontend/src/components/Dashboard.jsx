@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { getDoctors } from '../services/appointmentService';
 import { getServices } from '../services/serviceService';
 import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatientSummaries } from '../services/bookingService';
+import { getDisponibilidad } from '../services/disponibilidadService';
 import Chat from './Chat';
 import { crearPreferencia } from '../services/pagoService';
 import styles from './Dashboard.module.css';
@@ -189,13 +190,12 @@ export default function Dashboard() {
 
       setAvailabilityLoading(true);
       try {
-        const res = await getBookings({ medico: bookingData.medico, fecha: bookingData.fecha, limit: 200, page: 1 });
-        const slots = buildAvailableSlots({
-          doctor: doctorSeleccionado,
-          fecha: bookingData.fecha,
-          duration: servicioSeleccionado.duracion,
-          reservedBookings: res.data.bookings || [],
-        });
+        const res = await getDisponibilidad(
+          bookingData.medico,
+          bookingData.fecha,
+          servicioSeleccionado.duracion
+        );
+        const slots = res.slots || [];
         setAvailableSlots(slots);
         if (bookingData.hora && !slots.includes(bookingData.hora)) {
           setBookingData((prev) => ({ ...prev, hora: '' }));
@@ -219,14 +219,13 @@ export default function Dashboard() {
 
       setRescheduleModal((prev) => ({ ...prev, loading: true }));
       try {
-        const res = await getBookings({ medico: rescheduleModal.medico._id, fecha: rescheduleModal.fecha, limit: 200, page: 1 });
-        const slots = buildAvailableSlots({
-          doctor: rescheduleModal.medico,
-          fecha: rescheduleModal.fecha,
-          duration: rescheduleModal.servicio.duracion,
-          reservedBookings: res.data.bookings || [],
-          excludeBookingId: rescheduleModal.bookingId,
-        });
+        const res = await getDisponibilidad(
+          rescheduleModal.medico._id,
+          rescheduleModal.fecha,
+          rescheduleModal.servicio.duracion,
+          rescheduleModal.bookingId
+        );
+        const slots = res.slots || [];
 
         setRescheduleModal((prev) => ({
           ...prev,

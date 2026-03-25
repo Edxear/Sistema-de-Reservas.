@@ -9,10 +9,10 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
  * @param {number} duracion - Duración en minutos (default: 30)
  * @returns {Promise} { slots: ['09:00', '09:30', ...] }
  */
-export const getDisponibilidad = async (medicoId, fecha, duracion = 30) => {
+export const getDisponibilidad = async (medicoId, fecha, duracion = 30, excludeBookingId = '') => {
   try {
     const response = await api.get(`/medicos/${medicoId}/disponibilidad`, {
-      params: { fecha, duracion }
+      params: { fecha, duracion, excludeBookingId }
     });
     return response.data;
   } catch (error) {

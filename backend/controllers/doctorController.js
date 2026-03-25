@@ -1,5 +1,8 @@
 const Doctor = require('../models/Doctor');
 const User = require('../models/User');
+const AgendaMedica = require('../models/AgendaMedica');
+
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
 exports.getDoctors = async (req, res) => {
   try {
@@ -9,6 +12,28 @@ exports.getDoctors = async (req, res) => {
         .select('nombre email telefono especialidad horariosAtencion direccionConsultorio matriculaProfesional')
         .sort({ nombre: 1 })
     ]);
+
+    const staffIds = staffDoctors.map((u) => u._id);
+    const agendasFijas = staffIds.length > 0
+      ? await AgendaMedica.find({
+          medico: { $in: staffIds },
+          tipo: 'fijo',
+          disponible: true
+        }).select('medico dia horaInicio horaFin')
+      : [];
+
+    const agendaPorMedico = new Map();
+    for (const a of agendasFijas) {
+      const key = String(a.medico);
+      if (!agendaPorMedico.has(key)) {
+        agendaPorMedico.set(key, []);
+      }
+      agendaPorMedico.get(key).push({
+        dia: DIAS_SEMANA[a.dia] || 'Lunes',
+        horaInicio: a.horaInicio,
+        horaFin: a.horaFin
+      });
+    }
 
     const normalizedLegacy = legacyDoctors.map((d) => ({
       _id: d._id,
@@ -33,7 +58,9 @@ exports.getDoctors = async (req, res) => {
       email: u.email,
       telefono: u.telefono,
       phone: u.telefono,
-      horariosAtencion: u.horariosAtencion || [],
+      horariosAtencion: (u.horariosAtencion && u.horariosAtencion.length > 0)
+        ? u.horariosAtencion
+        : (agendaPorMedico.get(String(u._id)) || []),
       direccionConsultorio: u.direccionConsultorio || '',
       matriculaProfesional: u.matriculaProfesional || '',
     }));

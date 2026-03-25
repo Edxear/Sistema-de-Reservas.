@@ -13,7 +13,7 @@ const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viern
 exports.getDisponibilidad = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fecha, duracion } = req.query;
+    const { fecha, duracion, excludeBookingId } = req.query;
 
     if (!fecha || !duracion) {
       return res.status(400).json({ message: 'Parámetros "fecha" y "duracion" son requeridos' });
@@ -24,7 +24,7 @@ exports.getDisponibilidad = async (req, res) => {
       return res.status(400).json({ message: 'La duración debe ser un número positivo' });
     }
 
-    const slots = await disponibilidadService.getSlotsByDate(id, fecha, duration);
+    const slots = await disponibilidadService.getSlotsByDate(id, fecha, duration, excludeBookingId || '');
     res.json({ slots });
   } catch (error) {
     console.error('Error en getDisponibilidad:', error.message);

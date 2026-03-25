@@ -155,6 +155,7 @@ export default function Turnos() {
         hora: ''
       }));
     }
+  }, [rescheduleModal.open, rescheduleModal.rescheduleDateOptions, rescheduleModal.fecha]);
 
   const goToPage = (newPage) => {
     setFilters((prev) => ({ ...prev, page: Math.min(Math.max(1, newPage), totalPages) }));

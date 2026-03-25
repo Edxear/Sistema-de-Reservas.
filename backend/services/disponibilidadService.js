@@ -4,6 +4,15 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+const DIA_TO_INDEX = {
+  domingo: 0,
+  lunes: 1,
+  martes: 2,
+  miercoles: 3,
+  jueves: 4,
+  viernes: 5,
+  sabado: 6
+};
 
 /**
  * Convierte hora string (HH:mm) a minutos desde medianoche
@@ -56,7 +65,37 @@ async function getAgendaFija(medicoId) {
       tipo: 'fijo',
       disponible: true
     });
-    return agendas || [];
+
+    if (agendas && agendas.length > 0) {
+      return agendas;
+    }
+
+    // Fallback legacy: construir agenda desde horariosAtencion del perfil
+    const medico = await User.findById(medicoId).select('horariosAtencion');
+    const legacy = medico?.horariosAtencion || [];
+    if (!Array.isArray(legacy) || legacy.length === 0) {
+      return [];
+    }
+
+    const agendaLegacy = legacy
+      .map((b) => {
+        const diaNorm = normalizarTexto(b.dia || '');
+        const dia = DIA_TO_INDEX[diaNorm];
+        if (dia === undefined || !b.horaInicio || !b.horaFin) {
+          return null;
+        }
+        return {
+          medico: medicoId,
+          tipo: 'fijo',
+          dia,
+          horaInicio: b.horaInicio,
+          horaFin: b.horaFin,
+          disponible: true
+        };
+      })
+      .filter(Boolean);
+
+    return agendaLegacy;
   } catch (error) {
     console.error('Error obteniendo agenda fija:', error.message);
     return [];
@@ -142,7 +181,7 @@ async function getSlotsByDate(medicoId, fecha, duracion = 30, excludeBookingId =
   try {
     // Validar médico existe
     const medico = await User.findById(medicoId);
-    if (!medico || medico.rol !== 'medico') {
+    if (!medico || !['medico', 'admin'].includes(medico.rol)) {
       throw new Error('Médico no encontrado o usuario inválido');
     }
 

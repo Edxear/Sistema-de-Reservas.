@@ -1,7 +1,4 @@
 const Notificacion = require('../models/Notificacion');
-
-/**
- * Obtiene todas las notificaciones del usuario actual
 const { emitirNotificacion } = require('../utils/socketManager');
 
 /**

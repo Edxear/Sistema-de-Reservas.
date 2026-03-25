@@ -12,7 +12,7 @@ const {
   emailReservaAlMedico,
 } = require('../utils/mailer');
 const { crearNotificacion } = require('./notificacionController');
-const { emitirNotificacion } = require('../utils/socketManager');
+const disponibilidadService = require('../services/disponibilidadService');
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -47,9 +47,33 @@ function inferirEspecialidadPorServicio(serviceName = '') {
 }
 
 function normalizarFecha(fecha) {
-  const d = new Date(fecha);
+  if (fecha instanceof Date && !Number.isNaN(fecha.getTime())) {
+    // express-validator toDate() parsea YYYY-MM-DD como UTC 00:00.
+    // Usamos componentes UTC para conservar el día elegido por el usuario.
+    return new Date(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate());
+  }
+
+  if (typeof fecha === 'string') {
+    const match = fecha.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const y = Number(match[1]);
+      const m = Number(match[2]) - 1;
+      const d = Number(match[3]);
+      return new Date(y, m, d);
+    }
+  }
+
+  const esSoloFecha = typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha);
+  const d = esSoloFecha ? new Date(`${fecha}T00:00:00`) : new Date(fecha);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function fechaLocalISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function horaAMinutos(hora) {
@@ -90,10 +114,29 @@ async function validarDisponibilidad({ medicoId, fecha, hora, servicioId, bookin
   }
 
   const fechaNormalizada = normalizarFecha(fecha);
+  const fechaISO = fechaLocalISO(fechaNormalizada);
   const diaSemana = DIAS_SEMANA[fechaNormalizada.getDay()];
-  const bloquesDia = (medico.horariosAtencion || []).filter((bloque) => bloque.dia === diaSemana);
 
-  if (!estaEnHorario(hora, servicio.duracion, bloquesDia)) {
+  let disponible = false;
+  try {
+    disponible = await disponibilidadService.isSlotAvailable(
+      medicoId,
+      fechaISO,
+      hora,
+      servicio.duracion,
+      bookingId ? String(bookingId) : ''
+    );
+  } catch (error) {
+    console.error('Error validando disponibilidad con agenda médica:', error.message);
+  }
+
+  // Fallback legacy para médicos que aún no migraron agenda
+  if (!disponible) {
+    const bloquesDia = (medico.horariosAtencion || []).filter((bloque) => bloque.dia === diaSemana);
+    disponible = estaEnHorario(hora, servicio.duracion, bloquesDia);
+  }
+
+  if (!disponible) {
     return {
       ok: false,
       status: 409,
@@ -377,7 +420,6 @@ exports.createBooking = async (req, res) => {
           booking._id,
           'Booking'
         );
-        emitirNotificacion(booking.usuario.toString(), notifPaciente);
 
         // Notificación al médico
         const notifMedico = await crearNotificacion(
@@ -389,7 +431,6 @@ exports.createBooking = async (req, res) => {
           booking._id,
           'Booking'
         );
-        emitirNotificacion(booking.medico.toString(), notifMedico);
       } catch (err) {
         console.error('Error creando notificaciones de reserva nueva:', err.message);
       }
@@ -508,7 +549,6 @@ exports.updateBooking = async (req, res) => {
               updated._id,
               'Booking'
             );
-            emitirNotificacion(paciente._id.toString(), notifPaciente);
           } catch (err) {
             console.error('Error creando notificación de confirmación (paciente):', err.message);
           }
@@ -540,7 +580,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(medico._id.toString(), notifMedico);
             } catch (err) {
               console.error('Error creando notificación de confirmación (médico):', err.message);
             }
@@ -575,7 +614,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(paciente._id.toString(), notifPaciente);
             } catch (err) {
               console.error('Error creando notificación de cancelación (paciente):', err.message);
             }
@@ -607,7 +645,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(medico._id.toString(), notifMedico);
             } catch (err) {
               console.error('Error creando notificación de cancelación (médico):', err.message);
             }
@@ -641,7 +678,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(paciente._id.toString(), notifPaciente);
             } catch (err) {
               console.error('Error creando notificación de reprogramación (paciente):', err.message);
             }
@@ -672,7 +708,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(medico._id.toString(), notifMedico);
             } catch (err) {
               console.error('Error creando notificación de reprogramación (médico):', err.message);
             }
@@ -705,7 +740,6 @@ exports.updateBooking = async (req, res) => {
                 updated._id,
                 'Booking'
               );
-              emitirNotificacion(paciente._id.toString(), notifPaciente);
             } catch (err) {
               console.error('Error creando notificación de turno atendido:', err.message);
             }

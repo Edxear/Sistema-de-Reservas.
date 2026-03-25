@@ -74,6 +74,21 @@ describe('disponibilidadService', () => {
     ).rejects.toThrow('Médico no encontrado o usuario inválido');
   });
 
+  it('acepta profesionales con rol admin para cálculo de disponibilidad', async () => {
+    const medicoId = '507f1f77bcf86cd799439011';
+    const fecha = getFechaFuturaConDia(1);
+
+    User.findById.mockResolvedValue({ _id: medicoId, rol: 'admin' });
+    AgendaMedica.find.mockResolvedValue([
+      { dia: 1, horaInicio: '09:00', horaFin: '10:00', disponible: true }
+    ]);
+    AgendaExcepcion.find.mockResolvedValue([]);
+    Booking.find.mockResolvedValue([]);
+
+    const slots = await disponibilidadService.getSlotsByDate(medicoId, fecha, 30);
+    expect(slots).toEqual(['09:00', '09:30']);
+  });
+
   it('construye agenda semanal normalizada por dia', async () => {
     const medicoId = '507f1f77bcf86cd799439011';
     AgendaMedica.find.mockResolvedValue([
