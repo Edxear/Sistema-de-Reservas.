@@ -25,7 +25,19 @@ const userSchema = new mongoose.Schema({
   alergias: { type: String, default: '' },
   contactoEmergencia: { type: String, default: '' },
   areaSecretaria: { type: String, default: '' },
-  turnoLaboral: { type: String, default: '' }
+  turnoLaboral: { type: String, default: '' },
+  agendaConfiguracion: {
+    tipo: {
+      type: String,
+      enum: ['legacy', 'nueva_agenda'],
+      default: 'legacy',
+      help: 'legacy = usa horariosAtencion (deprecated). nueva_agenda = usa AgendaMedica/AgendaExcepcion'
+    },
+    migradoEl: {
+      type: Date,
+      help: 'Timestamp de cuando se migró a nueva_agenda'
+    }
+  }
 });
 
 userSchema.pre('save', async function (next) {

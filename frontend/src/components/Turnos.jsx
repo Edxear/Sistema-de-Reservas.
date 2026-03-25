@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { getBookings, updateBooking } from '../services/bookingService';
 import { crearPreferencia } from '../services/pagoService';
+import { getDisponibilidad, getProximasFechas, getAgendaSemanal } from '../services/disponibilidadService';
 import Chat from './Chat';
 import styles from './Dashboard.module.css';
 
@@ -15,78 +16,6 @@ const normalizarTexto = (valor = '') => valor.normalize('NFD').replace(/[\u0300-
 const formatDia = (fecha) => {
   const date = new Date(`${fecha}T00:00:00`);
   return new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date);
-};
-
-const horaAMinutos = (hora) => {
-  const [hours, minutes] = hora.split(':').map(Number);
-  return (hours * 60) + minutes;
-};
-
-const minutosAHora = (minutos) => {
-  const hours = String(Math.floor(minutos / 60)).padStart(2, '0');
-  const mins = String(minutos % 60).padStart(2, '0');
-  return `${hours}:${mins}`;
-};
-
-const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings, excludeBookingId = '' }) => {
-  if (!doctor || !fecha || !duration) return [];
-
-  const dia = normalizarTexto(formatDia(fecha));
-  const bloques = (doctor.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === dia);
-  if (bloques.length === 0) return [];
-
-  const bookedTimes = new Set(
-    reservedBookings
-      .filter((booking) => String(booking._id) !== String(excludeBookingId))
-      .filter((booking) => ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado))
-      .map((booking) => booking.hora)
-  );
-
-  const slots = [];
-  for (const bloque of bloques) {
-    const inicio = horaAMinutos(bloque.horaInicio);
-    const fin = horaAMinutos(bloque.horaFin);
-
-    for (let current = inicio; current + duration <= fin; current += duration) {
-      const slot = minutosAHora(current);
-      if (!bookedTimes.has(slot)) slots.push(slot);
-    }
-  }
-
-  return slots;
-};
-
-const getScheduleByDay = (horarios = []) => {
-  const map = new Map();
-  for (const day of WEEK_DAYS) map.set(normalizarTexto(day), []);
-
-  horarios.forEach((bloque) => {
-    const key = normalizarTexto(bloque.dia);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(`${bloque.horaInicio} - ${bloque.horaFin}`);
-  });
-
-  return map;
-};
-
-const getNextAvailableDates = (horarios = [], daysAhead = 30) => {
-  const availableDays = new Set(horarios.map((bloque) => normalizarTexto(bloque.dia)));
-  const options = [];
-
-  for (let i = 0; i < daysAhead; i += 1) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    const iso = date.toISOString().slice(0, 10);
-    const weekday = normalizarTexto(new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date));
-    if (availableDays.has(weekday)) {
-      options.push({
-        value: iso,
-        label: `${date.toLocaleDateString('es-AR')} (${new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date)})`
-      });
-    }
-  }
-
-  return options;
 };
 
 export default function Turnos() {
@@ -108,13 +37,15 @@ export default function Turnos() {
     hora: '',
     slots: [],
     loading: false,
+    // Nuevos estados para API
+    loadingFechas: false,
+    rescheduleDateOptions: [],
+    rescheduleScheduleByDay: new Map()
   });
   const [filters, setFilters] = useState({ estado: '', page: 1, limit: 10 });
   const bookingsSectionRef = useRef(null);
 
   const totalPages = Math.max(1, Math.ceil(total / filters.limit));
-  const rescheduleDateOptions = getNextAvailableDates(rescheduleModal.medico?.horariosAtencion || [], 45);
-  const rescheduleScheduleByDay = getScheduleByDay(rescheduleModal.medico?.horariosAtencion || []);
 
   const getStatusClass = (estado) => {
     if (estado === 'confirmada') return styles.statusConfirmada;
@@ -167,17 +98,63 @@ export default function Turnos() {
     }
   }, [filters.page]);
 
+  // Cargar fechas disponibles y agenda semanal cuando se abre el modal
+  useEffect(() => {
+    const loadScheduleData = async () => {
+      if (!rescheduleModal.open || !rescheduleModal.medico?._id) {
+        return;
+      }
+
+      setRescheduleModal((prev) => ({ ...prev, loadingFechas: true }));
+      try {
+        // Cargar próximas fechas disponibles
+        const fechasRes = await getProximasFechas(rescheduleModal.medico._id, 45);
+        const fechasOptions = fechasRes.fechas || [];
+
+        // Cargar agenda semanal para mostrar rango de horarios
+        const agendaRes = await getAgendaSemanal(rescheduleModal.medico._id);
+        const agendaMap = new Map();
+        const schedule = agendaRes.schedule || {};
+        for (const [dia, horarios] of Object.entries(schedule)) {
+          agendaMap.set(dia, horarios.map((h) => `${h.horaInicio} - ${h.horaFin}`));
+        }
+
+        // Seleccionar primera fecha disponible si no hay seleccionada
+        const primeraFecha = fechasOptions[0]?.value || '';
+        setRescheduleModal((prev) => ({
+          ...prev,
+          rescheduleDateOptions: fechasOptions,
+          rescheduleScheduleByDay: agendaMap,
+          fecha: primeraFecha,
+          hora: '',
+          loadingFechas: false
+        }));
+      } catch (error) {
+        console.error('Error cargando datos de agenda:', error);
+        toast.error('No se pudo cargar la agenda del médico');
+        setRescheduleModal((prev) => ({
+          ...prev,
+          rescheduleDateOptions: [],
+          rescheduleScheduleByDay: new Map(),
+          loadingFechas: false
+        }));
+      }
+    };
+
+    loadScheduleData();
+  }, [rescheduleModal.open, rescheduleModal.medico?._id]);
+
+  // Validar fechas disponibles cuando cambia la lista
   useEffect(() => {
     if (!rescheduleModal.open) return;
 
-    if (!rescheduleDateOptions.some((opt) => opt.value === rescheduleModal.fecha)) {
+    if (!rescheduleModal.rescheduleDateOptions.some((opt) => opt.value === rescheduleModal.fecha)) {
       setRescheduleModal((prev) => ({
         ...prev,
-        fecha: rescheduleDateOptions[0]?.value || '',
+        fecha: rescheduleModal.rescheduleDateOptions[0]?.value || '',
         hora: ''
       }));
     }
-  }, [rescheduleModal.open, rescheduleDateOptions, rescheduleModal.fecha]);
 
   const goToPage = (newPage) => {
     setFilters((prev) => ({ ...prev, page: Math.min(Math.max(1, newPage), totalPages) }));
@@ -221,22 +198,22 @@ export default function Turnos() {
 
       setRescheduleModal((prev) => ({ ...prev, loading: true }));
       try {
-        const res = await getBookings({ medico: rescheduleModal.medico._id, fecha: rescheduleModal.fecha, limit: 200, page: 1 });
-        const slots = buildAvailableSlots({
-          doctor: rescheduleModal.medico,
-          fecha: rescheduleModal.fecha,
-          duration: rescheduleModal.servicio.duracion,
-          reservedBookings: res.data.bookings || [],
-          excludeBookingId: rescheduleModal.bookingId,
-        });
+        // Obtener slots disponibles desde API
+        const disponibilidadRes = await getDisponibilidad(
+          rescheduleModal.medico._id,
+          rescheduleModal.fecha,
+          rescheduleModal.servicio.duracion
+        );
+        const slots = disponibilidadRes.slots || [];
         setRescheduleModal((prev) => ({
           ...prev,
           slots,
           hora: slots.includes(prev.hora) ? prev.hora : '',
-          loading: false,
+          loading: false
         }));
       } catch (error) {
-        toast.error(error.response?.data?.message || 'No se pudo consultar horarios para reprogramar');
+        console.error('Error obteniendo disponibilidad:', error);
+        toast.error('No se pudo consultar horarios para reprogramar');
         setRescheduleModal((prev) => ({ ...prev, slots: [], loading: false }));
       }
     };
@@ -254,6 +231,9 @@ export default function Turnos() {
       hora: booking.hora,
       slots: [],
       loading: false,
+      loadingFechas: false,
+      rescheduleDateOptions: [],
+      rescheduleScheduleByDay: new Map()
     });
   };
 
@@ -267,6 +247,9 @@ export default function Turnos() {
       hora: '',
       slots: [],
       loading: false,
+      loadingFechas: false,
+      rescheduleDateOptions: [],
+      rescheduleScheduleByDay: new Map()
     });
   };
 
@@ -456,61 +439,67 @@ export default function Turnos() {
               {rescheduleModal.medico?.especialidad ? ` (${rescheduleModal.medico.especialidad})` : ''}
             </p>
 
-            <div className={styles.scheduleLegend}>
-              {WEEK_DAYS.map((day) => {
-                const ranges = rescheduleScheduleByDay.get(normalizarTexto(day)) || [];
-                const available = ranges.length > 0;
-                return (
-                  <div key={day} className={`${styles.dayChip} ${available ? styles.dayAvailable : styles.dayUnavailable}`}>
-                    <strong>{day}</strong>
-                    <span>{available ? ranges.join(' | ') : 'No atiende'}</span>
-                  </div>
-                );
-              })}
-            </div>
+            {rescheduleModal.loadingFechas ? (
+              <p style={{ textAlign: 'center', color: '#6b7280' }}>Cargando agenda del médico...</p>
+            ) : (
+              <>
+                <div className={styles.scheduleLegend}>
+                  {WEEK_DAYS.map((day) => {
+                    const ranges = rescheduleModal.rescheduleScheduleByDay.get(normalizarTexto(day)) || [];
+                    const available = ranges.length > 0;
+                    return (
+                      <div key={day} className={`${styles.dayChip} ${available ? styles.dayAvailable : styles.dayUnavailable}`}>
+                        <strong>{day}</strong>
+                        <span>{available ? ranges.join(' | ') : 'No atiende'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
 
-            <div className={styles.field}>
-              <label>Fechas disponibles del profesional</label>
-              <select
-                className={styles.select}
-                value={rescheduleModal.fecha}
-                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, fecha: e.target.value }))}
-                disabled={rescheduleDateOptions.length === 0}
-              >
-                <option value="">Seleccionar fecha</option>
-                {rescheduleDateOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              {rescheduleDateOptions.length === 0 && (
-                <small className={styles.helperTextError}>El profesional no tiene agenda configurada.</small>
-              )}
-            </div>
+                <div className={styles.field}>
+                  <label>Fechas disponibles del profesional</label>
+                  <select
+                    className={styles.select}
+                    value={rescheduleModal.fecha}
+                    onChange={(e) => setRescheduleModal((prev) => ({ ...prev, fecha: e.target.value }))}
+                    disabled={rescheduleModal.rescheduleDateOptions.length === 0}
+                  >
+                    <option value="">Seleccionar fecha</option>
+                    {rescheduleModal.rescheduleDateOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  {rescheduleModal.rescheduleDateOptions.length === 0 && (
+                    <small className={styles.helperTextError}>El profesional no tiene agenda configurada.</small>
+                  )}
+                </div>
 
-            <div className={styles.field}>
-              <label>Horario disponible (solo se muestran rangos activos)</label>
-              <select
-                className={styles.select}
-                value={rescheduleModal.hora}
-                onChange={(e) => setRescheduleModal((prev) => ({ ...prev, hora: e.target.value }))}
-                disabled={rescheduleModal.loading || !rescheduleModal.fecha}
-              >
-                <option value="">{rescheduleModal.loading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}</option>
-                {rescheduleModal.slots.map((slot) => (
-                  <option key={slot} value={slot}>{slot}</option>
-                ))}
-              </select>
-              {!rescheduleModal.loading && rescheduleModal.fecha && rescheduleModal.slots.length === 0 && (
-                <small className={styles.helperTextError}>No hay horarios libres para la fecha elegida.</small>
-              )}
-            </div>
+                <div className={styles.field}>
+                  <label>Horario disponible (solo se muestran rangos activos)</label>
+                  <select
+                    className={styles.select}
+                    value={rescheduleModal.hora}
+                    onChange={(e) => setRescheduleModal((prev) => ({ ...prev, hora: e.target.value }))}
+                    disabled={rescheduleModal.loading || !rescheduleModal.fecha}
+                  >
+                    <option value="">{rescheduleModal.loading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}</option>
+                    {rescheduleModal.slots.map((slot) => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
+                  {!rescheduleModal.loading && rescheduleModal.fecha && rescheduleModal.slots.length === 0 && (
+                    <small className={styles.helperTextError}>No hay horarios libres para la fecha elegida.</small>
+                  )}
+                </div>
 
-            <div className={styles.modalActions}>
-              <button className={styles.secondaryBtn} onClick={closeRescheduleModal} disabled={modalLoading}>Cancelar</button>
-              <button className={styles.primaryBtn} onClick={submitReschedule} disabled={modalLoading || rescheduleModal.loading}>
-                {modalLoading ? 'Guardando...' : 'Confirmar reprogramación'}
-              </button>
-            </div>
+                <div className={styles.modalActions}>
+                  <button className={styles.secondaryBtn} onClick={closeRescheduleModal} disabled={modalLoading}>Cancelar</button>
+                  <button className={styles.primaryBtn} onClick={submitReschedule} disabled={modalLoading || rescheduleModal.loading}>
+                    {modalLoading ? 'Guardando...' : 'Confirmar reprogramación'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

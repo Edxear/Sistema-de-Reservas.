@@ -24,6 +24,8 @@ const historiaClinicaRoutes = require('./routes/historiaClinica');
 const recetaRoutes = require('./routes/recetas');
 const authMiddleware = require('./middleware/auth');
 const pagoRoutes = require('./routes/pagos');
+const notificacionesRoutes = require('./routes/notifications');
+const agendaMedicosRoutes = require('./routes/agendaMedicos');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -35,6 +37,8 @@ app.use('/api/recetas', recetaRoutes);
 app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/appointments', authMiddleware, appointmentRoutes);
 app.use('/api/pagos', pagoRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api', agendaMedicosRoutes);
 
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
 

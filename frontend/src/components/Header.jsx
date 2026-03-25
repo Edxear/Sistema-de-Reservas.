@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCalendarCheck, FaUserMd } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import NotificacionCenter from './NotificacionCenter';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -19,6 +20,7 @@ export default function Header() {
         <nav className={styles.nav}>
           <Link to={isAuthenticated ? '/dashboard' : '/'}>Inicio</Link>
           <Link to={isAuthenticated ? '/turnos' : '/'}>Turnos</Link>
+          {isAuthenticated && <NotificacionCenter />}
           <Link to={isAuthenticated ? '/perfil' : '/'}>
             <FaUserMd />
             <span>Mi Perfil</span>

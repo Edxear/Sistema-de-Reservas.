@@ -11,6 +11,8 @@ const {
   emailAtendida,
   emailReservaAlMedico,
 } = require('../utils/mailer');
+const { crearNotificacion } = require('./notificacionController');
+const { emitirNotificacion } = require('../utils/socketManager');
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -362,6 +364,37 @@ exports.createBooking = async (req, res) => {
     });
     await booking.save();
 
+    // Crear notificaciones para paciente y médico
+    (async () => {
+      try {
+        // Notificación al paciente
+        const notifPaciente = await crearNotificacion(
+          booking.usuario,
+          'reserva_nueva',
+          'Tu reserva está pendiente de confirmación',
+          '📅',
+          `/dashboard#booking-${booking._id}`,
+          booking._id,
+          'Booking'
+        );
+        emitirNotificacion(booking.usuario.toString(), notifPaciente);
+
+        // Notificación al médico
+        const notifMedico = await crearNotificacion(
+          booking.medico,
+          'reserva_nueva',
+          `Nuevo turno: ${booking.usuario || 'Paciente'}`,
+          '📅',
+          `/dashboard#booking-${booking._id}`,
+          booking._id,
+          'Booking'
+        );
+        emitirNotificacion(booking.medico.toString(), notifMedico);
+      } catch (err) {
+        console.error('Error creando notificaciones de reserva nueva:', err.message);
+      }
+    })();
+
     // Enviar email de confirmación de solicitud al paciente (en background)
     (async () => {
       try {
@@ -464,6 +497,22 @@ exports.updateBooking = async (req, res) => {
             html
           );
 
+          // Notificación al paciente
+          try {
+            const notifPaciente = await crearNotificacion(
+              paciente._id,
+              'reserva_confirmada',
+              '¡Tu reserva está confirmada!',
+              '✅',
+              `/dashboard#booking-${updated._id}`,
+              updated._id,
+              'Booking'
+            );
+            emitirNotificacion(paciente._id.toString(), notifPaciente);
+          } catch (err) {
+            console.error('Error creando notificación de confirmación (paciente):', err.message);
+          }
+
           // También notificar al médico
           if (medico?.email) {
             const htmlMedico = emailReservaAlMedico(
@@ -479,6 +528,22 @@ exports.updateBooking = async (req, res) => {
               'Nuevo turno asignado en tu agenda',
               htmlMedico
             );
+
+            // Notificación al médico
+            try {
+              const notifMedico = await crearNotificacion(
+                medico._id,
+                'reserva_confirmada',
+                `Turno confirmado: ${paciente.nombre}`,
+                '✅',
+                `/dashboard#booking-${updated._id}`,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(medico._id.toString(), notifMedico);
+            } catch (err) {
+              console.error('Error creando notificación de confirmación (médico):', err.message);
+            }
           }
         }
 
@@ -498,6 +563,22 @@ exports.updateBooking = async (req, res) => {
               'Tu turno ha sido cancelado',
               html
             );
+
+            // Notificación al paciente
+            try {
+              const notifPaciente = await crearNotificacion(
+                paciente._id,
+                'reserva_cancelada',
+                'Tu turno fue cancelado',
+                '❌',
+                null,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(paciente._id.toString(), notifPaciente);
+            } catch (err) {
+              console.error('Error creando notificación de cancelación (paciente):', err.message);
+            }
           }
 
           if (medico?.email) {
@@ -514,6 +595,22 @@ exports.updateBooking = async (req, res) => {
               'Un turno ha sido cancelado',
               html
             );
+
+            // Notificación al médico
+            try {
+              const notifMedico = await crearNotificacion(
+                medico._id,
+                'reserva_cancelada',
+                `Turno cancelado: ${paciente?.nombre}`,
+                '❌',
+                null,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(medico._id.toString(), notifMedico);
+            } catch (err) {
+              console.error('Error creando notificación de cancelación (médico):', err.message);
+            }
           }
         }
 
@@ -532,6 +629,22 @@ exports.updateBooking = async (req, res) => {
               'Tu turno ha sido reprogramado',
               html
             );
+
+            // Notificación al paciente
+            try {
+              const notifPaciente = await crearNotificacion(
+                paciente._id,
+                'reserva_reprogramada',
+                `Tu turno movido a ${new Date(updated.fecha).toLocaleDateString()}`,
+                '📅',
+                `/dashboard#booking-${updated._id}`,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(paciente._id.toString(), notifPaciente);
+            } catch (err) {
+              console.error('Error creando notificación de reprogramación (paciente):', err.message);
+            }
           }
 
           if (medico?.email) {
@@ -547,6 +660,22 @@ exports.updateBooking = async (req, res) => {
               'Un turno ha sido reprogramado',
               html
             );
+
+            // Notificación al médico
+            try {
+              const notifMedico = await crearNotificacion(
+                medico._id,
+                'reserva_reprogramada',
+                `Turno reprogramado: ${paciente?.nombre}`,
+                '📅',
+                `/dashboard#booking-${updated._id}`,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(medico._id.toString(), notifMedico);
+            } catch (err) {
+              console.error('Error creando notificación de reprogramación (médico):', err.message);
+            }
           }
         }
 
@@ -564,6 +693,22 @@ exports.updateBooking = async (req, res) => {
               '¡Tu turno fue completado!',
               html
             );
+
+            // Notificación al paciente
+            try {
+              const notifPaciente = await crearNotificacion(
+                paciente._id,
+                'reserva_atendida',
+                '¡Turno completado! Déjanos tu opinión',
+                '⭐',
+                `/dashboard#booking-${updated._id}`,
+                updated._id,
+                'Booking'
+              );
+              emitirNotificacion(paciente._id.toString(), notifPaciente);
+            } catch (err) {
+              console.error('Error creando notificación de turno atendido:', err.message);
+            }
           }
         }
       } catch (err) {

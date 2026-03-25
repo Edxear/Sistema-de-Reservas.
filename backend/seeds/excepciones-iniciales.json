@@ -1,0 +1,32 @@
+[
+  {
+    "tipoExcepcion": "feriado",
+    "fecha": "2026-05-01T00:00:00Z",
+    "razon": "Día del Trabajo",
+    "aplicaATodos": true
+  },
+  {
+    "tipoExcepcion": "feriado",
+    "fecha": "2026-05-25T00:00:00Z",
+    "razon": "Día de la Revolución de Mayo",
+    "aplicaATodos": true
+  },
+  {
+    "tipoExcepcion": "feriado",
+    "fecha": "2026-06-20T00:00:00Z",
+    "razon": "Día de la Bandera",
+    "aplicaATodos": true
+  },
+  {
+    "tipoExcepcion": "feriado",
+    "fecha": "2026-07-09T00:00:00Z",
+    "razon": "Día de la Independencia",
+    "aplicaATodos": true
+  },
+  {
+    "tipoExcepcion": "feriado",
+    "fecha": "2026-07-17T00:00:00Z",
+    "razon": "Muerte del General Güemes",
+    "aplicaATodos": true
+  }
+]

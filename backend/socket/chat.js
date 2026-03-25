@@ -23,6 +23,9 @@ function iniciarChat(io) {
   io.on('connection', (socket) => {
     console.log(`[SOCKET] Usuario conectado: ${socket.userId}`);
 
+    // Unirse automáticamente a la sala personal del usuario para notificaciones
+    socket.join(`usuario_${socket.userId}`);
+
     // Unirse a una sala de chat con otro usuario
     socket.on('joinRoom', async ({ otroUserId }) => {
       if (!otroUserId) return;

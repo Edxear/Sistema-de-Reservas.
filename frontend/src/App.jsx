@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Importar el Provider de Autenticación
+// Importar los Providers
 import { AuthProvider } from './context/AuthContext';
+import { NotificacionProvider } from './context/NotificacionContext';
 
 // Importar los componentes de las páginas
 import LoginRegister from './components/LoginRegister';
@@ -48,12 +49,13 @@ const PublicRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-      {/* AuthProvider envuelve toda la app para que el contexto esté disponible */}
+      {/* AuthProvider y NotificacionProvider envuelven toda la app */}
       <AuthProvider>
-        <ScrollToTop />
-        <Header />
-        <ToastContainer position="top-right" autoClose={3000} />
-        <Routes>
+        <NotificacionProvider>
+          <ScrollToTop />
+          <Header />
+          <ToastContainer position="top-right" autoClose={3000} />
+          <Routes>
           <Route
             path="/"
             element={
@@ -98,6 +100,7 @@ function App() {
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </NotificacionProvider>
       </AuthProvider>
     </Router>
   );
