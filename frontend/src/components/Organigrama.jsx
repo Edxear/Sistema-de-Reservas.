@@ -18,6 +18,7 @@ export default function Organigrama() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [usingLocalFallback, setUsingLocalFallback] = useState(false);
   const [editId, setEditId] = useState('');
   const [form, setForm] = useState({
     area: '',
@@ -55,8 +56,12 @@ export default function Organigrama() {
     try {
       const data = await getOrganigrama(false);
       setRows(data || []);
+      setUsingLocalFallback(false);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'No se pudo cargar el organigrama');
+      // Fallback: keep the page functional with the bundled hospital example.
+      setRows((estructuraEjemplo || []).map((item, idx) => ({ ...item, _id: `local-${idx + 1}` })));
+      setUsingLocalFallback(true);
+      toast.warn(error.response?.data?.message || 'No se pudo cargar desde API. Se muestra el ejemplo local.');
     } finally {
       setLoading(false);
     }
@@ -150,6 +155,12 @@ export default function Organigrama() {
               </button>
             )}
           </div>
+        )}
+
+        {usingLocalFallback && (
+          <p className={styles.fallbackNote}>
+            Modo local: este organigrama se está mostrando desde el ejemplo embebido porque el endpoint no respondió.
+          </p>
         )}
       </section>
 
