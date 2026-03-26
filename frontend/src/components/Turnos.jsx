@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,7 @@ const formatDia = (fecha) => {
 
 export default function Turnos() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
 
   const [bookings, setBookings] = useState([]);
@@ -352,7 +353,15 @@ export default function Turnos() {
                 <div className={styles.actions}>
                   {(user?.rol === 'medico' || user?.rol === 'admin') && b.usuario?._id && (
                     <>
-                      <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario._id}`)}>Ver historial</button>
+                      <button
+                        className={styles.secondaryBtn}
+                        onClick={() => {
+                          sessionStorage.setItem(`scroll:${location.key || '/turnos'}`, String(window.scrollY));
+                          navigate(`/historial/${b.usuario._id}`);
+                        }}
+                      >
+                        Ver historial
+                      </button>
                       <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
                     </>
                   )}

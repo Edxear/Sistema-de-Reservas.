@@ -27,7 +27,8 @@ function ScrollRestorationManager() {
       window.history.scrollRestoration = 'manual';
     }
 
-    const key = `scroll:${location.pathname}${location.search}`;
+    const entryKey = location.key || `${location.pathname}${location.search}`;
+    const key = `scroll:${entryKey}`;
 
     if (navigationType === 'POP') {
       const saved = sessionStorage.getItem(key);
@@ -56,7 +57,7 @@ function ScrollRestorationManager() {
       window.removeEventListener('scroll', persistScroll);
       window.removeEventListener('beforeunload', persistScroll);
     };
-  }, [location.pathname, location.search, navigationType]);
+  }, [location.key, location.pathname, location.search, navigationType]);
 
   return null;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../services/api';
 import { getBookings } from '../services/bookingService';
@@ -7,6 +7,7 @@ import styles from './PacienteDetalle.module.css';
 
 export default function PacienteDetalle() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { pacienteId } = useParams();
 
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,15 @@ export default function PacienteDetalle() {
           )}
         </div>
         <div className={styles.actions}>
-          <button className={styles.btn} onClick={() => navigate(`/historial/${pacienteId}`)}>Historia completa</button>
+          <button
+            className={styles.btn}
+            onClick={() => {
+              sessionStorage.setItem(`scroll:${location.key || `/pacientes/${pacienteId}`}`, String(window.scrollY));
+              navigate(`/historial/${pacienteId}`);
+            }}
+          >
+            Historia completa
+          </button>
           <button className={styles.btn} onClick={() => navigate(`/recetas?pacienteId=${pacienteId}`)}>Nueva receta</button>
           <button className={styles.btn} onClick={() => navigate('/dashboard')}>Volver</button>
         </div>

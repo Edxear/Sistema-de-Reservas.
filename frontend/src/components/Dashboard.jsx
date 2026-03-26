@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
@@ -99,6 +99,7 @@ const getNextAvailableDates = (horarios = [], daysAhead = 30) => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   // Obtenemos el usuario y la función de logout del contexto
   const { user, logout, isAuthenticated } = useAuth();
 
@@ -666,7 +667,15 @@ export default function Dashboard() {
                 <div className={styles.actions}>
                   {(user?.rol === 'medico' || user?.rol === 'admin') && (
                     <>
-                      <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario?._id}`)}>Ver historial</button>
+                      <button
+                        className={styles.secondaryBtn}
+                        onClick={() => {
+                          sessionStorage.setItem(`scroll:${location.key || '/dashboard'}`, String(window.scrollY));
+                          navigate(`/historial/${b.usuario?._id}`);
+                        }}
+                      >
+                        Ver historial
+                      </button>
                       {b.usuario?._id && (
                         <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
                       )}
