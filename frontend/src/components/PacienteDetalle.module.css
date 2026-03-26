@@ -1,19 +1,19 @@
 .page {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 24px 16px 32px;
+  padding: 12px 12px 16px;
 }
 
 .header {
   background: #fff;
   border: 1px solid #edf2f7;
   border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
 }
 
 .title {
@@ -29,7 +29,7 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 }
 
 .card {
@@ -40,8 +40,9 @@
 }
 
 .card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   color: #1a3b5d;
+  font-size: 0.95rem;
 }
 
 .meta {

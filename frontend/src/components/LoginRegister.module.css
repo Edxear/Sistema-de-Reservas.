@@ -1,6 +1,6 @@
 .page {
   min-height: calc(100vh - 76px);
-  padding: 28px 16px;
+  padding: 16px;
   display: grid;
   place-items: center;
 }
@@ -12,19 +12,20 @@
   border: 1px solid #edf2f7;
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  padding: 24px;
+  padding: 16px;
 }
 
 .title {
   color: #1A3B5D;
-  font-size: 1.55rem;
-  margin-bottom: 16px;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  font-weight: 700;
 }
 
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .tab {
@@ -44,7 +45,7 @@
 
 .form {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .field {

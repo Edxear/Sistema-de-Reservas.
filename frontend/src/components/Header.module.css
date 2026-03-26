@@ -10,11 +10,11 @@
 .inner {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 14px 18px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .brand {
@@ -33,7 +33,7 @@
 .nav {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .mobileToggle {
@@ -85,15 +85,15 @@
 .dropdownMenu {
   position: absolute;
   right: 0;
-  top: calc(100% + 8px);
-  min-width: 220px;
+  top: calc(100% + 6px);
+  min-width: 200px;
   background: #ffffff;
   border: 1px solid #dbe4ee;
   border-radius: 10px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
-  padding: 8px;
+  padding: 6px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
   z-index: 60;
 }
 
