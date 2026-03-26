@@ -17,6 +17,7 @@ import Header from './components/Header';
 import Perfil from './components/Perfil';
 import Turnos from './components/Turnos';
 import PacienteDetalle from './components/PacienteDetalle';
+import Organigrama from './components/Organigrama';
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -129,6 +130,11 @@ function App() {
           <Route path="/pacientes/:pacienteId" element={
             <ProtectedRoute>
               <PacienteDetalle />
+            </ProtectedRoute>
+          } />
+          <Route path="/organigrama" element={
+            <ProtectedRoute>
+              <Organigrama />
             </ProtectedRoute>
           } />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
