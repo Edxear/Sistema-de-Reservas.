@@ -12,6 +12,31 @@ import styles from './Organigrama.module.css';
 
 const estructuraEjemplo = organigramaHospitalario.bloques || [];
 
+const normalizar = (value = '') => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+const parsePuestos = (text = '') => {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [nombreRaw, personasRaw = ''] = line.split(':');
+      const nombre = String(nombreRaw || '').trim();
+      const personas = String(personasRaw || '')
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+      return { nombre, personas };
+    })
+    .filter((p) => p.nombre);
+};
+
+const formatPuestos = (puestos = []) => {
+  return (puestos || [])
+    .map((p) => `${p.nombre}: ${(p.personas || []).join(', ')}`)
+    .join('\n');
+};
+
 export default function Organigrama() {
   const { user } = useAuth();
   const isAdmin = user?.rol === 'admin';
@@ -20,6 +45,8 @@ export default function Organigrama() {
   const [saving, setSaving] = useState(false);
   const [usingLocalFallback, setUsingLocalFallback] = useState(false);
   const [editId, setEditId] = useState('');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
   const formSectionRef = useRef(null);
   const areaInputRef = useRef(null);
   const [form, setForm] = useState({
@@ -29,6 +56,7 @@ export default function Organigrama() {
     orden: 0,
     activo: true,
     equiposText: '',
+    puestosText: '',
   });
 
   const hasData = rows.length > 0;
@@ -44,13 +72,52 @@ export default function Organigrama() {
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean),
+      puestos: parsePuestos(form.puestosText),
     }),
     [form]
   );
 
+  const filteredRows = useMemo(() => {
+    const byStatus = rows.filter((row) => {
+      if (statusFilter === 'activos') return row.activo !== false;
+      if (statusFilter === 'inactivos') return row.activo === false;
+      return true;
+    });
+
+    const q = normalizar(query);
+    const byQuery = q
+      ? byStatus.filter((row) => {
+          const scope = [
+            row.area,
+            row.jefe,
+            row.subjefe,
+            ...(row.equipos || []),
+            ...((row.puestos || []).map((p) => p.nombre)),
+            ...((row.puestos || []).flatMap((p) => p.personas || [])),
+          ]
+            .filter(Boolean)
+            .join(' ');
+          return normalizar(scope).includes(q);
+        })
+      : byStatus;
+
+    return [...byQuery].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  }, [rows, query, statusFilter]);
+
+  const metrics = useMemo(() => {
+    const total = rows.length;
+    const activos = rows.filter((r) => r.activo !== false).length;
+    const puestos = rows.reduce((acc, row) => acc + (row.puestos?.length || 0), 0);
+    const personas = rows.reduce(
+      (acc, row) => acc + (row.puestos || []).reduce((sum, p) => sum + (p.personas?.length || 0), 0),
+      0
+    );
+    return { total, activos, puestos, personas };
+  }, [rows]);
+
   const resetForm = () => {
     setEditId('');
-    setForm({ area: '', jefe: '', subjefe: '', orden: 0, activo: true, equiposText: '' });
+    setForm({ area: '', jefe: '', subjefe: '', orden: 0, activo: true, equiposText: '', puestosText: '' });
   };
 
   const loadData = async () => {
@@ -107,6 +174,7 @@ export default function Organigrama() {
       orden: row.orden || 0,
       activo: row.activo !== false,
       equiposText: (row.equipos || []).join(', '),
+      puestosText: formatPuestos(row.puestos || []),
     });
 
     requestAnimationFrame(() => {
@@ -165,18 +233,46 @@ export default function Organigrama() {
         )}
 
         {usingLocalFallback && (
-          <p className={styles.fallbackNote}>
-            Modo local: este organigrama se está mostrando desde el ejemplo embebido porque el endpoint no respondió.
-          </p>
+          <div className={styles.fallbackNote}>
+            <p>Modo local: este organigrama se está mostrando desde el ejemplo embebido porque el endpoint no respondió.</p>
+            <button className={styles.secondaryBtn} onClick={loadData} disabled={loading}>
+              Reintentar conexión API
+            </button>
+          </div>
         )}
+
+        <div className={styles.metricsRow}>
+          <div className={styles.metricChip}><strong>{metrics.total}</strong><span>Áreas</span></div>
+          <div className={styles.metricChip}><strong>{metrics.activos}</strong><span>Activas</span></div>
+          <div className={styles.metricChip}><strong>{metrics.puestos}</strong><span>Puestos</span></div>
+          <div className={styles.metricChip}><strong>{metrics.personas}</strong><span>Personas</span></div>
+        </div>
+
+        <div className={styles.controlsRow}>
+          <input
+            className={styles.searchInput}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por área, jefe, equipo, puesto o persona"
+          />
+          <select
+            className={styles.filterSelect}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="todos">Todos</option>
+            <option value="activos">Solo activos</option>
+            <option value="inactivos">Solo inactivos</option>
+          </select>
+        </div>
       </section>
 
       <section className={styles.grid}>
         {loading && <p>Cargando organigrama...</p>}
-        {!loading && rows.length === 0 && (
+        {!loading && filteredRows.length === 0 && (
           <p>No hay bloques cargados. {isAdmin ? 'Puedes crear uno nuevo o cargar el ejemplo.' : ''}</p>
         )}
-        {!loading && rows.map((bloque) => (
+        {!loading && filteredRows.map((bloque) => (
           <article
             key={bloque._id}
             className={`${styles.card} ${editId === bloque._id ? styles.cardEditing : ''}`}
@@ -260,6 +356,15 @@ export default function Organigrama() {
                 value={form.equiposText}
                 onChange={(e) => setForm((prev) => ({ ...prev, equiposText: e.target.value }))}
                 placeholder="Ej: Guardia, Internacion, Farmacia"
+              />
+            </label>
+
+            <label>
+              Puestos y personas (una línea por puesto, formato: Puesto: Persona 1, Persona 2)
+              <textarea
+                value={form.puestosText}
+                onChange={(e) => setForm((prev) => ({ ...prev, puestosText: e.target.value }))}
+                placeholder={'Ej:\nJefe de Área: Dra. Sofia Martinez\nSubjefe: Dr. Mateo Ruiz'}
               />
             </label>
 
