@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -20,6 +20,8 @@ export default function Organigrama() {
   const [saving, setSaving] = useState(false);
   const [usingLocalFallback, setUsingLocalFallback] = useState(false);
   const [editId, setEditId] = useState('');
+  const formSectionRef = useRef(null);
+  const areaInputRef = useRef(null);
   const [form, setForm] = useState({
     area: '',
     jefe: '',
@@ -105,6 +107,11 @@ export default function Organigrama() {
       orden: row.orden || 0,
       activo: row.activo !== false,
       equiposText: (row.equipos || []).join(', '),
+    });
+
+    requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      areaInputRef.current?.focus();
     });
   };
 
@@ -206,13 +213,14 @@ export default function Organigrama() {
       </section>
 
       {isAdmin && (
-        <section className={styles.formCard}>
+        <section className={styles.formCard} ref={formSectionRef}>
           <h2>{editId ? 'Editar bloque' : 'Nuevo bloque'}</h2>
           <form className={styles.form} onSubmit={onSubmit}>
             <div className={styles.grid2}>
               <label>
                 Área
                 <input
+                  ref={areaInputRef}
                   value={form.area}
                   onChange={(e) => setForm((prev) => ({ ...prev, area: e.target.value }))}
                   required
