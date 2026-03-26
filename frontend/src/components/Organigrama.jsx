@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -47,8 +49,12 @@ export default function Organigrama() {
   const [editId, setEditId] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [viewMode, setViewMode] = useState('cards');
+  const [dragId, setDragId] = useState('');
+  const [dragOverId, setDragOverId] = useState('');
   const formSectionRef = useRef(null);
   const areaInputRef = useRef(null);
+  const exportSectionRef = useRef(null);
   const [form, setForm] = useState({
     area: '',
     jefe: '',
@@ -60,6 +66,7 @@ export default function Organigrama() {
   });
 
   const hasData = rows.length > 0;
+  const canReorder = isAdmin && !usingLocalFallback && !query.trim() && statusFilter === 'todos';
 
   const payloadFromForm = useMemo(
     () => ({
@@ -103,6 +110,16 @@ export default function Organigrama() {
 
     return [...byQuery].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   }, [rows, query, statusFilter]);
+
+  const treeRows = useMemo(() => {
+    return filteredRows.map((row) => ({
+      ...row,
+      equiposTree: (row.equipos || []).map((equipo) => ({
+        nombre: equipo,
+        puestos: (row.puestos || []).filter((p) => normalizar(p.nombre).includes(normalizar(equipo))),
+      })),
+    }));
+  }, [filteredRows]);
 
   const metrics = useMemo(() => {
     const total = rows.length;
@@ -195,6 +212,75 @@ export default function Organigrama() {
     }
   };
 
+  const onDragStart = (id) => {
+    setDragId(id);
+  };
+
+  const onDropReorder = async (targetId) => {
+    if (!dragId || dragId === targetId || !canReorder) {
+      setDragId('');
+      setDragOverId('');
+      return;
+    }
+
+    const base = [...rows].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    const from = base.findIndex((item) => item._id === dragId);
+    const to = base.findIndex((item) => item._id === targetId);
+    if (from < 0 || to < 0) {
+      setDragId('');
+      setDragOverId('');
+      return;
+    }
+
+    const reordered = [...base];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    const withOrder = reordered.map((item, index) => ({ ...item, orden: index + 1 }));
+
+    setRows(withOrder);
+    setDragId('');
+    setDragOverId('');
+
+    try {
+      await Promise.all(withOrder.map((item) => updateOrganigrama(item._id, { orden: item.orden })));
+      toast.success('Orden actualizado');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo guardar el nuevo orden');
+      await loadData();
+    }
+  };
+
+  const exportAsImage = async () => {
+    try {
+      if (!exportSectionRef.current) return;
+      const canvas = await html2canvas(exportSectionRef.current, { scale: 2, backgroundColor: '#f5f7fb' });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'organigrama.png';
+      link.click();
+    } catch (error) {
+      toast.error('No se pudo exportar la imagen del organigrama');
+    }
+  };
+
+  const exportAsPdf = async () => {
+    try {
+      if (!exportSectionRef.current) return;
+      const canvas = await html2canvas(exportSectionRef.current, { scale: 2, backgroundColor: '#f5f7fb' });
+      const img = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const imgWidth = pageWidth - 10;
+      const ratio = canvas.height / canvas.width;
+      const imgHeight = imgWidth * ratio;
+      pdf.addImage(img, 'PNG', 5, 5, imgWidth, imgHeight);
+      pdf.save('organigrama.pdf');
+    } catch (error) {
+      toast.error('No se pudo exportar el PDF del organigrama');
+    }
+  };
+
   const cargarEjemplo = async () => {
     setSaving(true);
     try {
@@ -265,17 +351,58 @@ export default function Organigrama() {
             <option value="inactivos">Solo inactivos</option>
           </select>
         </div>
+
+        <div className={styles.toolsRow}>
+          <div className={styles.viewSwitch}>
+            <button
+              className={`${styles.secondaryBtn} ${viewMode === 'cards' ? styles.activeMode : ''}`}
+              onClick={() => setViewMode('cards')}
+            >
+              Vista tarjetas
+            </button>
+            <button
+              className={`${styles.secondaryBtn} ${viewMode === 'tree' ? styles.activeMode : ''}`}
+              onClick={() => setViewMode('tree')}
+            >
+              Vista árbol
+            </button>
+          </div>
+          <div className={styles.exportActions}>
+            <button className={styles.secondaryBtn} onClick={exportAsImage}>Exportar PNG</button>
+            <button className={styles.secondaryBtn} onClick={exportAsPdf}>Exportar PDF</button>
+          </div>
+        </div>
+
+        {isAdmin && !canReorder && (
+          <p className={styles.reorderHint}>Para reordenar por arrastre, limpia búsqueda y usa estado "Todos".</p>
+        )}
       </section>
 
-      <section className={styles.grid}>
+      <section ref={exportSectionRef} className={viewMode === 'tree' ? styles.treeSection : styles.grid}>
         {loading && <p>Cargando organigrama...</p>}
         {!loading && filteredRows.length === 0 && (
           <p>No hay bloques cargados. {isAdmin ? 'Puedes crear uno nuevo o cargar el ejemplo.' : ''}</p>
         )}
-        {!loading && filteredRows.map((bloque) => (
+        {!loading && viewMode === 'cards' && filteredRows.map((bloque) => (
           <article
             key={bloque._id}
-            className={`${styles.card} ${editId === bloque._id ? styles.cardEditing : ''}`}
+            className={`${styles.card} ${editId === bloque._id ? styles.cardEditing : ''} ${dragOverId === bloque._id ? styles.cardDragOver : ''}`}
+            draggable={canReorder}
+            onDragStart={() => onDragStart(bloque._id)}
+            onDragOver={(e) => {
+              if (!canReorder) return;
+              e.preventDefault();
+              setDragOverId(bloque._id);
+            }}
+            onDragLeave={() => setDragOverId('')}
+            onDrop={(e) => {
+              e.preventDefault();
+              onDropReorder(bloque._id);
+            }}
+            onDragEnd={() => {
+              setDragId('');
+              setDragOverId('');
+            }}
           >
             <h2>{bloque.area}</h2>
             <p><strong>Jefe:</strong> {bloque.jefe}</p>
@@ -309,6 +436,40 @@ export default function Organigrama() {
             )}
           </article>
         ))}
+
+        {!loading && viewMode === 'tree' && (
+          <div className={styles.treeRoot}>
+            <h3 className={styles.treeTitle}>Hospital / Clinica</h3>
+            <ul className={styles.treeList}>
+              {treeRows.map((bloque) => (
+                <li key={`tree-${bloque._id}`} className={styles.treeArea}>
+                  <div className={styles.treeNodeHeader}>
+                    <strong>{bloque.area}</strong>
+                    <span>Jefe: {bloque.jefe}</span>
+                    {isAdmin && (
+                      <button className={styles.secondaryBtn} onClick={() => onEdit(bloque)}>Editar</button>
+                    )}
+                  </div>
+                  <ul className={styles.treeSubList}>
+                    {(bloque.equiposTree || []).map((equipo) => (
+                      <li key={`${bloque._id}-${equipo.nombre}`}>
+                        <strong>{equipo.nombre}</strong>
+                        <ul className={styles.treeSubList}>
+                          {(equipo.puestos || []).map((puesto) => (
+                            <li key={`${bloque._id}-${equipo.nombre}-${puesto.nombre}`}>
+                              {puesto.nombre}: {(puesto.personas || []).join(', ') || 'Sin asignar'}
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                    {(!bloque.equiposTree || bloque.equiposTree.length === 0) && <li>Sin equipos cargados</li>}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       {isAdmin && (

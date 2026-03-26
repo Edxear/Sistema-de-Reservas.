@@ -77,6 +77,33 @@
   gap: 8px;
 }
 
+.toolsRow {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.viewSwitch,
+.exportActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.activeMode {
+  background: #1a3b5d;
+  color: #ffffff;
+  border-color: #1a3b5d;
+}
+
+.reorderHint {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
 .searchInput,
 .filterSelect {
   border: 1px solid #dbe4ee;
@@ -196,6 +223,11 @@
   box-shadow: 0 0 0 3px rgba(26, 59, 93, 0.18), 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.cardDragOver {
+  border-color: #48a9a5;
+  box-shadow: 0 0 0 3px rgba(72, 169, 165, 0.18), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .card h2 {
   margin: 0;
   color: #1a3b5d;
@@ -221,9 +253,58 @@
   gap: 8px;
 }
 
+.treeSection {
+  background: #ffffff;
+  border: 1px solid #e7edf5;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 14px;
+}
+
+.treeRoot {
+  display: grid;
+  gap: 10px;
+}
+
+.treeTitle {
+  margin: 0;
+  color: #1a3b5d;
+}
+
+.treeList,
+.treeSubList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.treeArea {
+  border-left: 2px solid #dbe4ee;
+  padding-left: 10px;
+}
+
+.treeNodeHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.treeNodeHeader span {
+  color: #6b7280;
+  font-size: 0.86rem;
+}
+
 @media (max-width: 820px) {
   .metricsRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toolsRow,
+  .viewSwitch,
+  .exportActions {
+    width: 100%;
   }
 
   .controlsRow,
