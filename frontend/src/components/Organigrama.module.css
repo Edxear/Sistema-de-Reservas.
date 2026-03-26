@@ -143,6 +143,11 @@
   gap: 8px;
 }
 
+.cardEditing {
+  border-color: #1a3b5d;
+  box-shadow: 0 0 0 3px rgba(26, 59, 93, 0.18), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .card h2 {
   margin: 0;
   color: #1a3b5d;

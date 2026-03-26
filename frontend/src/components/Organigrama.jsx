@@ -177,7 +177,10 @@ export default function Organigrama() {
           <p>No hay bloques cargados. {isAdmin ? 'Puedes crear uno nuevo o cargar el ejemplo.' : ''}</p>
         )}
         {!loading && rows.map((bloque) => (
-          <article key={bloque._id} className={styles.card}>
+          <article
+            key={bloque._id}
+            className={`${styles.card} ${editId === bloque._id ? styles.cardEditing : ''}`}
+          >
             <h2>{bloque.area}</h2>
             <p><strong>Jefe:</strong> {bloque.jefe}</p>
             <p><strong>Subjefe:</strong> {bloque.subjefe}</p>
