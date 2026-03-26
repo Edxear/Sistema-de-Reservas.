@@ -369,28 +369,6 @@ export default function Organigrama() {
     }
   };
 
-  const cargarEjemplo = async () => {
-    setSaving(true);
-    try {
-      const existingAreas = new Set(rows.map((row) => String(row.area || '').toLowerCase()));
-      const missing = estructuraEjemplo.filter((item) => !existingAreas.has(String(item.area || '').toLowerCase()));
-
-      if (missing.length === 0) {
-        toast.info('El ejemplo hospitalario ya está cargado');
-      } else {
-        await Promise.all(missing.map((item) => createOrganigrama({ ...item, activo: true })));
-        toast.success(`Se cargaron ${missing.length} bloque(s) del ejemplo hospitalario`);
-      }
-
-      await loadData();
-      await loadAudit(auditMeta.page || 1);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'No se pudo cargar la estructura ejemplo');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const toggleCollapse = (nodeId) => {
     setCollapsedNodeIds((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
@@ -455,16 +433,6 @@ export default function Organigrama() {
       <section className={styles.header}>
         <h1>Organigrama Institucional</h1>
         <p>Estructura organizacional para un hospital o clínica, por áreas y rangos.</p>
-
-        {isAdmin && (
-          <div className={styles.headerActions}>
-            {!hasData && (
-              <button className={styles.secondaryBtn} onClick={cargarEjemplo} disabled={saving}>
-                Cargar ejemplo hospitalario
-              </button>
-            )}
-          </div>
-        )}
 
         {usingLocalFallback && (
           <div className={styles.fallbackNote}>
