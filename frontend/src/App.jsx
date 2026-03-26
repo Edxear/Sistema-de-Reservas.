@@ -23,6 +23,10 @@ function ScrollRestorationManager() {
   const navigationType = useNavigationType();
 
   React.useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     const key = `scroll:${location.pathname}${location.search}`;
 
     if (navigationType === 'POP') {
@@ -35,8 +39,22 @@ function ScrollRestorationManager() {
       }
     }
 
+    let ticking = false;
+    const persistScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        sessionStorage.setItem(key, String(window.scrollY));
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', persistScroll, { passive: true });
+    window.addEventListener('beforeunload', persistScroll);
+
     return () => {
-      sessionStorage.setItem(key, String(window.scrollY));
+      window.removeEventListener('scroll', persistScroll);
+      window.removeEventListener('beforeunload', persistScroll);
     };
   }, [location.pathname, location.search, navigationType]);
 
