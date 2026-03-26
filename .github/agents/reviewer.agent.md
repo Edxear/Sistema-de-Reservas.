@@ -3,7 +3,6 @@ name: Reviewer
 description: "Usa este agente para revisar código, PRs o cambios con foco en correctitud, seguridad, performance, mantenibilidad y mejores prácticas."
 tools: [search, read, todo]
 argument-hint: "Describe qué archivo, cambio o feature quieres revisar y qué riesgo te preocupa."
-user-invocable: false
 handoffs:
   - label: "Ejecutar Testing de Regresion"
     agent: Tester

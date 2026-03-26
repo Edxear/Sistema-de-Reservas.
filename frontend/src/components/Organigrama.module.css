@@ -73,7 +73,7 @@
 .controlsRow {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: 1fr 220px 180px;
   gap: 8px;
 }
 
@@ -325,6 +325,79 @@
   font-size: 0.86rem;
 }
 
+.collapseBtn {
+  border: 1px solid #dbe4ee;
+  background: #f8fbff;
+  color: #1a3b5d;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.collapseGhost {
+  width: 26px;
+  height: 26px;
+}
+
+.treeNodeMeta {
+  margin-left: 34px;
+  display: flex;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 0.84rem;
+  flex-wrap: wrap;
+}
+
+.treeInfoLine {
+  margin: 6px 0 0 34px;
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.auditCard {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid #e7edf5;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.auditHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.auditHeader h2 {
+  margin: 0;
+  color: #1a3b5d;
+  font-size: 1.02rem;
+}
+
+.auditList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.auditItem {
+  border: 1px solid #e7edf5;
+  border-radius: 10px;
+  padding: 9px 10px;
+  display: grid;
+  gap: 2px;
+  color: #4b5563;
+  font-size: 0.88rem;
+}
+
 .paginationRow {
   display: flex;
   justify-content: center;
@@ -354,6 +427,11 @@
   .grid2,
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .treeNodeMeta,
+  .treeInfoLine {
+    margin-left: 0;
   }
 
   .formActions,
