@@ -20,6 +20,8 @@ import Perfil from './components/Perfil';
 import Turnos from './components/Turnos';
 import PacienteDetalle from './components/PacienteDetalle';
 import Organigrama from './components/Organigrama';
+import GestionMedicos from './components/GestionMedicos';
+import GestionPacientes from './components/GestionPacientes';
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -137,6 +139,16 @@ function App() {
           <Route path="/organigrama" element={
             <ProtectedRoute>
               <Organigrama />
+            </ProtectedRoute>
+          } />
+          <Route path="/gestion/medicos" element={
+            <ProtectedRoute>
+              <GestionMedicos />
+            </ProtectedRoute>
+          } />
+          <Route path="/gestion/pacientes" element={
+            <ProtectedRoute>
+              <GestionPacientes />
             </ProtectedRoute>
           } />
           <Route path="/medicos" element={<MedicosList />} />

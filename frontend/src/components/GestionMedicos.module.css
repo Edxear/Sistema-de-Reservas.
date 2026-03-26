@@ -1,0 +1,291 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  padding-top: 100px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 2rem;
+}
+
+.botonAgregar {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.botonAgregar:hover {
+  transform: scale(1.05);
+}
+
+.formulario {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  border-left: 4px solid #667eea;
+}
+
+.formulario h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.formulario form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.formulario input,
+.formulario textarea {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.formulario input:focus,
+.formulario textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.formulario textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.formulario small {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.botonGuardar {
+  padding: 0.75rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.botonGuardar:hover {
+  background: #218838;
+}
+
+.busqueda {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.busqueda input {
+  flex: 1;
+  min-width: 300px;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.busqueda input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.contador {
+  color: #666;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabla {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+}
+
+.tabla table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+}
+
+.tabla th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.tabla td {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabla tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.nombre {
+  font-weight: 600;
+  color: #333;
+}
+
+.rating {
+  color: #ffc107;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.rating span {
+  color: #666;
+  font-weight: normal;
+  letter-spacing: normal;
+  margin-left: 0.5rem;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.botonEditar,
+.botonEliminar {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.3s;
+}
+
+.botonEditar {
+  background: #007bff;
+  color: white;
+}
+
+.botonEditar:hover {
+  transform: scale(1.1);
+  background: #0056b3;
+}
+
+.botonEliminar {
+  background: #dc3545;
+  color: white;
+}
+
+.botonEliminar:hover {
+  transform: scale(1.1);
+  background: #c82333;
+}
+
+.sinResultados {
+  text-align: center;
+  color: #999;
+  padding: 3rem 1rem;
+  font-style: italic;
+}
+
+.error {
+  color: #d9534f;
+  background: #f2dede;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #d9534f;
+  margin-bottom: 1rem;
+}
+
+.noPermiso {
+  text-align: center;
+  color: #dc3545;
+  padding: 2rem;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    padding-top: 80px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .botonAgregar {
+    align-self: flex-end;
+  }
+
+  .busqueda input {
+    min-width: auto;
+  }
+
+  .tabla table {
+    font-size: 0.9rem;
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .acciones {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .botonEditar,
+  .botonEliminar {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
