@@ -91,7 +91,17 @@ export default function Chat({ otroUsuario, onCerrar }) {
 
 const styles = {
   overlay: { position: 'fixed', bottom: 20, right: 20, zIndex: 1000 },
-  ventana: { width: 340, height: 480, background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  ventana: {
+    width: 'min(340px, calc(100vw - 40px))',
+    height: 'min(480px, calc(100vh - 40px))',
+    maxHeight: 'calc(100dvh - 40px)',
+    background: '#fff',
+    borderRadius: 12,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
   header: { background: '#0070f3', color: '#fff', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 },
   cerrarBtn: { background: 'transparent', border: 'none', color: '#fff', fontSize: '1.1rem', cursor: 'pointer' },
   mensajes: { flex: 1, padding: 12, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 },

@@ -83,16 +83,6 @@ export default function Turnos() {
   }, [isAuthenticated, loadBookings, navigate]);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('scroll:turnos');
-    if (!saved) return;
-    const y = Number(saved);
-    if (!Number.isNaN(y)) {
-      requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: 'auto' }));
-    }
-    sessionStorage.removeItem('scroll:turnos');
-  }, []);
-
-  useEffect(() => {
     if (filters.page > 1) {
       bookingsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -362,10 +352,7 @@ export default function Turnos() {
                 <div className={styles.actions}>
                   {(user?.rol === 'medico' || user?.rol === 'admin') && b.usuario?._id && (
                     <>
-                      <button className={styles.secondaryBtn} onClick={() => {
-                        sessionStorage.setItem('scroll:turnos', String(window.scrollY));
-                        navigate(`/historial/${b.usuario._id}`);
-                      }}>Ver historial</button>
+                      <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario._id}`)}>Ver historial</button>
                       <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
                     </>
                   )}

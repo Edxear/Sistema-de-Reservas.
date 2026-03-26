@@ -441,16 +441,6 @@ export default function Dashboard() {
     loadData();
   }, [isAuthenticated, navigate, filters, loadData]);
 
-  useEffect(() => {
-    const saved = sessionStorage.getItem('scroll:dashboard');
-    if (!saved) return;
-    const y = Number(saved);
-    if (!Number.isNaN(y)) {
-      requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: 'auto' }));
-    }
-    sessionStorage.removeItem('scroll:dashboard');
-  }, []);
-
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -676,10 +666,7 @@ export default function Dashboard() {
                 <div className={styles.actions}>
                   {(user?.rol === 'medico' || user?.rol === 'admin') && (
                     <>
-                      <button className={styles.secondaryBtn} onClick={() => {
-                        sessionStorage.setItem('scroll:dashboard', String(window.scrollY));
-                        navigate(`/historial/${b.usuario?._id}`);
-                      }}>Ver historial</button>
+                      <button className={styles.secondaryBtn} onClick={() => navigate(`/historial/${b.usuario?._id}`)}>Ver historial</button>
                       {b.usuario?._id && (
                         <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
                       )}

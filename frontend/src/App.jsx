@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -18,12 +18,27 @@ import Perfil from './components/Perfil';
 import Turnos from './components/Turnos';
 import PacienteDetalle from './components/PacienteDetalle';
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
+function ScrollRestorationManager() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
 
   React.useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [pathname]);
+    const key = `scroll:${location.pathname}${location.search}`;
+
+    if (navigationType === 'POP') {
+      const saved = sessionStorage.getItem(key);
+      if (saved) {
+        const y = Number(saved);
+        if (!Number.isNaN(y)) {
+          requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: 'auto' }));
+        }
+      }
+    }
+
+    return () => {
+      sessionStorage.setItem(key, String(window.scrollY));
+    };
+  }, [location.pathname, location.search, navigationType]);
 
   return null;
 }
@@ -52,7 +67,7 @@ function App() {
       {/* AuthProvider y NotificacionProvider envuelven toda la app */}
       <AuthProvider>
         <NotificacionProvider>
-          <ScrollToTop />
+          <ScrollRestorationManager />
           <Header />
           <ToastContainer position="top-right" autoClose={3000} />
           <Routes>
