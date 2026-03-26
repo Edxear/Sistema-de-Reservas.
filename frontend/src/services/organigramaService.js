@@ -15,6 +15,11 @@ export const updateOrganigrama = async (id, data) => {
   return res.data;
 };
 
+export const reorderOrganigrama = async (items) => {
+  const res = await API.put('/organigrama/reorder', { items });
+  return res.data;
+};
+
 export const deleteOrganigrama = async (id) => {
   const res = await API.delete(`/organigrama/${id}`);
   return res.data;

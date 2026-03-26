@@ -8,9 +8,11 @@ const {
   createOrganigrama,
   updateOrganigrama,
   deleteOrganigrama,
+  reorderOrganigrama,
 } = require('../controllers/organigramaController');
 
 router.get('/', authMiddleware, getOrganigrama);
+router.put('/reorder', authMiddleware, adminMiddleware, reorderOrganigrama);
 router.post('/', authMiddleware, adminMiddleware, createOrganigrama);
 router.put('/:id', authMiddleware, adminMiddleware, updateOrganigrama);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteOrganigrama);

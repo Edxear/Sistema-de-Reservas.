@@ -81,3 +81,31 @@ exports.deleteOrganigrama = async (req, res) => {
     res.status(500).json({ message: 'Error eliminando bloque de organigrama', error: error.message });
   }
 };
+
+exports.reorderOrganigrama = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Se requiere una lista de items para reordenar' });
+    }
+
+    const operations = items
+      .filter((item) => item && item.id)
+      .map((item) => ({
+        updateOne: {
+          filter: { _id: item.id },
+          update: { $set: { orden: Number.isFinite(Number(item.orden)) ? Number(item.orden) : 0 } },
+        },
+      }));
+
+    if (operations.length === 0) {
+      return res.status(400).json({ message: 'No hay operaciones válidas para aplicar' });
+    }
+
+    await Organigrama.bulkWrite(operations);
+    const rows = await Organigrama.find().sort({ orden: 1, area: 1 });
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Error reordenando organigrama', error: error.message });
+  }
+};

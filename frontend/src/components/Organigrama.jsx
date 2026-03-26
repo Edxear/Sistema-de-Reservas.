@@ -7,6 +7,7 @@ import {
   createOrganigrama,
   deleteOrganigrama,
   getOrganigrama,
+  reorderOrganigrama,
   updateOrganigrama,
 } from '../services/organigramaService';
 import organigramaHospitalario from '../data/organigramaHospitalario.json';
@@ -52,9 +53,14 @@ export default function Organigrama() {
   const [viewMode, setViewMode] = useState('cards');
   const [dragId, setDragId] = useState('');
   const [dragOverId, setDragOverId] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [inlineEditId, setInlineEditId] = useState('');
+  const [inlinePuestosText, setInlinePuestosText] = useState('');
+  const [inlineSaving, setInlineSaving] = useState(false);
   const formSectionRef = useRef(null);
   const areaInputRef = useRef(null);
   const exportSectionRef = useRef(null);
+  const pageSize = 4;
   const [form, setForm] = useState({
     area: '',
     jefe: '',
@@ -121,6 +127,18 @@ export default function Organigrama() {
     }));
   }, [filteredRows]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, currentPage]);
+
+  const paginatedTreeRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return treeRows.slice(start, start + pageSize);
+  }, [treeRows, currentPage]);
+
   const metrics = useMemo(() => {
     const total = rows.length;
     const activos = rows.filter((r) => r.activo !== false).length;
@@ -156,6 +174,16 @@ export default function Organigrama() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, statusFilter, viewMode]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -242,11 +270,36 @@ export default function Organigrama() {
     setDragOverId('');
 
     try {
-      await Promise.all(withOrder.map((item) => updateOrganigrama(item._id, { orden: item.orden })));
+      const updatedRows = await reorderOrganigrama(withOrder.map((item) => ({ id: item._id, orden: item.orden })));
+      setRows(updatedRows || withOrder);
       toast.success('Orden actualizado');
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo guardar el nuevo orden');
       await loadData();
+    }
+  };
+
+  const startInlineEdit = (row) => {
+    setInlineEditId(row._id);
+    setInlinePuestosText(formatPuestos(row.puestos || []));
+  };
+
+  const cancelInlineEdit = () => {
+    setInlineEditId('');
+    setInlinePuestosText('');
+  };
+
+  const saveInlineEdit = async (row) => {
+    setInlineSaving(true);
+    try {
+      const updated = await updateOrganigrama(row._id, { puestos: parsePuestos(inlinePuestosText) });
+      setRows((prev) => prev.map((item) => (item._id === row._id ? { ...item, ...updated } : item)));
+      toast.success('Puestos actualizados');
+      cancelInlineEdit();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar la edición rápida');
+    } finally {
+      setInlineSaving(false);
     }
   };
 
@@ -383,7 +436,7 @@ export default function Organigrama() {
         {!loading && filteredRows.length === 0 && (
           <p>No hay bloques cargados. {isAdmin ? 'Puedes crear uno nuevo o cargar el ejemplo.' : ''}</p>
         )}
-        {!loading && viewMode === 'cards' && filteredRows.map((bloque) => (
+        {!loading && viewMode === 'cards' && paginatedRows.map((bloque) => (
           <article
             key={bloque._id}
             className={`${styles.card} ${editId === bloque._id ? styles.cardEditing : ''} ${dragOverId === bloque._id ? styles.cardDragOver : ''}`}
@@ -428,9 +481,28 @@ export default function Organigrama() {
                 </ul>
               </div>
             )}
+            {isAdmin && inlineEditId === bloque._id && (
+              <div className={styles.inlineEditor}>
+                <label>
+                  Edición rápida de puestos y personas
+                  <textarea
+                    value={inlinePuestosText}
+                    onChange={(e) => setInlinePuestosText(e.target.value)}
+                    placeholder={'Jefe de Área: Dra. Sofia Martinez\nSubjefe: Dr. Mateo Ruiz'}
+                  />
+                </label>
+                <div className={styles.inlineEditorActions}>
+                  <button className={styles.secondaryBtn} onClick={cancelInlineEdit} type="button">Cancelar</button>
+                  <button className={styles.primaryBtn} onClick={() => saveInlineEdit(bloque)} type="button" disabled={inlineSaving}>
+                    {inlineSaving ? 'Guardando...' : 'Guardar rápido'}
+                  </button>
+                </div>
+              </div>
+            )}
             {isAdmin && (
               <div className={styles.cardActions}>
                 <button className={styles.secondaryBtn} onClick={() => onEdit(bloque)}>Editar</button>
+                <button className={styles.secondaryBtn} onClick={() => startInlineEdit(bloque)}>Edición rápida</button>
                 <button className={styles.dangerBtn} onClick={() => onDelete(bloque._id)}>Eliminar</button>
               </div>
             )}
@@ -441,7 +513,7 @@ export default function Organigrama() {
           <div className={styles.treeRoot}>
             <h3 className={styles.treeTitle}>Hospital / Clinica</h3>
             <ul className={styles.treeList}>
-              {treeRows.map((bloque) => (
+              {paginatedTreeRows.map((bloque) => (
                 <li key={`tree-${bloque._id}`} className={styles.treeArea}>
                   <div className={styles.treeNodeHeader}>
                     <strong>{bloque.area}</strong>
@@ -471,6 +543,18 @@ export default function Organigrama() {
           </div>
         )}
       </section>
+
+      {!loading && filteredRows.length > pageSize && (
+        <div className={styles.paginationRow}>
+          <button className={styles.secondaryBtn} onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1}>
+            Anterior
+          </button>
+          <span className={styles.paginationLabel}>Página {currentPage} de {totalPages}</span>
+          <button className={styles.secondaryBtn} onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
+            Siguiente
+          </button>
+        </div>
+      )}
 
       {isAdmin && (
         <section className={styles.formCard} ref={formSectionRef}>
