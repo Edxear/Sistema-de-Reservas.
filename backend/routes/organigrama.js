@@ -12,7 +12,7 @@ const {
   getOrganigramaAudit,
 } = require('../controllers/organigramaController');
 
-router.get('/', authMiddleware, getOrganigrama);
+router.get('/', getOrganigrama);
 router.get('/audit', authMiddleware, adminMiddleware, getOrganigramaAudit);
 router.put('/reorder', authMiddleware, adminMiddleware, reorderOrganigrama);
 router.post('/', authMiddleware, adminMiddleware, createOrganigrama);
