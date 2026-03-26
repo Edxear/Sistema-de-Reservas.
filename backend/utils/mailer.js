@@ -1,5 +1,27 @@
 const nodemailer = require('nodemailer');
 
+const EMAIL_ENABLED = String(process.env.EMAIL_ENABLED || 'true').toLowerCase() !== 'false';
+const PLACEHOLDER_VALUES = new Set([
+  'your-email@gmail.com',
+  'your-app-password',
+  'changeme',
+  'example@example.com',
+]);
+let smtpDisabledByAuthError = false;
+let warnedMissingConfig = false;
+
+function isPlaceholder(value = '') {
+  const v = String(value || '').trim().toLowerCase();
+  if (!v) return true;
+  if (PLACEHOLDER_VALUES.has(v)) return true;
+  return v.includes('your-') || v.includes('example');
+}
+
+function isEmailConfigured() {
+  if (!EMAIL_ENABLED) return false;
+  return !isPlaceholder(process.env.EMAIL_USER) && !isPlaceholder(process.env.EMAIL_PASS);
+}
+
 // Configurar transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -314,8 +336,15 @@ END:VCALENDAR`;
 // Función principal de envío
 async function sendEmail(to, subject, html, attachments = []) {
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn('⚠️  EMAIL_USER o EMAIL_PASS no configurados. Email no enviado a:', to);
+    if (smtpDisabledByAuthError) {
+      return { success: false, reason: 'SMTP disabled due to auth errors' };
+    }
+
+    if (!isEmailConfigured()) {
+      if (!warnedMissingConfig) {
+        warnedMissingConfig = true;
+        console.warn('⚠️  Email deshabilitado: configura EMAIL_USER/EMAIL_PASS válidos o EMAIL_ENABLED=false.');
+      }
       return { success: false, reason: 'Config missing' };
     }
 
@@ -330,6 +359,12 @@ async function sendEmail(to, subject, html, attachments = []) {
     console.log(`✓ Email enviado a ${to} - ${subject}`);
     return { success: true, messageId: result.messageId };
   } catch (error) {
+    const msg = String(error.message || '');
+    const authFailed = /invalid login|badcredentials|535-5\.7\.8|535 5\.7\.8/i.test(msg);
+    if (authFailed) {
+      smtpDisabledByAuthError = true;
+      console.error('✗ Error SMTP de autenticación. Se desactivan intentos de email en este proceso hasta reiniciar y corregir credenciales.');
+    }
     console.error(`✗ Error enviando email a ${to}:`, error.message);
     return { success: false, error: error.message };
   }
