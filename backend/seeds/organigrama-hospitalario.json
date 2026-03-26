@@ -1,0 +1,164 @@
+{
+  "bloques": [
+    {
+      "area": "Direccion General",
+      "jefe": "Dr. Lorenzo Aguirre",
+      "subjefe": "Dra. Mariana Roldan",
+      "orden": 1,
+      "activo": true,
+      "equipos": ["Secretaria de Direccion", "Calidad y Seguridad del Paciente"],
+      "puestos": [
+        { "nombre": "Director Medico", "personas": ["Dr. Lorenzo Aguirre"] },
+        { "nombre": "Subdirector Asistencial", "personas": ["Dra. Mariana Roldan"] },
+        { "nombre": "Coordinacion de Calidad", "personas": ["Lic. Julieta Ibanez"] }
+      ]
+    },
+    {
+      "area": "Cuerpo Medico",
+      "jefe": "Dra. Sofia Martinez",
+      "subjefe": "Dr. Mateo Ruiz",
+      "orden": 2,
+      "activo": true,
+      "equipos": ["Clinica Medica", "Pediatria", "Traumatologia", "Neurologia", "Dermatologia", "Endocrinologia", "Ginecologia", "Urologia", "Otorrinolaringologia"],
+      "puestos": [
+        { "nombre": "Jefe de Cuerpo Medico", "personas": ["Dra. Sofia Martinez"] },
+        { "nombre": "Subjefe de Especialidades", "personas": ["Dr. Mateo Ruiz"] },
+        { "nombre": "Neurologia", "personas": ["Dr. Nicolas Peralta"] },
+        { "nombre": "Pediatria", "personas": ["Dra. Valentina Gomez"] },
+        { "nombre": "Dermatologia", "personas": ["Dr. Bruno Herrera"] },
+        { "nombre": "Endocrinologia", "personas": ["Dra. Julia Ferrero"] },
+        { "nombre": "Ginecologia", "personas": ["Dra. Camila Suarez"] },
+        { "nombre": "Urologia", "personas": ["Dr. Esteban Loyola"] },
+        { "nombre": "Otorrinolaringologia", "personas": ["Dr. Alan Murua"] }
+      ]
+    },
+    {
+      "area": "Enfermeria",
+      "jefe": "Enf. Ayelen Parada",
+      "subjefe": "Enf. Lucas Ibarra",
+      "orden": 3,
+      "activo": true,
+      "equipos": ["Enfermeria de Guardia", "Enfermeria de Internacion", "Vacunatorio"],
+      "puestos": [
+        { "nombre": "Jefe de Enfermeria", "personas": ["Enfermera Ayelen Parada"] },
+        { "nombre": "Subjefe de Turno", "personas": ["Enf. Lucas Ibarra"] },
+        { "nombre": "Coordinador de Vacunatorio", "personas": ["Enf. Paula Ferreyra"] }
+      ]
+    },
+    {
+      "area": "Diagnostico y Apoyo",
+      "jefe": "Dr. Ignacio Bianchi",
+      "subjefe": "Bioq. Natalia Vivas",
+      "orden": 4,
+      "activo": true,
+      "equipos": ["Laboratorio", "Imagenes", "Farmacia Hospitalaria"],
+      "puestos": [
+        { "nombre": "Jefe de Diagnostico", "personas": ["Dr. Ignacio Bianchi"] },
+        { "nombre": "Subjefe de Laboratorio", "personas": ["Bioq. Natalia Vivas"] },
+        { "nombre": "Coordinador de Imagenes", "personas": ["Tec. Ramiro Ocampo"] },
+        { "nombre": "Jefa de Farmacia", "personas": ["Farm. Clara Benitez"] }
+      ]
+    },
+    {
+      "area": "Administracion y Atencion",
+      "jefe": "Lic. Martin Bianchetti",
+      "subjefe": "Carla Mendez",
+      "orden": 5,
+      "activo": true,
+      "equipos": ["Admision", "Facturacion", "Obras Sociales", "Atencion al Paciente"],
+      "puestos": [
+        { "nombre": "Jefe Administrativo", "personas": ["Lic. Martin Bianchetti"] },
+        { "nombre": "Subjefe de Admision", "personas": ["Carla Mendez"] },
+        { "nombre": "Coordinadora de Estudios", "personas": ["Julieta Acosta"] }
+      ]
+    },
+    {
+      "area": "Servicios Generales",
+      "jefe": "Sr. Hector Maldonado",
+      "subjefe": "Sra. Laura Corbalan",
+      "orden": 6,
+      "activo": true,
+      "equipos": ["Limpieza", "Mantenimiento", "Seguridad", "Logistica"],
+      "puestos": [
+        { "nombre": "Jefe de Servicios Generales", "personas": ["Sr. Hector Maldonado"] },
+        { "nombre": "Subjefe Operativo", "personas": ["Sra. Laura Corbalan"] },
+        { "nombre": "Coordinador de Limpieza", "personas": ["Sra. Mirta Quiroga"] },
+        { "nombre": "Coordinador de Seguridad", "personas": ["Sr. Damian Rios"] }
+      ]
+    }
+  ],
+  "asignacionesUsuariosExistentes": [
+    {
+      "email": "ayelen.parada@consultoriosanpablo.com",
+      "areaOrganigrama": "Enfermeria",
+      "sectorOrganigrama": "Enfermeria de Guardia",
+      "cargoOrganigrama": "Jefe de Enfermeria"
+    },
+    {
+      "email": "sofia.martinez@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Clinica Medica",
+      "cargoOrganigrama": "Jefe de Cuerpo Medico"
+    },
+    {
+      "email": "mateo.ruiz@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Traumatologia",
+      "cargoOrganigrama": "Subjefe de Especialidades"
+    },
+    {
+      "email": "nicolas.peralta@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Neurologia",
+      "cargoOrganigrama": "Medico Especialista"
+    },
+    {
+      "email": "valentina.gomez@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Pediatria",
+      "cargoOrganigrama": "Medica Especialista"
+    },
+    {
+      "email": "bruno.herrera@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Dermatologia",
+      "cargoOrganigrama": "Medico Especialista"
+    },
+    {
+      "email": "julia.ferrero@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Endocrinologia",
+      "cargoOrganigrama": "Medica Especialista"
+    },
+    {
+      "email": "camila.suarez@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Ginecologia",
+      "cargoOrganigrama": "Medica Especialista"
+    },
+    {
+      "email": "esteban.loyola@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Urologia",
+      "cargoOrganigrama": "Medico Especialista"
+    },
+    {
+      "email": "alan.murua@consultoriosanpablo.com",
+      "areaOrganigrama": "Cuerpo Medico",
+      "sectorOrganigrama": "Otorrinolaringologia",
+      "cargoOrganigrama": "Medico Especialista"
+    },
+    {
+      "email": "carla.mendez@consultoriosanpablo.com",
+      "areaOrganigrama": "Administracion y Atencion",
+      "sectorOrganigrama": "Admision",
+      "cargoOrganigrama": "Subjefe de Admision"
+    },
+    {
+      "email": "julieta.acosta@consultoriosanpablo.com",
+      "areaOrganigrama": "Administracion y Atencion",
+      "sectorOrganigrama": "Gestion de Estudios",
+      "cargoOrganigrama": "Coordinadora de Estudios"
+    }
+  ]
+}

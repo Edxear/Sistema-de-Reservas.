@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema({
   contactoEmergencia: { type: String, default: '' },
   areaSecretaria: { type: String, default: '' },
   turnoLaboral: { type: String, default: '' },
+  areaOrganigrama: { type: String, default: '' },
+  sectorOrganigrama: { type: String, default: '' },
+  cargoOrganigrama: { type: String, default: '' },
   agendaConfiguracion: {
     tipo: {
       type: String,

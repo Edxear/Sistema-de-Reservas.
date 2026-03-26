@@ -9,11 +9,18 @@ const Receta = require('../models/Receta');
 const HistoriaClinica = require('../models/HistoriaClinica');
 
 const seedUsers = require('../seeds/usuarios-iniciales.json');
+const organigramaHospitalario = require('../seeds/organigrama-hospitalario.json');
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD || seedUsers.passwordComun || 'clinica123';
+const asignacionesOrganigrama = organigramaHospitalario.asignacionesUsuariosExistentes || [];
+
+const getAsignacionOrganigrama = (email = '') => {
+  const normalized = String(email).trim().toLowerCase();
+  return asignacionesOrganigrama.find((row) => String(row.email).trim().toLowerCase() === normalized) || null;
+};
 
 if (!MONGODB_URI) {
   console.error('Falta MONGODB_URI en .env');
@@ -211,6 +218,7 @@ async function run() {
 
   const medicosAdmins = [];
   for (const m of seedUsers.medicosAdmins) {
+    const asignacion = getAsignacionOrganigrama(m.email);
     const medico = await User.create({
       nombre: m.nombre,
       email: m.email,
@@ -226,6 +234,9 @@ async function run() {
         instagram: 'https://instagram.com/consultoriosanpablo',
         linkedin: 'https://linkedin.com/company/consultorio-san-pablo'
       },
+      areaOrganigrama: asignacion?.areaOrganigrama || 'Cuerpo Medico',
+      sectorOrganigrama: asignacion?.sectorOrganigrama || m.especialidad,
+      cargoOrganigrama: asignacion?.cargoOrganigrama || 'Medico Especialista',
       horariosAtencion: horariosPorEspecialidad[m.especialidad] || [
         { dia: 'Lunes', horaInicio: '09:00', horaFin: '13:00' },
         { dia: 'Miercoles', horaInicio: '14:00', horaFin: '18:00' }
@@ -236,6 +247,7 @@ async function run() {
 
   const secretarias = [];
   for (const s of seedUsers.secretarias) {
+    const asignacion = getAsignacionOrganigrama(s.email);
     const secretaria = await User.create({
       nombre: s.nombre,
       email: s.email,
@@ -244,6 +256,9 @@ async function run() {
       password: SEED_INITIAL_PASSWORD,
       areaSecretaria: s.areaSecretaria,
       turnoLaboral: s.turnoLaboral,
+      areaOrganigrama: asignacion?.areaOrganigrama || 'Administracion y Atencion',
+      sectorOrganigrama: asignacion?.sectorOrganigrama || s.areaSecretaria || 'Atencion al Paciente',
+      cargoOrganigrama: asignacion?.cargoOrganigrama || 'Secretaria',
       bio: 'Secretaria administrativa del consultorio'
     });
     secretarias.push(secretaria);
