@@ -54,8 +54,8 @@ export default function Header() {
                 <div className={styles.dropdownMenu}>
                   <Link to="/dashboard" onClick={closeAllMenus}>Panel principal</Link>
                   <Link to="/turnos" onClick={closeAllMenus}>Turnos</Link>
-                  <Link to="/gestion/medicos" onClick={closeAllMenus}>Gestion de Medicos</Link>
-                  <Link to="/gestion/pacientes" onClick={closeAllMenus}>Gestion de Pacientes</Link>
+                  <Link to="/gestion/medicos" onClick={closeAllMenus}>Medicos</Link>
+                  <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>
                   <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>
                   <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
                   <Link to="/organigrama" onClick={closeAllMenus}>

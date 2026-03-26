@@ -125,7 +125,7 @@ const GestionPacientes = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Gestión de Pacientes</h1>
+        <h1>Pacientes</h1>
         <button 
           className={styles.botonAgregar}
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
