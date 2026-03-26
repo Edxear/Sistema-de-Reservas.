@@ -11,6 +11,8 @@ import { NotificacionProvider } from './context/NotificacionContext';
 import LoginRegister from './components/LoginRegister';
 import Dashboard from './components/Dashboard';
 import PaginaPublicaMedico from './components/PaginaPublicaMedico';
+import PaginaMedico from './components/PaginaMedico';
+import MedicosList from './components/MedicosList';
 import HistoriaClinica from './components/HistoriaClinica';
 import Recetas from './components/Recetas';
 import Header from './components/Header';
@@ -137,6 +139,8 @@ function App() {
               <Organigrama />
             </ProtectedRoute>
           } />
+          <Route path="/medicos" element={<MedicosList />} />
+          <Route path="/medicos/:id" element={<PaginaMedico />} />
           <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

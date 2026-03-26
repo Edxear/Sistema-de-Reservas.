@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styles from './PaginaMedico.module.css';
-import { getMedicoById, getRatingsMedico, crearRatingMedico, miRatingMedico } from '../services/medicoService';
+import { getMedicoById, getRatingsMedico, crearRatingMedico, miRatingMedico, getComentariosPrivados, crearComentarioPrivado, eliminarComentarioPrivado } from '../services/medicoService';
 import { AuthContext } from '../context/AuthContext';
+import { mostrarExito, mostrarError, mostrarNuevoRating, mostrarNuevoComentario } from '../utils/notificaciones';
+import { exportarComentariosCSV, exportarComentariosPDF } from '../utils/exportadores';
 
 const PaginaMedico = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [medico, setMedico] = useState(null);
   const [ratings, setRatings] = useState(null);
   const [miRating, setMiRating] = useState(null);
+  const [comentariosPrivados, setComentariosPrivados] = useState([]);
   const [nuevaCalificacion, setNuevaCalificacion] = useState(0);
   const [nuevoComentario, setNuevoComentario] = useState('');
+  const [nuevoComentarioPrivado, setNuevoComentarioPrivado] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -41,6 +46,12 @@ const PaginaMedico = () => {
           setNuevoComentario(miData.comentario || '');
         }
       }
+
+      // Cargar comentarios privados si soy admin/director
+      if (user && ['admin', 'director'].includes(user.rol)) {
+        const comentarios = await getComentariosPrivados(id);
+        setComentariosPrivados(comentarios);
+      }
     } catch (err) {
       setError('Error al cargar datos: ' + err.message);
       console.error(err);
@@ -68,7 +79,9 @@ const PaginaMedico = () => {
       setMensajeExito('');
 
       await crearRatingMedico(id, nuevaCalificacion, nuevoComentario);
-      setMensajeExito('Reseña guardada exitosamente');
+      
+      mostrarNuevoRating(medico.nombre, nuevaCalificacion);
+      mostrarExito(miRating ? 'Reseña actualizada' : 'Reseña publicada exitosamente');
 
       // Recargar datos
       setTimeout(() => {
@@ -78,9 +91,42 @@ const PaginaMedico = () => {
         setMensajeExito('');
       }, 2000);
     } catch (err) {
-      setError('Error al guardar reseña: ' + err.message);
+      mostrarError('Error al guardar reseña: ' + err.message);
     } finally {
       setEnviando(false);
+    }
+  };
+
+  const handleAgregarComentarioPrivado = async (e) => {
+    e.preventDefault();
+
+    if (!nuevoComentarioPrivado.trim()) {
+      mostrarError('El comentario no puede estar vacío');
+      return;
+    }
+
+    try {
+      setEnviando(true);
+      await crearComentarioPrivado(id, nuevoComentarioPrivado);
+      mostrarNuevoComentario(medico.nombre);
+      setNuevoComentarioPrivado('');
+      cargarDatos();
+    } catch (err) {
+      mostrarError('Error al agregar comentario: ' + err.message);
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleEliminarComentario = async (comentarioId) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+      try {
+        await eliminarComentarioPrivado(comentarioId);
+        mostrarExito('Comentario eliminado');
+        cargarDatos();
+      } catch (err) {
+        mostrarError('Error al eliminar comentario');
+      }
     }
   };
 
@@ -109,8 +155,14 @@ const PaginaMedico = () => {
     return <div className={styles.container}><p>Médico no encontrado</p></div>;
   }
 
+  const esAdminODirector = user && ['admin', 'director'].includes(user.rol);
+
   return (
     <div className={styles.container}>
+      <button onClick={() => navigate(-1)} className={styles.botonVolver}>
+        ← Volver
+      </button>
+
       <div className={styles.header}>
         {medico.fotoPerfil && (
           <img src={medico.fotoPerfil} alt={medico.nombre} className={styles.fotoPrincipal} />
@@ -242,6 +294,73 @@ const PaginaMedico = () => {
           )}
         </div>
       </div>
+
+      {esAdminODirector && (
+        <div className={styles.seccionComentariosPrivados}>
+          <h2>Comentarios Privados (Admin/Director)</h2>
+
+          <div className={styles.formularioComentarioPrivado}>
+            <h3>Agregar comentario privado</h3>
+            <form onSubmit={handleAgregarComentarioPrivado}>
+              <textarea
+                value={nuevoComentarioPrivado}
+                onChange={(e) => setNuevoComentarioPrivado(e.target.value)}
+                placeholder="Escribe comentarios privados sobre este médico..."
+                maxLength={1000}
+                disabled={enviando}
+              />
+              <small>{nuevoComentarioPrivado.length}/1000</small>
+              <button 
+                type="submit"
+                disabled={enviando || !nuevoComentarioPrivado.trim()}
+                className={styles.botonEnviarPrivado}
+              >
+                {enviando ? 'Guardando...' : 'Guardar comentario'}
+              </button>
+            </form>
+          </div>
+
+          {comentariosPrivados.length > 0 && (
+            <div className={styles.exportarComentarios}>
+              <button
+                onClick={() => exportarComentariosCSV(comentariosPrivados, medico.nombre)}
+                className={styles.botonExportar}
+              >
+                📥 Exportar como CSV
+              </button>
+              <button
+                onClick={() => exportarComentariosPDF(comentariosPrivados, medico)}
+                className={styles.botonExportar}
+              >
+                📄 Exportar como PDF
+              </button>
+            </div>
+          )}
+
+          <div className={styles.listaComentariosPrivados}>
+            {comentariosPrivados.length > 0 ? (
+              comentariosPrivados.map((comentario) => (
+                <div key={comentario._id} className={styles.comentarioPrivado}>
+                  <div className={styles.headerComentarioPrivado}>
+                    <span className={styles.autor}>{comentario.autor?.nombre}</span>
+                    <span className={styles.tipoAutor}>{comentario.tipoAutor}</span>
+                    <span className={styles.fechaComentario}>{new Date(comentario.fechaCreacion).toLocaleDateString()}</span>
+                  </div>
+                  <p className={styles.contenidoComentario}>{comentario.contenido}</p>
+                  <button
+                    onClick={() => handleEliminarComentario(comentario._id)}
+                    className={styles.botonEliminar}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className={styles.sinComentarios}>No hay comentarios privados aún.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

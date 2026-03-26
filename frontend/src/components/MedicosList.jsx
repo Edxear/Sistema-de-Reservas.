@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styles from './MedicosList.module.css';
 import { getMedicos } from '../services/medicoService';
 
+const ITEMS_POR_PAGINA = 6;
+
 const MedicosList = () => {
   const [medicos, setMedicos] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
@@ -10,10 +12,16 @@ const MedicosList = () => {
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
 
   useEffect(() => {
     cargarMedicos();
   }, []);
+
+  useEffect(() => {
+    // Resetear a página 1 cuando cambian los filtros
+    setPaginaActual(1);
+  }, [especialidadSeleccionada, busqueda]);
 
   const cargarMedicos = async () => {
     try {
@@ -77,6 +85,19 @@ const MedicosList = () => {
     );
   };
 
+  // Cálculo de paginación
+  const totalPaginas = Math.ceil(filtrados.length / ITEMS_POR_PAGINA);
+  const indiceInicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const indiceFin = indiceInicio + ITEMS_POR_PAGINA;
+  const medicosPaginados = filtrados.slice(indiceInicio, indiceFin);
+
+  const cambiarPagina = (nuevaPagina) => {
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+      setPaginaActual(nuevaPagina);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   if (cargando) {
     return <div className={styles.container}><p>Cargando médicos...</p></div>;
   }
@@ -112,11 +133,11 @@ const MedicosList = () => {
 
       <div className={styles.resultados}>
         <p className={styles.contador}>
-          Mostrando {filtrados.length} de {medicos.length} médicos
+          Mostrando {medicosPaginados.length} de {filtrados.length} médicos
         </p>
 
         <div className={styles.gridMedicos}>
-          {filtrados.map(medico => (
+          {medicosPaginados.map(medico => (
             <div key={medico._id} className={styles.tarjeta}>
               {medico.fotoPerfil && (
                 <img 
@@ -164,9 +185,9 @@ const MedicosList = () => {
                   <p className={styles.contacto}>📱 {medico.telefono}</p>
                 )}
 
-                <button className={styles.boton}>
+                <a href={`/medicos/${medico._id}`} className={styles.boton}>
                   Ver Perfil Completo
-                </button>
+                </a>
               </div>
             </div>
           ))}
@@ -178,6 +199,38 @@ const MedicosList = () => {
           </p>
         )}
       </div>
+
+      {totalPaginas > 1 && (
+        <div className={styles.paginacion}>
+          <button 
+            onClick={() => cambiarPagina(paginaActual - 1)}
+            disabled={paginaActual === 1}
+            className={styles.botonPaginacion}
+          >
+            ← Anterior
+          </button>
+
+          <div className={styles.numeroPaginas}>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(pagina => (
+              <button
+                key={pagina}
+                onClick={() => cambiarPagina(pagina)}
+                className={`${styles.botonPagina} ${paginaActual === pagina ? styles.activa : ''}`}
+              >
+                {pagina}
+              </button>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => cambiarPagina(paginaActual + 1)}
+            disabled={paginaActual === totalPaginas}
+            className={styles.botonPaginacion}
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
