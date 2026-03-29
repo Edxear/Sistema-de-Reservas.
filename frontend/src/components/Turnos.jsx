@@ -21,6 +21,7 @@ const formatDia = (fecha) => {
 export default function Turnos() {
   const navigate = useNavigate();
   const location = useLocation();
+  const bookingIdFromQuery = new URLSearchParams(location.search).get('bookingId') || '';
   const { user, isAuthenticated, logout } = useAuth();
 
   const [bookings, setBookings] = useState([]);
@@ -88,6 +89,17 @@ export default function Turnos() {
       bookingsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [filters.page]);
+
+  useEffect(() => {
+    if (!bookingIdFromQuery || loading || bookings.length === 0) return;
+    const target = document.getElementById(`booking-${bookingIdFromQuery}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add(styles.bookingFocus);
+      const t = setTimeout(() => target.classList.remove(styles.bookingFocus), 2200);
+      return () => clearTimeout(t);
+    }
+  }, [bookingIdFromQuery, bookings, loading]);
 
   // Cargar fechas disponibles y agenda semanal cuando se abre el modal
   useEffect(() => {
@@ -321,7 +333,7 @@ export default function Turnos() {
         ) : (
           <div className={styles.bookingsList}>
             {bookings.map((b) => (
-              <article key={b._id} className={styles.bookingCard}>
+              <article key={b._id} id={`booking-${b._id}`} className={styles.bookingCard}>
                 <div>
                   <div className={styles.bookingTitle}>{b.servicio?.nombre || 'Servicio'} - {b.hora}</div>
                   <div className={styles.bookingMeta}>{new Date(b.fecha).toLocaleDateString()} | ID {b._id.substring(0, 8)}...</div>

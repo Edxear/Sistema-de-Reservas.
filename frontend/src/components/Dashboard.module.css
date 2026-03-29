@@ -185,6 +185,12 @@
   align-items: center;
 }
 
+.bookingFocus {
+  border-color: #48a9a5;
+  box-shadow: 0 0 0 3px rgba(72, 169, 165, 0.2);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
 .bookingTitle {
   font-weight: 700;
   color: #1A3B5D;

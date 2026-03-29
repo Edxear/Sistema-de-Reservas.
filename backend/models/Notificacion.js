@@ -47,7 +47,7 @@ const notificacionSchema = new mongoose.Schema(
     },
     referenciaModelo: {
       type: String,
-      enum: ['Booking', 'Mensaje', 'Pago', null],
+      enum: ['Booking', 'Mensaje', 'Pago', 'Receta', null],
       default: null,
     },
   },

@@ -441,7 +441,7 @@ exports.createBooking = async (req, res) => {
           'reserva_nueva',
           `Reserva creada: ${servicioTexto} el ${fechaTexto} a las ${booking.hora}. Estado pendiente de confirmación.`,
           '📅',
-          `/dashboard#booking-${booking._id}`,
+          `/turnos?bookingId=${booking._id}`,
           booking._id,
           'Booking'
         );
@@ -452,7 +452,7 @@ exports.createBooking = async (req, res) => {
           'reserva_nueva',
           `Nuevo turno solicitado por ${pacienteRef?.nombre || 'Paciente'} para ${servicioTexto} (${fechaTexto} ${booking.hora}).`,
           '📅',
-          `/dashboard#booking-${booking._id}`,
+          `/turnos?bookingId=${booking._id}`,
           booking._id,
           'Booking'
         );
@@ -565,12 +565,12 @@ exports.updateBooking = async (req, res) => {
 
           // Notificación al paciente
           try {
-            const notifPaciente = await crearNotificacion(
+              const notifPaciente = await crearNotificacion(
               paciente._id,
               'reserva_confirmada',
               '¡Tu reserva está confirmada!',
               '✅',
-              `/dashboard#booking-${updated._id}`,
+                `/turnos?bookingId=${updated._id}`,
               updated._id,
               'Booking'
             );
@@ -601,7 +601,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_confirmada',
                 `Turno confirmado: ${paciente.nombre}`,
                 '✅',
-                `/dashboard#booking-${updated._id}`,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );
@@ -635,7 +635,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_cancelada',
                 'Tu turno fue cancelado',
                 '❌',
-                null,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );
@@ -666,7 +666,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_cancelada',
                 `Turno cancelado: ${paciente?.nombre}`,
                 '❌',
-                null,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );
@@ -699,7 +699,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_reprogramada',
                 `Tu turno movido a ${new Date(updated.fecha).toLocaleDateString()}`,
                 '📅',
-                `/dashboard#booking-${updated._id}`,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );
@@ -729,7 +729,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_reprogramada',
                 `Turno reprogramado: ${paciente?.nombre}`,
                 '📅',
-                `/dashboard#booking-${updated._id}`,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );
@@ -761,7 +761,7 @@ exports.updateBooking = async (req, res) => {
                 'reserva_atendida',
                 '¡Turno completado! Déjanos tu opinión',
                 '⭐',
-                `/dashboard#booking-${updated._id}`,
+                `/turnos?bookingId=${updated._id}`,
                 updated._id,
                 'Booking'
               );

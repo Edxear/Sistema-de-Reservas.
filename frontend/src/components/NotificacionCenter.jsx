@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotificaciones } from '../context/NotificacionContext';
 import styles from './NotificacionCenter.module.css';
 
 export default function NotificacionCenter() {
+  const navigate = useNavigate();
   const { notificaciones, noLeidas, marcarComoLeida, marcarTodoComoLeido } =
     useNotificaciones();
   const [abierto, setAbierto] = useState(false);
@@ -30,9 +32,22 @@ export default function NotificacionCenter() {
 
   const handleNavegar = (enlace) => {
     if (enlace) {
-      window.location.href = enlace;
+      navigate(enlace);
       setAbierto(false);
     }
+  };
+
+  const handleClickNotif = async (notif) => {
+    if (!notif.leido) {
+      await marcarComoLeida(notif._id);
+    }
+
+    if (notif.enlace) {
+      handleNavegar(notif.enlace);
+      return;
+    }
+
+    setAbierto(false);
   };
 
   return (
@@ -74,10 +89,8 @@ export default function NotificacionCenter() {
                   className={`${styles.itemNotif} ${
                     notif.leido ? styles.leido : styles.noLeido
                   }`}
-                  onClick={() => {
-                    if (notif.enlace) handleNavegar(notif.enlace);
-                  }}
-                  style={notif.enlace ? { cursor: 'pointer' } : {}}
+                  onClick={() => handleClickNotif(notif)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className={styles.contenido}>
                     <div className={styles.icono}>{notif.icono}</div>

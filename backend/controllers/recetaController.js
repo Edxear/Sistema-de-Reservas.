@@ -44,7 +44,7 @@ exports.crearReceta = async (req, res) => {
         '💊',
         '/perfil',
         receta._id,
-        null
+        'Receta'
       );
     } catch (notifError) {
       console.error('Error notificando nueva receta al paciente:', notifError.message);
