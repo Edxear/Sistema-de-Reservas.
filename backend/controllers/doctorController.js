@@ -165,11 +165,102 @@ exports.getDoctorById = async (req, res) => {
 
 exports.createDoctor = async (req, res) => {
   try {
-    const doctor = new Doctor(req.body);
-    await doctor.save();
-    res.status(201).json(doctor);
+    const {
+      nombre,
+      email,
+      telefono,
+      especialidad = '',
+      matriculaProfesional = '',
+      bio = '',
+      direccionConsultorio = '',
+      password
+    } = req.body;
+
+    if (!nombre || !email || !telefono) {
+      return res.status(400).json({ message: 'Nombre, email y teléfono son obligatorios' });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(400).json({ message: 'El email ya está registrado' });
+    }
+
+    const doctor = await User.create({
+      nombre: String(nombre).trim(),
+      email: normalizedEmail,
+      telefono: String(telefono).trim(),
+      rol: 'medico',
+      password: password || process.env.DEFAULT_MANAGED_USER_PASSWORD || 'clinica123',
+      especialidad: String(especialidad || '').trim(),
+      matriculaProfesional: String(matriculaProfesional || '').trim(),
+      bio: String(bio || '').trim(),
+      direccionConsultorio: String(direccionConsultorio || '').trim()
+    });
+
+    const safeDoctor = doctor.toObject();
+    delete safeDoctor.password;
+    res.status(201).json(safeDoctor);
   } catch (error) {
     res.status(400).json({ message: 'Error creando doctor', error });
+  }
+};
+
+exports.updateDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowedFields = [
+      'nombre',
+      'telefono',
+      'especialidad',
+      'matriculaProfesional',
+      'bio',
+      'direccionConsultorio',
+      'fotoPerfil',
+      'mapaEmbed',
+      'redesSociales',
+      'horariosAtencion'
+    ];
+
+    const updates = {};
+    for (const field of allowedFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    const doctor = await User.findOneAndUpdate(
+      { _id: id, rol: { $in: ['medico', 'admin'] } },
+      updates,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor no encontrado' });
+    }
+
+    res.json(doctor);
+  } catch (error) {
+    res.status(400).json({ message: 'Error actualizando doctor', error });
+  }
+};
+
+exports.deleteDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (String(req.user.id) === String(id)) {
+      return res.status(400).json({ message: 'No puedes eliminar tu propio usuario' });
+    }
+
+    const doctor = await User.findOneAndDelete({ _id: id, rol: { $in: ['medico', 'admin'] } });
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor no encontrado' });
+    }
+
+    res.json({ message: 'Doctor eliminado correctamente' });
+  } catch (error) {
+    res.status(400).json({ message: 'Error eliminando doctor', error });
   }
 };
 

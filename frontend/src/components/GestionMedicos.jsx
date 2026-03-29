@@ -2,7 +2,13 @@ import React, { useState, useEffect, useContext } from 'react';
 import styles from './GestionMedicos.module.css';
 import { AuthContext } from '../context/AuthContext';
 import { mostrarExito, mostrarError } from '../utils/notificaciones';
-import { getMedicos } from '../services/medicoService';
+import { validarEmail, validarNombre, validarTelefono } from '../utils/validadores';
+import {
+  getMedicos,
+  crearMedico,
+  actualizarMedico,
+  eliminarMedico
+} from '../services/medicoService';
 
 const GestionMedicos = () => {
   const { user } = useContext(AuthContext);
@@ -12,6 +18,7 @@ const GestionMedicos = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [medicoEditandoId, setMedicoEditandoId] = useState(null);
   const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
@@ -63,17 +70,39 @@ const GestionMedicos = () => {
   const handleGuardar = async (e) => {
     e.preventDefault();
     
-    if (!formulario.nombre.trim()) {
-      mostrarError('El nombre es obligatorio');
+    if (!validarNombre(formulario.nombre || '')) {
+      mostrarError('Ingresa un nombre válido (mínimo 3 letras, sin números)');
+      return;
+    }
+
+    if (!validarEmail(formulario.email || '')) {
+      mostrarError('Ingresa un email válido');
+      return;
+    }
+
+    if (!validarTelefono(formulario.telefono || '')) {
+      mostrarError('Ingresa un teléfono válido (mínimo 10 dígitos)');
       return;
     }
 
     try {
-      // Aquí iría la llamada al API para guardar/actualizar
-      // await crearOMedico(formulario)
-      
-      mostrarExito('Médico guardado exitosamente');
+      if (medicoEditandoId) {
+        await actualizarMedico(medicoEditandoId, {
+          nombre: formulario.nombre,
+          telefono: formulario.telefono,
+          especialidad: formulario.especialidad,
+          matriculaProfesional: formulario.matriculaProfesional,
+          bio: formulario.bio,
+          direccionConsultorio: formulario.direccionConsultorio
+        });
+        mostrarExito('Médico actualizado exitosamente');
+      } else {
+        await crearMedico(formulario);
+        mostrarExito('Médico creado exitosamente');
+      }
+
       setMostrarFormulario(false);
+      setMedicoEditandoId(null);
       setFormulario({
         nombre: '',
         email: '',
@@ -85,18 +114,34 @@ const GestionMedicos = () => {
       });
       cargarMedicos();
     } catch (err) {
-      mostrarError('Error al guardar médico');
+      const msg = err?.response?.data?.message || 'Error al guardar médico';
+      mostrarError(msg);
     }
+  };
+
+  const handleEditar = (medico) => {
+    setMedicoEditandoId(medico._id);
+    setFormulario({
+      nombre: medico.nombre || '',
+      email: medico.email || '',
+      telefono: medico.telefono || '',
+      especialidad: medico.especialidad || '',
+      matriculaProfesional: medico.matriculaProfesional || '',
+      bio: medico.bio || '',
+      direccionConsultorio: medico.direccionConsultorio || ''
+    });
+    setMostrarFormulario(true);
   };
 
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este médico?')) {
       try {
-        // await deleteMedico(id)
+        await eliminarMedico(id);
         mostrarExito('Médico eliminado');
         cargarMedicos();
       } catch (err) {
-        mostrarError('Error al eliminar médico');
+        const msg = err?.response?.data?.message || 'Error al eliminar médico';
+        mostrarError(msg);
       }
     }
   };
@@ -120,7 +165,21 @@ const GestionMedicos = () => {
         <h1>Médicos</h1>
         <button 
           className={styles.botonAgregar}
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
+          onClick={() => {
+            if (mostrarFormulario) {
+              setMedicoEditandoId(null);
+              setFormulario({
+                nombre: '',
+                email: '',
+                telefono: '',
+                especialidad: '',
+                matriculaProfesional: '',
+                bio: '',
+                direccionConsultorio: ''
+              });
+            }
+            setMostrarFormulario(!mostrarFormulario);
+          }}
         >
           {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Médico'}
         </button>
@@ -128,7 +187,7 @@ const GestionMedicos = () => {
 
       {mostrarFormulario && (
         <div className={styles.formulario}>
-          <h2>Nuevo Médico</h2>
+          <h2>{medicoEditandoId ? 'Editar Médico' : 'Nuevo Médico'}</h2>
           <form onSubmit={handleGuardar}>
             <div className={styles.grid}>
               <input
@@ -145,6 +204,8 @@ const GestionMedicos = () => {
                 placeholder="Email"
                 value={formulario.email}
                 onChange={handleFormularioChange}
+                required
+                disabled={Boolean(medicoEditandoId)}
               />
               <input
                 type="tel"
@@ -228,7 +289,13 @@ const GestionMedicos = () => {
                     <span> ({medico.totalRatings})</span>
                   </td>
                   <td className={styles.acciones}>
-                    <button className={styles.botonEditar} title="Editar">✏️</button>
+                    <button
+                      className={styles.botonEditar}
+                      onClick={() => handleEditar(medico)}
+                      title="Editar"
+                    >
+                      ✏️
+                    </button>
                     <button 
                       className={styles.botonEliminar}
                       onClick={() => handleEliminar(medico._id)}

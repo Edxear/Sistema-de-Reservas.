@@ -2,6 +2,13 @@ import React, { useState, useEffect, useContext } from 'react';
 import styles from './GestionPacientes.module.css';
 import { AuthContext } from '../context/AuthContext';
 import { mostrarExito, mostrarError } from '../utils/notificaciones';
+import { validarDNI, validarEmail, validarNombre, validarTelefono } from '../utils/validadores';
+import {
+  getPacientes,
+  crearPaciente,
+  actualizarPaciente,
+  eliminarPaciente
+} from '../services/patientService';
 
 const GestionPacientes = () => {
   const { user } = useContext(AuthContext);
@@ -11,6 +18,7 @@ const GestionPacientes = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [pacienteEditandoId, setPacienteEditandoId] = useState(null);
   const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
@@ -29,18 +37,9 @@ const GestionPacientes = () => {
   const cargarPacientes = async () => {
     try {
       setCargando(true);
-      // const response = await fetch(`/api/patients`);
-      // const datos = await response.json();
-      // setPacientes(datos);
-      // setFiltrados(datos);
-      
-      // Mock data para demostración
-      const datosDemo = [
-        { _id: '1', nombre: 'Juan Perez', email: 'juan@email.com', telefono: '3415303001', documento: '12345678', obraSocial: 'OSDE', numeroAfiliado: 'OSD-938211', alergias: 'Penicilina', direccion: 'Calle 1' },
-        { _id: '2', nombre: 'Maria Lopez', email: 'maria@email.com', telefono: '3415303002', documento: '87654321', obraSocial: 'Swiss Medical', numeroAfiliado: 'SWM-774501', alergias: 'Ninguna', direccion: 'Calle 2' }
-      ];
-      setPacientes(datosDemo);
-      setFiltrados(datosDemo);
+      const datos = await getPacientes();
+      setPacientes(datos);
+      setFiltrados(datos);
     } catch (err) {
       setError('Error al cargar pacientes: ' + err.message);
       mostrarError('Error al cargar pacientes');
@@ -72,15 +71,45 @@ const GestionPacientes = () => {
   const handleGuardar = async (e) => {
     e.preventDefault();
     
-    if (!formulario.nombre.trim()) {
-      mostrarError('El nombre es obligatorio');
+    if (!validarNombre(formulario.nombre || '')) {
+      mostrarError('Ingresa un nombre válido (mínimo 3 letras, sin números)');
+      return;
+    }
+
+    if (!validarEmail(formulario.email || '')) {
+      mostrarError('Ingresa un email válido');
+      return;
+    }
+
+    if (!validarTelefono(formulario.telefono || '')) {
+      mostrarError('Ingresa un teléfono válido (mínimo 10 dígitos)');
+      return;
+    }
+
+    if (formulario.documento && !validarDNI(formulario.documento)) {
+      mostrarError('El DNI debe tener entre 7 y 10 dígitos');
       return;
     }
 
     try {
-      // await crearPaciente(formulario)
-      mostrarExito('Paciente guardado exitosamente');
+      if (pacienteEditandoId) {
+        await actualizarPaciente(pacienteEditandoId, {
+          nombre: formulario.nombre,
+          telefono: formulario.telefono,
+          documento: formulario.documento,
+          obraSocial: formulario.obraSocial,
+          numeroAfiliado: formulario.numeroAfiliado,
+          alergias: formulario.alergias,
+          direccion: formulario.direccion
+        });
+        mostrarExito('Paciente actualizado exitosamente');
+      } else {
+        await crearPaciente(formulario);
+        mostrarExito('Paciente creado exitosamente');
+      }
+
       setMostrarFormulario(false);
+      setPacienteEditandoId(null);
       setFormulario({
         nombre: '',
         email: '',
@@ -93,18 +122,35 @@ const GestionPacientes = () => {
       });
       cargarPacientes();
     } catch (err) {
-      mostrarError('Error al guardar paciente');
+      const msg = err?.response?.data?.message || 'Error al guardar paciente';
+      mostrarError(msg);
     }
+  };
+
+  const handleEditar = (paciente) => {
+    setPacienteEditandoId(paciente._id);
+    setFormulario({
+      nombre: paciente.nombre || '',
+      email: paciente.email || '',
+      telefono: paciente.telefono || '',
+      documento: paciente.documento || '',
+      obraSocial: paciente.obraSocial || '',
+      numeroAfiliado: paciente.numeroAfiliado || '',
+      alergias: paciente.alergias || '',
+      direccion: paciente.direccion || ''
+    });
+    setMostrarFormulario(true);
   };
 
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este paciente?')) {
       try {
-        // await deletePaciente(id)
+        await eliminarPaciente(id);
         mostrarExito('Paciente eliminado');
         cargarPacientes();
       } catch (err) {
-        mostrarError('Error al eliminar paciente');
+        const msg = err?.response?.data?.message || 'Error al eliminar paciente';
+        mostrarError(msg);
       }
     }
   };
@@ -128,7 +174,22 @@ const GestionPacientes = () => {
         <h1>Pacientes</h1>
         <button 
           className={styles.botonAgregar}
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
+          onClick={() => {
+            if (mostrarFormulario) {
+              setPacienteEditandoId(null);
+              setFormulario({
+                nombre: '',
+                email: '',
+                telefono: '',
+                documento: '',
+                obraSocial: '',
+                numeroAfiliado: '',
+                alergias: '',
+                direccion: ''
+              });
+            }
+            setMostrarFormulario(!mostrarFormulario);
+          }}
         >
           {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Paciente'}
         </button>
@@ -136,7 +197,7 @@ const GestionPacientes = () => {
 
       {mostrarFormulario && (
         <div className={styles.formulario}>
-          <h2>Nuevo Paciente</h2>
+          <h2>{pacienteEditandoId ? 'Editar Paciente' : 'Nuevo Paciente'}</h2>
           <form onSubmit={handleGuardar}>
             <div className={styles.grid}>
               <input
@@ -153,6 +214,8 @@ const GestionPacientes = () => {
                 placeholder="Email"
                 value={formulario.email}
                 onChange={handleFormularioChange}
+                required
+                disabled={Boolean(pacienteEditandoId)}
               />
               <input
                 type="tel"
@@ -240,7 +303,13 @@ const GestionPacientes = () => {
                   <td>{paciente.obraSocial || '-'}</td>
                   <td>{paciente.alergias || 'Ninguna'}</td>
                   <td className={styles.acciones}>
-                    <button className={styles.botonEditar} title="Editar">✏️</button>
+                    <button
+                      className={styles.botonEditar}
+                      onClick={() => handleEditar(paciente)}
+                      title="Editar"
+                    >
+                      ✏️
+                    </button>
                     <button 
                       className={styles.botonEliminar}
                       onClick={() => handleEliminar(paciente._id)}

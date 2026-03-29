@@ -12,6 +12,21 @@ export const getMedicos = async (filtros = {}) => {
   return res.data;
 };
 
+export const crearMedico = async (data) => {
+  const res = await API.post('/doctors', data);
+  return res.data;
+};
+
+export const actualizarMedico = async (id, data) => {
+  const res = await API.put(`/doctors/${id}`, data);
+  return res.data;
+};
+
+export const eliminarMedico = async (id) => {
+  const res = await API.delete(`/doctors/${id}`);
+  return res.data;
+};
+
 /**
  * Obtener detalles de un médico específico
  */

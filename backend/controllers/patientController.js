@@ -7,7 +7,7 @@ const User = require('../models/User');
  */
 exports.getPatients = async (req, res) => {
   try {
-    const { q } = req.query;
+    const q = req.query.q || req.query.search;
     let query = { rol: 'paciente' };
 
     if (q && q.trim()) {
@@ -17,7 +17,8 @@ exports.getPatients = async (req, res) => {
         ...query,
         $or: [
           { nombre: { $regex: searchTerm, $options: 'i' } },
-          { documento: searchTerm }
+          { documento: searchTerm },
+          { email: { $regex: searchTerm, $options: 'i' } }
         ]
       };
     }
@@ -38,8 +39,7 @@ exports.getPatients = async (req, res) => {
 exports.getPatientById = async (req, res) => {
   try {
     const { id } = req.params;
-    const patient = await User.findById(id)
-      .select('-password');
+    const patient = await User.findOne({ _id: id, rol: 'paciente' }).select('-password');
 
     if (!patient) {
       return res.status(404).json({ message: 'Paciente no encontrado' });
@@ -56,7 +56,7 @@ exports.getPatientById = async (req, res) => {
  */
 exports.createPatient = async (req, res) => {
   try {
-    const { nombre, email, telefono, documento, ...rest } = req.body;
+    const { nombre, email, telefono, documento, password, ...rest } = req.body;
 
     // Validaciones básicas
     if (!nombre || !email || !telefono) {
@@ -66,22 +66,26 @@ exports.createPatient = async (req, res) => {
     }
 
     // Verificar que el email no exista
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ message: 'El email ya está registrado' });
     }
 
     const patient = new User({
       nombre,
-      email,
+      email: normalizedEmail,
       telefono,
       documento,
+      password: password || process.env.DEFAULT_MANAGED_USER_PASSWORD || 'clinica123',
       rol: 'paciente',
       ...rest
     });
 
     await patient.save();
-    res.status(201).json(patient.toObject({ getters: true }));
+    const safePatient = patient.toObject({ getters: true });
+    delete safePatient.password;
+    res.status(201).json(safePatient);
   } catch (error) {
     res.status(400).json({ message: 'Error creando paciente', error });
   }
@@ -98,6 +102,7 @@ exports.updatePatient = async (req, res) => {
     // No permitir cambios de rol o email
     delete updates.rol;
     delete updates.email;
+    delete updates.password;
 
     const patient = await User.findByIdAndUpdate(
       id,
@@ -112,5 +117,23 @@ exports.updatePatient = async (req, res) => {
     res.json(patient);
   } catch (error) {
     res.status(400).json({ message: 'Error actualizando paciente', error });
+  }
+};
+
+/**
+ * Eliminar un paciente
+ */
+exports.deletePatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const patient = await User.findOneAndDelete({ _id: id, rol: 'paciente' });
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Paciente no encontrado' });
+    }
+
+    res.json({ message: 'Paciente eliminado correctamente' });
+  } catch (error) {
+    res.status(400).json({ message: 'Error eliminando paciente', error });
   }
 };
