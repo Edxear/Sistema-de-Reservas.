@@ -407,14 +407,39 @@ exports.createBooking = async (req, res) => {
     });
     await booking.save();
 
+    // Registrar en historia clínica para trazabilidad general
+    try {
+      const [pacienteRef, servicioRef] = await Promise.all([
+        User.findById(booking.usuario).select('nombre'),
+        Service.findById(booking.servicio).select('nombre')
+      ]);
+
+      await HistoriaClinica.create({
+        paciente: booking.usuario,
+        medico: booking.medico,
+        tipo: 'evolucion',
+        fecha: booking.fechaHoraReserva || new Date(),
+        descripcion: `Turno creado para ${servicioRef?.nombre || 'consulta'} el ${new Date(booking.fecha).toLocaleDateString('es-AR')} a las ${booking.hora}. Solicitado por ${pacienteRef?.nombre || 'paciente'}.`
+      });
+    } catch (histError) {
+      console.error('Error registrando creación de turno en historia clínica:', histError.message);
+    }
+
     // Crear notificaciones para paciente y médico
     (async () => {
       try {
+        const [pacienteRef, servicioRef] = await Promise.all([
+          User.findById(booking.usuario).select('nombre'),
+          Service.findById(booking.servicio).select('nombre')
+        ]);
+        const fechaTexto = new Date(booking.fecha).toLocaleDateString('es-AR');
+        const servicioTexto = servicioRef?.nombre || 'consulta';
+
         // Notificación al paciente
-        const notifPaciente = await crearNotificacion(
+        await crearNotificacion(
           booking.usuario,
           'reserva_nueva',
-          'Tu reserva está pendiente de confirmación',
+          `Reserva creada: ${servicioTexto} el ${fechaTexto} a las ${booking.hora}. Estado pendiente de confirmación.`,
           '📅',
           `/dashboard#booking-${booking._id}`,
           booking._id,
@@ -422,10 +447,10 @@ exports.createBooking = async (req, res) => {
         );
 
         // Notificación al médico
-        const notifMedico = await crearNotificacion(
+        await crearNotificacion(
           booking.medico,
           'reserva_nueva',
-          `Nuevo turno: ${booking.usuario || 'Paciente'}`,
+          `Nuevo turno solicitado por ${pacienteRef?.nombre || 'Paciente'} para ${servicioTexto} (${fechaTexto} ${booking.hora}).`,
           '📅',
           `/dashboard#booking-${booking._id}`,
           booking._id,

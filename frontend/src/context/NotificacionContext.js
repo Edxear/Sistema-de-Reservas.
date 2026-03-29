@@ -51,7 +51,7 @@ export function NotificacionProvider({ children }) {
 
     try {
       setLoading(true);
-      const response = await api.get('/api/notificaciones');
+      const response = await api.get('/notificaciones');
       setNotificaciones(response.data.notificaciones);
       setNoLeidas(response.data.noLeidas);
     } catch (error) {
@@ -64,7 +64,7 @@ export function NotificacionProvider({ children }) {
   // Marcar una notificación como leída
   const marcarComoLeida = async (id) => {
     try {
-      await api.put(`/api/notificaciones/${id}`);
+      await api.put(`/notificaciones/${id}`);
       setNotificaciones((prev) =>
         prev.map((n) => (n._id === id ? { ...n, leido: true } : n))
       );
@@ -77,7 +77,7 @@ export function NotificacionProvider({ children }) {
   // Marcar todas como leídas
   const marcarTodoComoLeido = async () => {
     try {
-      await api.patch('/api/notificaciones/marcar-todas-leidas');
+      await api.patch('/notificaciones/marcar-todas-leidas');
       setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })));
       setNoLeidas(0);
     } catch (error) {

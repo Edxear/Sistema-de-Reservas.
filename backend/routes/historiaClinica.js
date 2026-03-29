@@ -7,8 +7,8 @@ const {
   crearRegistro,
 } = require('../controllers/historiaClinicaController');
 
-// Sólo médicos y admins pueden acceder
-router.get('/paciente/:pacienteId', authMiddleware, authorize('medico', 'admin'), getPorPaciente);
+// Medicos, admins y secretarias pueden consultar historias por paciente
+router.get('/paciente/:pacienteId', authMiddleware, authorize('medico', 'admin', 'secretaria'), getPorPaciente);
 router.post('/', authMiddleware, authorize('medico', 'admin'), crearRegistro);
 
 module.exports = router;

@@ -15,6 +15,7 @@ const notificacionSchema = new mongoose.Schema(
         'reserva_cancelada',
         'reserva_reprogramada',
         'reserva_atendida',
+        'receta_nueva',
         'mensaje',
         'pago_confirmado',
       ],

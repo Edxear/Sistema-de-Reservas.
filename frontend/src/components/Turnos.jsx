@@ -351,7 +351,7 @@ export default function Turnos() {
                 </div>
 
                 <div className={styles.actions}>
-                  {(user?.rol === 'medico' || user?.rol === 'admin') && b.usuario?._id && (
+                  {(user?.rol === 'medico' || user?.rol === 'admin' || user?.rol === 'secretaria') && b.usuario?._id && (
                     <>
                       <button
                         className={styles.secondaryBtn}
@@ -362,7 +362,9 @@ export default function Turnos() {
                       >
                         Ver historial
                       </button>
-                      <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
+                      {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                        <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
+                      )}
                     </>
                   )}
                   {user?.rol === 'admin' && b.estado === 'pendiente' && (

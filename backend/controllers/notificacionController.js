@@ -134,6 +134,7 @@ function generarTitulo(tipo) {
     reserva_cancelada: 'Reserva Cancelada',
     reserva_reprogramada: 'Reserva Reprogramada',
     reserva_atendida: 'Turno Completado',
+    receta_nueva: 'Nueva Receta',
     mensaje: 'Nuevo Mensaje',
     pago_confirmado: 'Pago Confirmado',
   };

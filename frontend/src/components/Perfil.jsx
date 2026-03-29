@@ -1,12 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import API from '../services/api';
+import { getBookings } from '../services/bookingService';
 import styles from './Perfil.module.css';
 
 export default function Perfil() {
   const { user, refreshProfile, updateProfile } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [turnosPaciente, setTurnosPaciente] = useState([]);
+  const [recetasPaciente, setRecetasPaciente] = useState([]);
+  const [cargandoFicha, setCargandoFicha] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -30,6 +35,29 @@ export default function Perfil() {
         turnoLaboral: user.turnoLaboral || '',
       });
     }
+  }, [user]);
+
+  useEffect(() => {
+    const loadFichaPaciente = async () => {
+      if (!user || user.rol !== 'paciente') return;
+
+      setCargandoFicha(true);
+      try {
+        const [bookingsRes, recetasRes] = await Promise.all([
+          getBookings({ page: 1, limit: 200 }),
+          API.get('/recetas/mis')
+        ]);
+
+        setTurnosPaciente(bookingsRes.data?.bookings || []);
+        setRecetasPaciente(recetasRes.data || []);
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'No se pudo cargar el resumen clínico del perfil');
+      } finally {
+        setCargandoFicha(false);
+      }
+    };
+
+    loadFichaPaciente();
   }, [user]);
 
   const roleFields = useMemo(() => {
@@ -58,6 +86,9 @@ export default function Perfil() {
     }
     setSaving(false);
   };
+
+  const turnosRecientes = turnosPaciente.slice(0, 8);
+  const recetasRecientes = recetasPaciente.slice(0, 8);
 
   return (
     <div className={styles.page}>
@@ -113,6 +144,50 @@ export default function Perfil() {
           <button className={styles.submit} type="submit" disabled={saving}>{saving ? 'Guardando...' : 'Guardar Perfil'}</button>
         </form>
       </div>
+
+      {user.rol === 'paciente' && (
+        <div className={styles.card}>
+          <h2 className={styles.sectionTitle}>Mis Turnos y Recetas</h2>
+          {cargandoFicha ? (
+            <p className={styles.subtitle}>Cargando turnos y recetas...</p>
+          ) : (
+            <div className={styles.grid2}>
+              <div>
+                <h3 className={styles.subheading}>Turnos creados</h3>
+                <p className={styles.subtitle}>Total: {turnosPaciente.length}</p>
+                <div className={styles.timeline}>
+                  {turnosRecientes.length === 0 && <p className={styles.meta}>No tienes turnos todavía.</p>}
+                  {turnosRecientes.map((turno) => (
+                    <div key={turno._id} className={styles.item}>
+                      <div className={styles.itemTitle}>{turno.servicio?.nombre || 'Servicio'} - {turno.hora}</div>
+                      <div className={styles.itemMeta}>{new Date(turno.fecha).toLocaleDateString()} | Estado: {turno.estado}</div>
+                      <div className={styles.itemMeta}>Profesional: {turno.medico?.nombre || '-'}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className={styles.subheading}>Recetas creadas por tu médico</h3>
+                <p className={styles.subtitle}>Total: {recetasPaciente.length}</p>
+                <div className={styles.timeline}>
+                  {recetasRecientes.length === 0 && <p className={styles.meta}>No tienes recetas todavía.</p>}
+                  {recetasRecientes.map((receta) => (
+                    <div key={receta._id} className={styles.item}>
+                      <div className={styles.itemTitle}>{new Date(receta.fechaEmision).toLocaleDateString()}</div>
+                      <div className={styles.itemMeta}>Médico: {receta.medico?.nombre || '-'}</div>
+                      <div className={styles.itemMeta}>{(receta.medicamentos || []).length} medicamento(s)</div>
+                      <div className={styles.itemMeta}>
+                        {(receta.medicamentos || []).slice(0, 2).map((m) => m.nombre).join(' | ') || '-'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
