@@ -1,5 +1,7 @@
 const SupportTicket = require('../models/SupportTicket');
 const SupportKnowledgeArticle = require('../models/SupportKnowledgeArticle');
+const BedUnit = require('../models/BedUnit');
+const Teleconsulta = require('../models/Teleconsulta');
 const { logAuditEvent } = require('../utils/auditLogger');
 
 const SLA_BY_CRITICIDAD = {
@@ -395,5 +397,89 @@ exports.getSupportMetrics = async (_req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo metricas de soporte', error });
+  }
+};
+
+exports.getAdvancedOperationalAnalytics = async (_req, res) => {
+  try {
+    const now = new Date();
+    const since30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [tickets30d, allBeds, teleconsultasProximas] = await Promise.all([
+      SupportTicket.find({ createdAt: { $gte: since30d } }).select(
+        'estado criticidad responseDueAt resolutionDueAt firstResponseAt resolvedAt soporteNivel createdAt'
+      ),
+      BedUnit.find({}).select('estado sector updatedAt'),
+      Teleconsulta.find({ fechaProgramada: { $gte: now }, estado: { $in: ['programada', 'en_curso'] } }).select('fechaProgramada estado'),
+    ]);
+
+    const totalTickets = tickets30d.length;
+    const abiertos = tickets30d.filter((t) => ['abierto', 'en_progreso', 'en_espera'].includes(t.estado)).length;
+    const criticosAbiertos = tickets30d.filter((t) => t.criticidad === 'critico' && ['abierto', 'en_progreso', 'en_espera'].includes(t.estado)).length;
+
+    const responseMeasured = tickets30d.filter((t) => t.firstResponseAt && t.responseDueAt);
+    const responseInSla = responseMeasured.filter((t) => new Date(t.firstResponseAt) <= new Date(t.responseDueAt)).length;
+    const responseSla = responseMeasured.length ? Number(((responseInSla / responseMeasured.length) * 100).toFixed(2)) : 0;
+
+    const resolutionMeasured = tickets30d.filter((t) => t.resolvedAt && t.resolutionDueAt);
+    const resolutionInSla = resolutionMeasured.filter((t) => new Date(t.resolvedAt) <= new Date(t.resolutionDueAt)).length;
+    const resolutionSla = resolutionMeasured.length ? Number(((resolutionInSla / resolutionMeasured.length) * 100).toFixed(2)) : 0;
+
+    const totalBeds = allBeds.length;
+    const ocupadas = allBeds.filter((b) => b.estado === 'ocupada').length;
+    const ocupacionPct = totalBeds ? Number(((ocupadas / totalBeds) * 100).toFixed(2)) : 0;
+
+    const alerts = [];
+    if (responseSla < 85 && totalTickets > 10) {
+      alerts.push({
+        level: 'alto',
+        code: 'SLA_RESPUESTA_RIESGO',
+        message: `SLA de respuesta en riesgo (${responseSla}%).`,
+      });
+    }
+    if (resolutionSla < 80 && totalTickets > 10) {
+      alerts.push({
+        level: 'alto',
+        code: 'SLA_RESOLUCION_RIESGO',
+        message: `SLA de resolucion en riesgo (${resolutionSla}%).`,
+      });
+    }
+    if (criticosAbiertos >= 5) {
+      alerts.push({
+        level: 'critico',
+        code: 'BACKLOG_CRITICO',
+        message: `${criticosAbiertos} tickets criticos abiertos requieren accion inmediata.`,
+      });
+    }
+    if (ocupacionPct >= 90 && totalBeds > 0) {
+      alerts.push({
+        level: 'alto',
+        code: 'OCUPACION_CAMAS_ALTA',
+        message: `Ocupacion de camas alta (${ocupacionPct}%).`,
+      });
+    }
+    if (teleconsultasProximas.length >= 15) {
+      alerts.push({
+        level: 'medio',
+        code: 'CARGA_TELECONSULTAS',
+        message: `Carga elevada de teleconsultas proximas (${teleconsultasProximas.length}).`,
+      });
+    }
+
+    return res.json({
+      period: { from: since30d, to: now },
+      kpis: {
+        totalTickets,
+        abiertos,
+        criticosAbiertos,
+        responseSla,
+        resolutionSla,
+        ocupacionCamasPct: ocupacionPct,
+        teleconsultasProximas: teleconsultasProximas.length,
+      },
+      alerts,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error obteniendo analitica avanzada', error });
   }
 };

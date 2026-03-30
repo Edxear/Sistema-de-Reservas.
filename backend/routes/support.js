@@ -12,6 +12,7 @@ const {
   getSupportMetrics,
   listKnowledgeArticles,
   createKnowledgeArticle,
+  getAdvancedOperationalAnalytics,
 } = require('../controllers/supportController');
 
 router.get('/blueprint', auth, admin, getSupportBlueprint);
@@ -20,6 +21,7 @@ router.post('/tickets', auth, admin, createSupportTicket);
 router.put('/tickets/:id', auth, admin, updateSupportTicket);
 router.post('/tickets/:id/survey', auth, admin, submitTicketSurvey);
 router.get('/metrics', auth, admin, getSupportMetrics);
+router.get('/metrics/advanced', auth, admin, getAdvancedOperationalAnalytics);
 router.get('/kb/articles', auth, admin, listKnowledgeArticles);
 router.post('/kb/articles', auth, admin, createKnowledgeArticle);
 

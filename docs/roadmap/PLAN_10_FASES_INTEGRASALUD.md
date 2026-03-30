@@ -170,5 +170,6 @@ Criterio de cierre:
 - Fase 6: completada (interoperabilidad base FHIR Patient/Bundle y HL7 ADT)
 - Fase 7: completada (teleconsultas y acceso paciente a sala virtual)
 - Fase 8: completada (enrutamiento inteligente y base de conocimiento versionada)
-- Fase activa: Fase 9
-- Proximo hito: analitica avanzada y alertas operativas predictivas
+- Fase 9: completada (analitica avanzada y alertas operativas)
+- Fase activa: Fase 10
+- Proximo hito: cierre enterprise con hardening, runbook y documentacion final

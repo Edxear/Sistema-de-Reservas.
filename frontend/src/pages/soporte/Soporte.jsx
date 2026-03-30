@@ -13,6 +13,7 @@ import {
   getPrivateComments,
   getSupportBlueprint,
   getSupportMetrics,
+  getSupportAdvancedMetrics,
   getSupportUsers,
   listBedCensus,
   listFormalColleagueFeedback,
@@ -158,6 +159,7 @@ export default function Soporte() {
 
   const [blueprint, setBlueprint] = useState(defaultBlueprint);
   const [metrics, setMetrics] = useState(null);
+  const [advancedMetrics, setAdvancedMetrics] = useState({ kpis: {}, alerts: [] });
   const [bedCensus, setBedCensus] = useState({ metrics: { total: 0, byEstado: {} }, beds: [] });
   const [bedForm, setBedForm] = useState({ codigo: '', sector: '', estado: 'libre', observaciones: '' });
   const [knowledgeArticles, setKnowledgeArticles] = useState([]);
@@ -258,6 +260,18 @@ export default function Soporte() {
       setMetrics(data);
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudieron cargar metricas de soporte');
+    }
+  };
+
+  const loadAdvancedMetrics = async () => {
+    try {
+      const data = await getSupportAdvancedMetrics();
+      setAdvancedMetrics({
+        kpis: data?.kpis || {},
+        alerts: Array.isArray(data?.alerts) ? data.alerts : [],
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar analitica avanzada');
     }
   };
 
@@ -362,6 +376,7 @@ export default function Soporte() {
     loadFormalFeedbackRecords();
     loadBedCensus();
     loadKnowledgeArticles();
+    loadAdvancedMetrics();
   }, []);
 
   useEffect(() => {
@@ -564,6 +579,25 @@ export default function Soporte() {
         <article className={styles.metricCard}><span>SLA respuesta</span><strong>{metrics?.responseSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>SLA resolucion</span><strong>{metrics?.resolutionSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>Satisfaccion</span><strong>{metrics?.avgSurvey ?? 0}/5</strong></article>
+      </section>
+
+      <section className={styles.card}>
+        <h2>Analitica avanzada y alertas</h2>
+        <div className={styles.metricsGrid}>
+          <article className={styles.metricCard}><span>Backlog abierto</span><strong>{advancedMetrics.kpis?.abiertos ?? 0}</strong></article>
+          <article className={styles.metricCard}><span>Criticos abiertos</span><strong>{advancedMetrics.kpis?.criticosAbiertos ?? 0}</strong></article>
+          <article className={styles.metricCard}><span>Ocupacion camas</span><strong>{advancedMetrics.kpis?.ocupacionCamasPct ?? 0}%</strong></article>
+          <article className={styles.metricCard}><span>Teleconsultas proximas</span><strong>{advancedMetrics.kpis?.teleconsultasProximas ?? 0}</strong></article>
+        </div>
+
+        <div className={styles.listWrap}>
+          {advancedMetrics.alerts.length === 0 ? <p>Sin alertas activas.</p> : advancedMetrics.alerts.map((alert) => (
+            <div key={alert.code} className={styles.item}>
+              <div className={styles.itemTitle}>{alert.code} ({alert.level})</div>
+              <div>{alert.message}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className={styles.card}>

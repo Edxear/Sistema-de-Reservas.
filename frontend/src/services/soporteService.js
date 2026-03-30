@@ -67,6 +67,11 @@ export const getSupportMetrics = async () => {
   return res.data;
 };
 
+export const getSupportAdvancedMetrics = async () => {
+  const res = await API.get('/support/metrics/advanced');
+  return res.data;
+};
+
 export const listSupportTickets = async (params = {}) => {
   const res = await API.get('/support/tickets', { params });
   return res.data;
