@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import API from '../services/api';
-import { getBookings } from '../services/bookingService';
+import API from '../../services/api';
+import { getBookings } from '../../services/bookingService';
 import styles from './PacienteDetalle.module.css';
 
 export default function PacienteDetalle() {
@@ -140,3 +140,4 @@ export default function PacienteDetalle() {
     </div>
   );
 }
+

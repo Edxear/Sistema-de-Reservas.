@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation, useNavigationType } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -7,24 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { NotificacionProvider } from './context/NotificacionContext';
 
-// Importar los componentes de las páginas
-import LoginRegister from './components/LoginRegister';
-import Dashboard from './components/Dashboard';
-import PaginaPublicaMedico from './components/PaginaPublicaMedico';
-import PaginaMedico from './components/PaginaMedico';
-import MedicosList from './components/MedicosList';
-import HistoriaClinica from './components/HistoriaClinica';
-import Recetas from './components/Recetas';
 import Header from './components/Header';
-import Perfil from './components/Perfil';
-import Turnos from './components/Turnos';
-import PacienteDetalle from './components/PacienteDetalle';
-import Organigrama from './components/Organigrama';
-import GestionMedicos from './components/GestionMedicos';
-import GestionPacientes from './components/GestionPacientes';
-import Soporte from './components/Soporte';
-import { useAuth } from './context/AuthContext';
-import { ROLE } from './utils/roles';
+import AppRoutes from './routes/AppRoutes';
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -70,43 +54,6 @@ function ScrollRestorationManager() {
   return null;
 }
 
-// Componente para proteger rutas. Redirige a login si no está autenticado.
-const ProtectedRoute = ({ children, allowedRoles = null }) => {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  if (loading) {
-    return <div style={{ padding: 24 }}>Cargando sesión...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  if (user?.rol === ROLE.SUPERADMIN) {
-    return children;
-  }
-
-  if (allowedRoles && !allowedRoles.includes(user?.rol)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
-};
-
-// Componente para redirigir si ya está logueado. Redirige a dashboard si está autenticado.
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div style={{ padding: 24 }}>Cargando sesión...</div>;
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return children;
-};
-
 function App() {
   return (
     <Router>
@@ -116,73 +63,7 @@ function App() {
           <ScrollRestorationManager />
           <Header />
           <ToastContainer position="top-right" autoClose={3000} />
-          <Routes>
-          <Route
-            path="/"
-            element={
-              <PublicRoute>
-                <LoginRegister />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/historial/:pacienteId" element={
-            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
-              <HistoriaClinica />
-            </ProtectedRoute>
-          } />
-          <Route path="/recetas" element={
-            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
-              <Recetas />
-            </ProtectedRoute>
-          } />
-          <Route path="/perfil" element={
-            <ProtectedRoute>
-              <Perfil />
-            </ProtectedRoute>
-          } />
-          <Route path="/turnos" element={
-            <ProtectedRoute>
-              <Turnos />
-            </ProtectedRoute>
-          } />
-          <Route path="/pacientes/:pacienteId" element={
-            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
-              <PacienteDetalle />
-            </ProtectedRoute>
-          } />
-          <Route path="/organigrama" element={
-            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
-              <Organigrama />
-            </ProtectedRoute>
-          } />
-          <Route path="/gestion/medicos" element={
-            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
-              <GestionMedicos />
-            </ProtectedRoute>
-          } />
-          <Route path="/gestion/pacientes" element={
-            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
-              <GestionPacientes />
-            </ProtectedRoute>
-          } />
-          <Route path="/soporte" element={
-            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
-              <Soporte />
-            </ProtectedRoute>
-          } />
-          <Route path="/medicos" element={<MedicosList />} />
-          <Route path="/medicos/:id" element={<PaginaMedico />} />
-          <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+          <AppRoutes />
         </NotificacionProvider>
       </AuthProvider>
     </Router>

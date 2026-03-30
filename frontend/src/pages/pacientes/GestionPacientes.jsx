@@ -1,48 +1,49 @@
 import React, { useState, useEffect, useContext } from 'react';
-import styles from './GestionMedicos.module.css';
-import { AuthContext } from '../context/AuthContext';
-import { mostrarExito, mostrarError } from '../utils/notificaciones';
-import { validarEmail, validarNombre, validarTelefono } from '../utils/validadores';
+import styles from './GestionPacientes.module.css';
+import { AuthContext } from '../../context/AuthContext';
+import { mostrarExito, mostrarError } from '../../utils/notificaciones';
+import { validarDNI, validarEmail, validarNombre, validarTelefono } from '../../utils/validadores';
 import {
-  getMedicos,
-  crearMedico,
-  actualizarMedico,
-  eliminarMedico
-} from '../services/medicoService';
-import { canManageDoctors } from '../utils/roles';
+  getPacientes,
+  crearPaciente,
+  actualizarPaciente,
+  eliminarPaciente
+} from '../../services/patientService';
+import { canManagePatients } from '../../utils/roles';
 
-const GestionMedicos = () => {
+const GestionPacientes = () => {
   const { user } = useContext(AuthContext);
-  const [medicos, setMedicos] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [medicoEditandoId, setMedicoEditandoId] = useState(null);
+  const [pacienteEditandoId, setPacienteEditandoId] = useState(null);
   const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
     telefono: '',
-    especialidad: '',
-    matriculaProfesional: '',
-    bio: '',
-    direccionConsultorio: ''
+    documento: '',
+    obraSocial: '',
+    numeroAfiliado: '',
+    alergias: '',
+    direccion: ''
   });
 
   useEffect(() => {
-    cargarMedicos();
+    cargarPacientes();
   }, []);
 
-  const cargarMedicos = async () => {
+  const cargarPacientes = async () => {
     try {
       setCargando(true);
-      const datos = await getMedicos();
-      setMedicos(datos);
+      const datos = await getPacientes();
+      setPacientes(datos);
       setFiltrados(datos);
     } catch (err) {
-      setError('Error al cargar médicos: ' + err.message);
-      mostrarError('Error al cargar médicos');
+      setError('Error al cargar pacientes: ' + err.message);
+      mostrarError('Error al cargar pacientes');
     } finally {
       setCargando(false);
     }
@@ -52,10 +53,10 @@ const GestionMedicos = () => {
     const termino = e.target.value.toLowerCase();
     setBusqueda(termino);
     
-    const resultado = medicos.filter(m =>
-      m.nombre.toLowerCase().includes(termino) ||
-      (m.especialidad && m.especialidad.toLowerCase().includes(termino)) ||
-      (m.email && m.email.toLowerCase().includes(termino))
+    const resultado = pacientes.filter(p =>
+      p.nombre.toLowerCase().includes(termino) ||
+      (p.documento && p.documento.includes(termino)) ||
+      (p.email && p.email.toLowerCase().includes(termino))
     );
     setFiltrados(resultado);
   };
@@ -86,69 +87,77 @@ const GestionMedicos = () => {
       return;
     }
 
+    if (formulario.documento && !validarDNI(formulario.documento)) {
+      mostrarError('El DNI debe tener entre 7 y 10 dígitos');
+      return;
+    }
+
     try {
-      if (medicoEditandoId) {
-        await actualizarMedico(medicoEditandoId, {
+      if (pacienteEditandoId) {
+        await actualizarPaciente(pacienteEditandoId, {
           nombre: formulario.nombre,
           telefono: formulario.telefono,
-          especialidad: formulario.especialidad,
-          matriculaProfesional: formulario.matriculaProfesional,
-          bio: formulario.bio,
-          direccionConsultorio: formulario.direccionConsultorio
+          documento: formulario.documento,
+          obraSocial: formulario.obraSocial,
+          numeroAfiliado: formulario.numeroAfiliado,
+          alergias: formulario.alergias,
+          direccion: formulario.direccion
         });
-        mostrarExito('Médico actualizado exitosamente');
+        mostrarExito('Paciente actualizado exitosamente');
       } else {
-        await crearMedico(formulario);
-        mostrarExito('Médico creado exitosamente');
+        await crearPaciente(formulario);
+        mostrarExito('Paciente creado exitosamente');
       }
 
       setMostrarFormulario(false);
-      setMedicoEditandoId(null);
+      setPacienteEditandoId(null);
       setFormulario({
         nombre: '',
         email: '',
         telefono: '',
-        especialidad: '',
-        matriculaProfesional: '',
-        bio: '',
-        direccionConsultorio: ''
+        documento: '',
+        obraSocial: '',
+        numeroAfiliado: '',
+        alergias: '',
+        direccion: ''
       });
-      cargarMedicos();
+      cargarPacientes();
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al guardar médico';
+      const msg = err?.response?.data?.message || 'Error al guardar paciente';
       mostrarError(msg);
     }
   };
 
-  const handleEditar = (medico) => {
-    setMedicoEditandoId(medico._id);
+  const handleEditar = (paciente) => {
+    setPacienteEditandoId(paciente._id);
     setFormulario({
-      nombre: medico.nombre || '',
-      email: medico.email || '',
-      telefono: medico.telefono || '',
-      especialidad: medico.especialidad || '',
-      matriculaProfesional: medico.matriculaProfesional || '',
-      bio: medico.bio || '',
-      direccionConsultorio: medico.direccionConsultorio || ''
+      nombre: paciente.nombre || '',
+      email: paciente.email || '',
+      telefono: paciente.telefono || '',
+      documento: paciente.documento || '',
+      obraSocial: paciente.obraSocial || '',
+      numeroAfiliado: paciente.numeroAfiliado || '',
+      alergias: paciente.alergias || '',
+      direccion: paciente.direccion || ''
     });
     setMostrarFormulario(true);
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este médico?')) {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este paciente?')) {
       try {
-        await eliminarMedico(id);
-        mostrarExito('Médico eliminado');
-        cargarMedicos();
+        await eliminarPaciente(id);
+        mostrarExito('Paciente eliminado');
+        cargarPacientes();
       } catch (err) {
-        const msg = err?.response?.data?.message || 'Error al eliminar médico';
+        const msg = err?.response?.data?.message || 'Error al eliminar paciente';
         mostrarError(msg);
       }
     }
   };
 
   // Verificar permiso
-  if (!canManageDoctors(user?.rol)) {
+  if (!canManagePatients(user?.rol)) {
     return (
       <div className={styles.container}>
         <p className={styles.noPermiso}>No tienes permiso para acceder a esta sección.</p>
@@ -157,38 +166,39 @@ const GestionMedicos = () => {
   }
 
   if (cargando) {
-    return <div className={styles.container}><p>Cargando médicos...</p></div>;
+    return <div className={styles.container}><p>Cargando pacientes...</p></div>;
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Médicos</h1>
+        <h1>Pacientes</h1>
         <button 
           className={styles.botonAgregar}
           onClick={() => {
             if (mostrarFormulario) {
-              setMedicoEditandoId(null);
+              setPacienteEditandoId(null);
               setFormulario({
                 nombre: '',
                 email: '',
                 telefono: '',
-                especialidad: '',
-                matriculaProfesional: '',
-                bio: '',
-                direccionConsultorio: ''
+                documento: '',
+                obraSocial: '',
+                numeroAfiliado: '',
+                alergias: '',
+                direccion: ''
               });
             }
             setMostrarFormulario(!mostrarFormulario);
           }}
         >
-          {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Médico'}
+          {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Paciente'}
         </button>
       </div>
 
       {mostrarFormulario && (
         <div className={styles.formulario}>
-          <h2>{medicoEditandoId ? 'Editar Médico' : 'Nuevo Médico'}</h2>
+          <h2>{pacienteEditandoId ? 'Editar Paciente' : 'Nuevo Paciente'}</h2>
           <form onSubmit={handleGuardar}>
             <div className={styles.grid}>
               <input
@@ -206,7 +216,7 @@ const GestionMedicos = () => {
                 value={formulario.email}
                 onChange={handleFormularioChange}
                 required
-                disabled={Boolean(medicoEditandoId)}
+                disabled={Boolean(pacienteEditandoId)}
               />
               <input
                 type="tel"
@@ -217,34 +227,40 @@ const GestionMedicos = () => {
               />
               <input
                 type="text"
-                name="especialidad"
-                placeholder="Especialidad"
-                value={formulario.especialidad}
+                name="documento"
+                placeholder="Documento (DNI)"
+                value={formulario.documento}
                 onChange={handleFormularioChange}
               />
               <input
                 type="text"
-                name="matriculaProfesional"
-                placeholder="Matrícula Profesional"
-                value={formulario.matriculaProfesional}
+                name="obraSocial"
+                placeholder="Obra Social"
+                value={formulario.obraSocial}
                 onChange={handleFormularioChange}
               />
               <input
                 type="text"
-                name="direccionConsultorio"
-                placeholder="Dirección del Consultorio"
-                value={formulario.direccionConsultorio}
+                name="numeroAfiliado"
+                placeholder="Número de Afiliado"
+                value={formulario.numeroAfiliado}
+                onChange={handleFormularioChange}
+              />
+              <input
+                type="text"
+                name="direccion"
+                placeholder="Dirección"
+                value={formulario.direccion}
+                onChange={handleFormularioChange}
+              />
+              <input
+                type="text"
+                name="alergias"
+                placeholder="Alergias"
+                value={formulario.alergias}
                 onChange={handleFormularioChange}
               />
             </div>
-            <textarea
-              name="bio"
-              placeholder="Biografía"
-              value={formulario.bio}
-              onChange={handleFormularioChange}
-              maxLength={200}
-            />
-            <small>{formulario.bio.length}/200</small>
             <button type="submit" className={styles.botonGuardar}>
               💾 Guardar
             </button>
@@ -255,7 +271,7 @@ const GestionMedicos = () => {
       <div className={styles.busqueda}>
         <input
           type="text"
-          placeholder="Buscar por nombre, especialidad o email..."
+          placeholder="Buscar por nombre, DNI o email..."
           value={busqueda}
           onChange={handleBusqueda}
         />
@@ -270,36 +286,34 @@ const GestionMedicos = () => {
             <thead>
               <tr>
                 <th>Nombre</th>
+                <th>DNI</th>
                 <th>Email</th>
-                <th>Especialidad</th>
                 <th>Teléfono</th>
-                <th>Rating</th>
+                <th>Obra Social</th>
+                <th>Alergias</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map(medico => (
-                <tr key={medico._id}>
-                  <td className={styles.nombre}>{medico.nombre}</td>
-                  <td>{medico.email}</td>
-                  <td>{medico.especialidad || '-'}</td>
-                  <td>{medico.telefono}</td>
-                  <td className={styles.rating}>
-                    {'★'.repeat(Math.round(medico.promedioRating))}
-                    {'☆'.repeat(5 - Math.round(medico.promedioRating))}
-                    <span> ({medico.totalRatings})</span>
-                  </td>
+              {filtrados.map(paciente => (
+                <tr key={paciente._id}>
+                  <td className={styles.nombre}>{paciente.nombre}</td>
+                  <td>{paciente.documento || '-'}</td>
+                  <td>{paciente.email}</td>
+                  <td>{paciente.telefono}</td>
+                  <td>{paciente.obraSocial || '-'}</td>
+                  <td>{paciente.alergias || 'Ninguna'}</td>
                   <td className={styles.acciones}>
                     <button
                       className={styles.botonEditar}
-                      onClick={() => handleEditar(medico)}
+                      onClick={() => handleEditar(paciente)}
                       title="Editar"
                     >
                       ✏️
                     </button>
                     <button 
                       className={styles.botonEliminar}
-                      onClick={() => handleEliminar(medico._id)}
+                      onClick={() => handleEliminar(paciente._id)}
                       title="Eliminar"
                     >
                       🗑️
@@ -310,11 +324,12 @@ const GestionMedicos = () => {
             </tbody>
           </table>
         ) : (
-          <p className={styles.sinResultados}>No hay médicos que coincidan con la búsqueda.</p>
+          <p className={styles.sinResultados}>No hay pacientes que coincidan con la búsqueda.</p>
         )}
       </div>
     </div>
   );
 };
 
-export default GestionMedicos;
+export default GestionPacientes;
+

@@ -1,23 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   createPrivateComment,
   createSupportTicket,
   deleteColleagueRating,
+  getColleagueFeedbackFramework,
   deleteSupportUser,
   getColleagueRatingSummary,
+  getColleagueRatingSummaryByType,
   getPrivateComments,
   getSupportBlueprint,
   getSupportMetrics,
   getSupportUsers,
+  listFormalColleagueFeedback,
   listSupportTickets,
   submitColleagueRating,
   submitSupportSurvey,
   updateSupportTicket,
   updateSupportUser,
-} from '../services/soporteService';
-import { canAccessSupport, canViewPrivateColleagueComments } from '../utils/roles';
+} from '../../services/soporteService';
+import { canAccessSupport, canViewPrivateColleagueComments } from '../../utils/roles';
 import styles from './Soporte.module.css';
 
 const TAB = {
@@ -25,11 +28,13 @@ const TAB = {
   TICKETS: 'tickets',
   USUARIOS: 'usuarios',
   COLEGAS: 'colegas',
+  VALORACIONES: 'valoraciones',
 };
 
 const CRITICIDAD = ['critico', 'alto', 'medio', 'bajo'];
 const NIVELES = ['L1', 'L2', 'L3'];
 const ESTADOS = ['abierto', 'en_progreso', 'en_espera', 'resuelto', 'cerrado'];
+const FORMAL_STATUS = ['registrado', 'en_revision', 'derivado', 'cerrado'];
 
 const defaultBlueprint = {
   teamStructure: [
@@ -101,11 +106,21 @@ export default function Soporte() {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [ratingSummary, setRatingSummary] = useState({ average: 0, total: 0, ratings: [], myRating: null });
+  const [feedbackFramework, setFeedbackFramework] = useState({ items: [], conclusion: '' });
+  const [selectedFeedbackType, setSelectedFeedbackType] = useState('soporte_calidad_atencion');
+  const [formalFeedbackRecords, setFormalFeedbackRecords] = useState([]);
+  const [formalFilter, setFormalFilter] = useState({ feedbackType: '', channel: '', status: '' });
   const [stars, setStars] = useState(5);
+  const [ratingStatus, setRatingStatus] = useState('registrado');
   const [ratingComment, setRatingComment] = useState('');
+  const [ratingActionItem, setRatingActionItem] = useState('');
 
   const staffUsers = useMemo(() => users.filter((u) => u.rol !== 'paciente'), [users]);
   const targetUser = useMemo(() => users.find((u) => u._id === targetUserId), [users, targetUserId]);
+  const feedbackItem = useMemo(
+    () => feedbackFramework.items.find((item) => item.key === selectedFeedbackType),
+    [feedbackFramework.items, selectedFeedbackType]
+  );
 
   const loadBlueprint = async () => {
     try {
@@ -161,7 +176,9 @@ export default function Soporte() {
   const loadRatingSummary = async () => {
     if (!targetUserId) return;
     try {
-      const data = await getColleagueRatingSummary(targetUserId);
+      const data = selectedFeedbackType
+        ? await getColleagueRatingSummaryByType(targetUserId, selectedFeedbackType)
+        : await getColleagueRatingSummary(targetUserId);
       setRatingSummary({
         average: data?.average || 0,
         total: data?.total || 0,
@@ -173,11 +190,34 @@ export default function Soporte() {
     }
   };
 
+  const loadFeedbackFramework = async () => {
+    try {
+      const data = await getColleagueFeedbackFramework();
+      setFeedbackFramework({
+        items: Array.isArray(data?.items) ? data.items : [],
+        conclusion: data?.conclusion || '',
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar marco de valoraciones');
+    }
+  };
+
+  const loadFormalFeedbackRecords = async () => {
+    try {
+      const data = await listFormalColleagueFeedback(formalFilter);
+      setFormalFeedbackRecords(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar tablero de valoraciones');
+    }
+  };
+
   useEffect(() => {
     loadBlueprint();
     loadMetrics();
     loadTickets();
     loadUsers();
+    loadFeedbackFramework();
+    loadFormalFeedbackRecords();
   }, []);
 
   useEffect(() => {
@@ -197,12 +237,21 @@ export default function Soporte() {
   useEffect(() => {
     loadComments();
     loadRatingSummary();
-  }, [targetUserId]);
+  }, [targetUserId, selectedFeedbackType]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadFormalFeedbackRecords();
+    }, 350);
+    return () => clearTimeout(t);
+  }, [formalFilter]);
 
   useEffect(() => {
     if (!ratingSummary?.myRating) return;
     setStars(ratingSummary.myRating.stars || 5);
+    setRatingStatus(ratingSummary.myRating.status || 'registrado');
     setRatingComment(ratingSummary.myRating.comentario || '');
+    setRatingActionItem(ratingSummary.myRating.actionItem || '');
   }, [ratingSummary?.myRating?._id]);
 
   if (!canAccessSupport(role)) {
@@ -287,9 +336,16 @@ export default function Soporte() {
     e.preventDefault();
     if (!targetUserId) return;
     try {
-      await submitColleagueRating(targetUserId, { stars, comentario: ratingComment });
+      await submitColleagueRating(targetUserId, {
+        stars,
+        comentario: ratingComment,
+        feedbackType: selectedFeedbackType,
+        actionItem: ratingActionItem,
+        status: ratingStatus,
+      });
       toast.success('Valoracion guardada');
       await loadRatingSummary();
+      await loadFormalFeedbackRecords();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo guardar valoracion');
     }
@@ -300,6 +356,7 @@ export default function Soporte() {
       await deleteColleagueRating(ratingId);
       toast.success('Valoracion eliminada');
       await loadRatingSummary();
+      await loadFormalFeedbackRecords();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo eliminar valoracion');
     }
@@ -564,7 +621,7 @@ export default function Soporte() {
   const renderColegas = () => (
     <>
       <section className={styles.card}>
-        <h2>Comentarios y valoracion entre colegas</h2>
+        <h2>Comentarios internos entre colegas</h2>
         <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
           <option value="">Seleccionar colega</option>
           {staffUsers.map((u) => <option key={u._id} value={u._id}>{u.nombre} - {u.rol}</option>)}
@@ -572,53 +629,177 @@ export default function Soporte() {
         {targetUser && <p>Trabajando sobre: <strong>{targetUser.nombre}</strong> ({targetUser.rol})</p>}
       </section>
 
+      <section className={styles.card}>
+        <h3>Comentarios privados (solo admin/superadmin)</h3>
+        <form onSubmit={handleCreateComment} className={styles.formCol}>
+          <textarea className={styles.textarea} value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Comentario interno" />
+          <button type="submit" className={styles.primaryBtn}>Guardar comentario</button>
+        </form>
+
+        <div className={styles.listWrap}>
+          {comments.length === 0 ? <p>Sin comentarios.</p> : comments.map((c) => (
+            <div key={c._id} className={styles.item}>
+              <div className={styles.itemTitle}>{c.autor?.nombre || 'Autor'} ({c.autor?.rol || '-'})</div>
+              <div>{c.contenido}</div>
+              <small>{new Date(c.fechaCreacion).toLocaleString()}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+
+  const renderValoraciones = () => (
+    <>
+      <section className={styles.card}>
+        <h2>Canales formales de valoraciones internas</h2>
+        <p>
+          Este apartado exclusivo formaliza cada valoracion por canal, area destino y estado de seguimiento
+          para convertir feedback en mejoras operativas.
+        </p>
+        {feedbackFramework.conclusion ? <p className={styles.note}>{feedbackFramework.conclusion}</p> : null}
+      </section>
+
+      <section className={styles.card}>
+        <h3>Matriz de valoraciones</h3>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Canal</th>
+                <th>Area destino</th>
+                <th>Estrellas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {feedbackFramework.items.map((item) => (
+                <tr key={item.key}>
+                  <td>{item.title}</td>
+                  <td><span className={styles.pill}>{item.channel}</span></td>
+                  <td>{item.destinationArea}</td>
+                  <td>{item.requiresStars ? 'Requeridas (1-5)' : 'No requeridas'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section className={styles.grid2}>
         <article className={styles.card}>
-          <h3>Comentarios privados (solo admin/superadmin)</h3>
-          <form onSubmit={handleCreateComment} className={styles.formCol}>
-            <textarea className={styles.textarea} value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Comentario interno" />
-            <button type="submit" className={styles.primaryBtn}>Guardar comentario</button>
+          <h3>Registrar valoracion</h3>
+          <form onSubmit={handleRating} className={styles.formCol}>
+            <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
+              <option value="">Seleccionar colega</option>
+              {staffUsers.map((u) => <option key={u._id} value={u._id}>{u.nombre} - {u.rol}</option>)}
+            </select>
+
+            <select className={styles.select} value={selectedFeedbackType} onChange={(e) => setSelectedFeedbackType(e.target.value)}>
+              {feedbackFramework.items.map((item) => (
+                <option key={item.key} value={item.key}>{item.title}</option>
+              ))}
+            </select>
+
+            {feedbackItem?.requiresStars ? (
+              <select className={styles.select} value={stars} onChange={(e) => setStars(Number(e.target.value))}>
+                <option value={5}>5 estrellas</option>
+                <option value={4}>4 estrellas</option>
+                <option value={3}>3 estrellas</option>
+                <option value={2}>2 estrellas</option>
+                <option value={1}>1 estrella</option>
+              </select>
+            ) : (
+              <p className={styles.note}>Este tipo se registra sin ponderacion por estrellas.</p>
+            )}
+
+            <select className={styles.select} value={ratingStatus} onChange={(e) => setRatingStatus(e.target.value)}>
+              {FORMAL_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+
+            <textarea
+              className={styles.textarea}
+              value={ratingActionItem}
+              onChange={(e) => setRatingActionItem(e.target.value)}
+              placeholder="Accion recomendada (ej. plan de capacitacion, revision funcional, derivacion RRHH)"
+            />
+            <textarea className={styles.textarea} value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} placeholder="Comentario formal" />
+            <button className={styles.primaryBtn} type="submit">Guardar valoracion formal</button>
           </form>
 
-          <div className={styles.listWrap}>
-            {comments.length === 0 ? <p>Sin comentarios.</p> : comments.map((c) => (
-              <div key={c._id} className={styles.item}>
-                <div className={styles.itemTitle}>{c.autor?.nombre || 'Autor'} ({c.autor?.rol || '-'})</div>
-                <div>{c.contenido}</div>
-                <small>{new Date(c.fechaCreacion).toLocaleString()}</small>
+          {feedbackItem ? (
+            <div className={styles.listWrap}>
+              <div className={styles.item}>
+                <div className={styles.itemTitle}>Canal activo: {feedbackItem.channel}</div>
+                <div>Area destino: {feedbackItem.destinationArea}</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : null}
         </article>
 
         <article className={styles.card}>
-          <h3>Estrellas de calidad de trabajo</h3>
-          <p>Promedio: <strong>{ratingSummary.average}</strong> ({ratingSummary.total} voto(s))</p>
-          <form onSubmit={handleRating} className={styles.formCol}>
-            <select className={styles.select} value={stars} onChange={(e) => setStars(Number(e.target.value))}>
-              <option value={5}>5 estrellas</option>
-              <option value={4}>4 estrellas</option>
-              <option value={3}>3 estrellas</option>
-              <option value={2}>2 estrellas</option>
-              <option value={1}>1 estrella</option>
-            </select>
-            <textarea className={styles.textarea} value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} placeholder="Comentario opcional" />
-            <button className={styles.primaryBtn} type="submit">Guardar valoracion</button>
-          </form>
-
+          <h3>Resumen por tipo</h3>
+          <p>Promedio: <strong>{ratingSummary.average}</strong> ({ratingSummary.total} registro(s))</p>
           <div className={styles.listWrap}>
             {Array.isArray(ratingSummary.ratings) && ratingSummary.ratings.length > 0 ? ratingSummary.ratings.map((r) => (
               <div key={r._id} className={styles.item}>
-                <div className={styles.itemTitle}>{r.authorUser?.nombre || 'Autor'} - {'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</div>
+                <div className={styles.itemTitle}>{r.authorUser?.nombre || 'Autor'}</div>
+                <div>{r.feedbackType}</div>
                 <div>{r.comentario || 'Sin comentario'}</div>
+                <div className={styles.metaMini}>Canal: {r.channel} | Estado: {r.status}</div>
+                <div className={styles.metaMini}>Accion: {r.actionItem || 'Sin accion definida'}</div>
                 <div className={styles.rowEnd}>
                   <small>{new Date(r.createdAt).toLocaleString()}</small>
                   <button className={styles.linkBtn} onClick={() => handleDeleteRating(r._id)}>Eliminar</button>
                 </div>
               </div>
-            )) : <p>No hay valoraciones aún.</p>}
+            )) : <p>No hay valoraciones para este tipo.</p>}
           </div>
         </article>
+      </section>
+
+      <section className={styles.card}>
+        <h3>Tablero formal (administracion)</h3>
+        <div className={styles.filtersRow}>
+          <select className={styles.select} value={formalFilter.feedbackType} onChange={(e) => setFormalFilter((p) => ({ ...p, feedbackType: e.target.value }))}>
+            <option value="">tipo</option>
+            {feedbackFramework.items.map((item) => <option key={item.key} value={item.key}>{item.title}</option>)}
+          </select>
+          <input className={styles.input} placeholder="canal" value={formalFilter.channel} onChange={(e) => setFormalFilter((p) => ({ ...p, channel: e.target.value }))} />
+          <select className={styles.select} value={formalFilter.status} onChange={(e) => setFormalFilter((p) => ({ ...p, status: e.target.value }))}>
+            <option value="">estado</option>
+            {FORMAL_STATUS.map((status) => <option key={status} value={status}>{status}</option>)}
+          </select>
+        </div>
+
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Autor</th>
+                <th>Colaborador</th>
+                <th>Tipo</th>
+                <th>Canal</th>
+                <th>Estado</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {formalFeedbackRecords.map((record) => (
+                <tr key={record._id}>
+                  <td>{new Date(record.createdAt).toLocaleDateString()}</td>
+                  <td>{record.authorUser?.nombre || '-'}</td>
+                  <td>{record.targetUser?.nombre || '-'}</td>
+                  <td>{record.feedbackType}</td>
+                  <td>{record.channel}</td>
+                  <td>{record.status}</td>
+                  <td>{record.actionItem || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </>
   );
@@ -630,12 +811,15 @@ export default function Soporte() {
         <button className={activeTab === TAB.TICKETS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.TICKETS)}>Tickets/SLA</button>
         <button className={activeTab === TAB.USUARIOS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.USUARIOS)}>Usuarios</button>
         <button className={activeTab === TAB.COLEGAS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.COLEGAS)}>Colegas</button>
+        <button className={activeTab === TAB.VALORACIONES ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.VALORACIONES)}>Valoraciones</button>
       </section>
 
       {activeTab === TAB.OPERACION && renderOperacion()}
       {activeTab === TAB.TICKETS && renderTickets()}
       {activeTab === TAB.USUARIOS && renderUsuarios()}
       {activeTab === TAB.COLEGAS && renderColegas()}
+      {activeTab === TAB.VALORACIONES && renderValoraciones()}
     </div>
   );
 }
+

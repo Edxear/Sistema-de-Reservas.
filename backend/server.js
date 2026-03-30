@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { registerApiRoutes } = require('./routes');
 
 const app = express();
 
@@ -13,44 +14,7 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-const authRoutes = require('./routes/auth');
-const doctorRoutes = require('./routes/doctors');
-const appointmentRoutes = require('./routes/appointments');
-const patientRoutes = require('./routes/patients');
-const serviceRoutes = require('./routes/services');
-const bookingRoutes = require('./routes/bookings');
-const medicoRoutes = require('./routes/medicos');
-const historiaClinicaRoutes = require('./routes/historiaClinica');
-const recetaRoutes = require('./routes/recetas');
-const authMiddleware = require('./middleware/auth');
-const pagoRoutes = require('./routes/pagos');
-const notificacionesRoutes = require('./routes/notifications');
-const agendaMedicosRoutes = require('./routes/agendaMedicos');
-const organigramaRoutes = require('./routes/organigrama');
-const ratingRoutes = require('./routes/ratings');
-const comentariosPrivadosRoutes = require('./routes/comentariosPrivados');
-const usersRoutes = require('./routes/users');
-const colleagueRatingsRoutes = require('./routes/colleagueRatings');
-const supportRoutes = require('./routes/support');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/doctors', doctorRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/services', serviceRoutes);
-app.use('/api/medicos', medicoRoutes);
-app.use('/api/historia-clinica', historiaClinicaRoutes);
-app.use('/api/recetas', recetaRoutes);
-app.use('/api/bookings', authMiddleware, bookingRoutes);
-app.use('/api/appointments', authMiddleware, appointmentRoutes);
-app.use('/api/pagos', pagoRoutes);
-app.use('/api/notificaciones', notificacionesRoutes);
-app.use('/api', agendaMedicosRoutes);
-app.use('/api/organigrama', organigramaRoutes);
-app.use('/api/ratings', ratingRoutes);
-app.use('/api/comentarios-privados', comentariosPrivadosRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/colleague-ratings', colleagueRatingsRoutes);
-app.use('/api/support', supportRoutes);
+registerApiRoutes(app);
 
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
 

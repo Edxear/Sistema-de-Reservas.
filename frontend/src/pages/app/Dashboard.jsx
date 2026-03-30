@@ -5,14 +5,14 @@ import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
 
 // Importamos nuestro hook personalizado y los servicios
-import { useAuth } from '../context/AuthContext';
-import { getDoctors } from '../services/appointmentService';
-import { getServices } from '../services/serviceService';
-import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatientSummaries } from '../services/bookingService';
-import { getDisponibilidad } from '../services/disponibilidadService';
-import Chat from './Chat';
-import { crearPreferencia } from '../services/pagoService';
-import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics } from '../utils/roles';
+import { useAuth } from '../../context/AuthContext';
+import { getDoctors } from '../../services/appointmentService';
+import { getServices } from '../../services/serviceService';
+import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatientSummaries } from '../../services/bookingService';
+import { getDisponibilidad } from '../../services/disponibilidadService';
+import Chat from '../../components/Chat';
+import { crearPreferencia } from '../../services/pagoService';
+import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics } from '../../utils/roles';
 import styles from './Dashboard.module.css';
 
 const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];

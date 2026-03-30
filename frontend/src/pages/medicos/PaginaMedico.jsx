@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './PaginaMedico.module.css';
-import { getMedicoById, getRatingsMedico, crearRatingMedico, miRatingMedico, getComentariosPrivados, crearComentarioPrivado, eliminarComentarioPrivado } from '../services/medicoService';
-import { AuthContext } from '../context/AuthContext';
-import { mostrarExito, mostrarError, mostrarNuevoRating, mostrarNuevoComentario } from '../utils/notificaciones';
-import { exportarComentariosCSV, exportarComentariosPDF } from '../utils/exportadores';
+import { getMedicoById, getRatingsMedico, crearRatingMedico, miRatingMedico, getComentariosPrivados, crearComentarioPrivado, eliminarComentarioPrivado } from '../../services/medicoService';
+import { AuthContext } from '../../context/AuthContext';
+import { mostrarExito, mostrarError, mostrarNuevoRating, mostrarNuevoComentario } from '../../utils/notificaciones';
+import { exportarComentariosCSV, exportarComentariosPDF } from '../../utils/exportadores';
 
 const PaginaMedico = () => {
   const { id } = useParams();
@@ -366,3 +366,4 @@ const PaginaMedico = () => {
 };
 
 export default PaginaMedico;
+

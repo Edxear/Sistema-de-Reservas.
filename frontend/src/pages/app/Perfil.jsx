@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { getBookings } from '../services/bookingService';
+import { useAuth } from '../../context/AuthContext';
+import API from '../../services/api';
+import { getBookings } from '../../services/bookingService';
 import styles from './Perfil.module.css';
 
 export default function Perfil() {
@@ -236,3 +236,4 @@ export default function Perfil() {
     </div>
   );
 }
+

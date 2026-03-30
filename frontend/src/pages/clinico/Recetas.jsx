@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import API from '../services/api';
+import API from '../../services/api';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -570,3 +570,4 @@ export default function Recetas() {
     </div>
   );
 }
+

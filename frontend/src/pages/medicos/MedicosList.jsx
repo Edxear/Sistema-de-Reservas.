@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './MedicosList.module.css';
-import { getMedicos } from '../services/medicoService';
+import { getMedicos } from '../../services/medicoService';
 
 const ITEMS_POR_PAGINA = 6;
 
@@ -236,3 +236,4 @@ const MedicosList = () => {
 };
 
 export default MedicosList;
+

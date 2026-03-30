@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   createOrganigrama,
   deleteOrganigrama,
@@ -10,8 +10,8 @@ import {
   getOrganigramaAudit,
   reorderOrganigrama,
   updateOrganigrama,
-} from '../services/organigramaService';
-import organigramaHospitalario from '../data/organigramaHospitalario.json';
+} from '../../services/organigramaService';
+import organigramaHospitalario from '../../data/organigramaHospitalario.json';
 import styles from './Organigrama.module.css';
 
 const estructuraEjemplo = organigramaHospitalario.bloques || [];
@@ -732,3 +732,4 @@ export default function Organigrama() {
     </div>
   );
 }
+

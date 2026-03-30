@@ -2,11 +2,11 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/AuthContext';
-import { getBookings, updateBooking } from '../services/bookingService';
-import { crearPreferencia } from '../services/pagoService';
-import { getDisponibilidad, getProximasFechas, getAgendaSemanal } from '../services/disponibilidadService';
-import Chat from './Chat';
+import { useAuth } from '../../context/AuthContext';
+import { getBookings, updateBooking } from '../../services/bookingService';
+import { crearPreferencia } from '../../services/pagoService';
+import { getDisponibilidad, getProximasFechas, getAgendaSemanal } from '../../services/disponibilidadService';
+import Chat from '../../components/Chat';
 import styles from './Dashboard.module.css';
 
 const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
@@ -519,3 +519,4 @@ export default function Turnos() {
     </div>
   );
 }
+
