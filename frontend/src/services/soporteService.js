@@ -101,3 +101,13 @@ export const updateBedUnit = async (id, payload) => {
   const res = await API.put(`/censo-camas/${id}`, payload);
   return res.data;
 };
+
+export const listSupportKnowledgeArticles = async (params = {}) => {
+  const res = await API.get('/support/kb/articles', { params });
+  return res.data;
+};
+
+export const saveSupportKnowledgeArticle = async (payload) => {
+  const res = await API.post('/support/kb/articles', payload);
+  return res.data;
+};

@@ -49,6 +49,13 @@ const supportTicketSchema = new mongoose.Schema({
   escalationHistory: { type: [escalationSchema], default: [] },
   surveyScore: { type: Number, min: 1, max: 5 },
   surveyComment: { type: String, default: '' },
+  routingReason: { type: String, default: '' },
+  kbArticleRef: { type: String, default: '' },
+  autoRouting: {
+    recommendedLevel: { type: String, enum: ['L1', 'L2', 'L3'], default: 'L1' },
+    confidence: { type: Number, default: 0.5, min: 0, max: 1 },
+    routedAt: { type: Date },
+  },
   tags: { type: [String], default: [] },
 }, { timestamps: true });
 

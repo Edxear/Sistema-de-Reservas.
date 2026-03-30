@@ -1,4 +1,6 @@
 const SupportTicket = require('../models/SupportTicket');
+const SupportKnowledgeArticle = require('../models/SupportKnowledgeArticle');
+const { logAuditEvent } = require('../utils/auditLogger');
 
 const SLA_BY_CRITICIDAD = {
   critico: { respuesta: 15, resolucion: 120 },
@@ -15,6 +17,24 @@ const buildSla = (criticidad = 'medio') => {
   const responseDueAt = new Date(now.getTime() + respuesta * 60000);
   const resolutionDueAt = new Date(now.getTime() + resolucion * 60000);
   return { respuesta, resolucion, responseDueAt, resolutionDueAt };
+};
+
+const inferRouting = ({ criticidad, tipoGestion, modulo }) => {
+  const mod = String(modulo || '').toLowerCase();
+
+  if (criticidad === 'critico') {
+    return { recommendedLevel: 'L3', confidence: 0.92, routingReason: 'Criticidad critica con potencial impacto asistencial' };
+  }
+
+  if (['seguridad', 'continuidad', 'backup'].includes(tipoGestion)) {
+    return { recommendedLevel: 'L2', confidence: 0.82, routingReason: 'Tipo de gestion requiere atencion especializada' };
+  }
+
+  if (mod.includes('hl7') || mod.includes('fhir') || mod.includes('dicom') || mod.includes('integracion')) {
+    return { recommendedLevel: 'L2', confidence: 0.78, routingReason: 'Modulo de integracion tecnica detectado' };
+  }
+
+  return { recommendedLevel: 'L1', confidence: 0.7, routingReason: 'Caso apto para mesa de ayuda inicial' };
 };
 
 exports.getSupportBlueprint = async (_req, res) => {
@@ -75,6 +95,8 @@ exports.createSupportTicket = async (req, res) => {
     } = req.body;
 
     const sla = buildSla(criticidad);
+    const routing = inferRouting({ criticidad, tipoGestion, modulo });
+    const suggestedKb = `${String(tipoGestion || 'incidente').toLowerCase()}-${String(modulo || 'general').toLowerCase().replace(/\s+/g, '-')}`;
 
     const ticket = await SupportTicket.create({
       titulo,
@@ -95,15 +117,109 @@ exports.createSupportTicket = async (req, res) => {
       requiresChangeValidation,
       changeValidationStatus: requiresChangeValidation ? 'pendiente' : 'no_aplica',
       tags: Array.isArray(tags) ? tags : [],
+      kbArticleRef: suggestedKb,
+      routingReason: routing.routingReason,
+      autoRouting: {
+        recommendedLevel: routing.recommendedLevel,
+        confidence: routing.confidence,
+        routedAt: new Date(),
+      },
       slaRespuestaMin: sla.respuesta,
       slaResolucionMin: sla.resolucion,
       responseDueAt: sla.responseDueAt,
       resolutionDueAt: sla.resolutionDueAt,
     });
 
+    await logAuditEvent(req, {
+      action: 'support-ticket.create',
+      resourceType: 'SupportTicket',
+      resourceId: ticket._id,
+      details: `autoRouting=${routing.recommendedLevel} confidence=${routing.confidence}`,
+    });
+
     res.status(201).json(ticket);
   } catch (error) {
     res.status(500).json({ message: 'Error creando ticket de soporte', error });
+  }
+};
+
+exports.listKnowledgeArticles = async (req, res) => {
+  try {
+    const { categoria, estado = 'publicado', q } = req.query;
+    const filter = {};
+    if (categoria) filter.categoria = categoria;
+    if (estado) filter.estado = estado;
+    if (q) {
+      filter.$or = [
+        { titulo: { $regex: q, $options: 'i' } },
+        { contenido: { $regex: q, $options: 'i' } },
+        { codigo: { $regex: q, $options: 'i' } },
+      ];
+    }
+
+    const items = await SupportKnowledgeArticle.find(filter)
+      .populate('autor', 'nombre rol')
+      .sort({ updatedAt: -1 })
+      .limit(400);
+
+    return res.json(items);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error listando base de conocimiento', error });
+  }
+};
+
+exports.createKnowledgeArticle = async (req, res) => {
+  try {
+    const actorId = getUserId(req);
+    const { codigo, titulo, contenido, categoria = 'general', tags = [], estado = 'publicado' } = req.body;
+
+    if (!codigo || !titulo || !contenido) {
+      return res.status(400).json({ message: 'codigo, titulo y contenido son obligatorios' });
+    }
+
+    const existing = await SupportKnowledgeArticle.findOne({ codigo: String(codigo).trim() });
+
+    if (!existing) {
+      const created = await SupportKnowledgeArticle.create({
+        codigo: String(codigo).trim(),
+        titulo: String(titulo).trim(),
+        contenido: String(contenido).trim(),
+        categoria: String(categoria).trim(),
+        tags: Array.isArray(tags) ? tags : [],
+        estado,
+        version: 1,
+        autor: actorId,
+      });
+
+      await logAuditEvent(req, {
+        action: 'knowledge-article.create',
+        resourceType: 'SupportKnowledgeArticle',
+        resourceId: created._id,
+        details: `codigo=${created.codigo} version=1`,
+      });
+
+      return res.status(201).json(created);
+    }
+
+    existing.titulo = String(titulo).trim();
+    existing.contenido = String(contenido).trim();
+    existing.categoria = String(categoria).trim();
+    existing.tags = Array.isArray(tags) ? tags : [];
+    existing.estado = estado;
+    existing.version = (existing.version || 1) + 1;
+    existing.autor = actorId;
+    await existing.save();
+
+    await logAuditEvent(req, {
+      action: 'knowledge-article.version',
+      resourceType: 'SupportKnowledgeArticle',
+      resourceId: existing._id,
+      details: `codigo=${existing.codigo} version=${existing.version}`,
+    });
+
+    return res.json(existing);
+  } catch (error) {
+    return res.status(400).json({ message: 'Error creando/actualizando articulo KB', error });
   }
 };
 

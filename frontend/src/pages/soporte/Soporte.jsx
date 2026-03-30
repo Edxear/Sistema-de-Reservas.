@@ -16,7 +16,9 @@ import {
   getSupportUsers,
   listBedCensus,
   listFormalColleagueFeedback,
+  listSupportKnowledgeArticles,
   listSupportTickets,
+  saveSupportKnowledgeArticle,
   submitColleagueRating,
   submitSupportSurvey,
   updateBedUnit,
@@ -158,6 +160,8 @@ export default function Soporte() {
   const [metrics, setMetrics] = useState(null);
   const [bedCensus, setBedCensus] = useState({ metrics: { total: 0, byEstado: {} }, beds: [] });
   const [bedForm, setBedForm] = useState({ codigo: '', sector: '', estado: 'libre', observaciones: '' });
+  const [knowledgeArticles, setKnowledgeArticles] = useState([]);
+  const [knowledgeForm, setKnowledgeForm] = useState({ codigo: '', titulo: '', contenido: '', categoria: 'general' });
 
   const [tickets, setTickets] = useState([]);
   const [ticketForm, setTicketForm] = useState(initialTicketForm);
@@ -278,6 +282,15 @@ export default function Soporte() {
     }
   };
 
+  const loadKnowledgeArticles = async () => {
+    try {
+      const data = await listSupportKnowledgeArticles({ estado: 'publicado' });
+      setKnowledgeArticles(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar base de conocimiento');
+    }
+  };
+
   const loadUsers = async () => {
     try {
       const data = await getSupportUsers({ search });
@@ -348,6 +361,7 @@ export default function Soporte() {
     loadFeedbackFramework();
     loadFormalFeedbackRecords();
     loadBedCensus();
+    loadKnowledgeArticles();
   }, []);
 
   useEffect(() => {
@@ -519,6 +533,24 @@ export default function Soporte() {
     }
   };
 
+  const handleSaveKnowledge = async (e) => {
+    e.preventDefault();
+    if (!knowledgeForm.codigo.trim() || !knowledgeForm.titulo.trim() || !knowledgeForm.contenido.trim()) return;
+    try {
+      await saveSupportKnowledgeArticle({
+        codigo: knowledgeForm.codigo.trim(),
+        titulo: knowledgeForm.titulo.trim(),
+        contenido: knowledgeForm.contenido.trim(),
+        categoria: knowledgeForm.categoria,
+      });
+      setKnowledgeForm({ codigo: '', titulo: '', contenido: '', categoria: 'general' });
+      toast.success('Articulo KB guardado/versionado');
+      await loadKnowledgeArticles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo guardar articulo KB');
+    }
+  };
+
   const renderOperacion = () => (
     <>
       <section className={styles.card}>
@@ -586,6 +618,29 @@ export default function Soporte() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <h2>Base de conocimiento versionada</h2>
+        <form onSubmit={handleSaveKnowledge} className={styles.formCol}>
+          <div className={styles.filtersRow}>
+            <input className={styles.input} placeholder="Codigo (ej: incidente-login)" value={knowledgeForm.codigo} onChange={(e) => setKnowledgeForm((p) => ({ ...p, codigo: e.target.value }))} required />
+            <input className={styles.input} placeholder="Categoria" value={knowledgeForm.categoria} onChange={(e) => setKnowledgeForm((p) => ({ ...p, categoria: e.target.value }))} />
+            <input className={styles.input} placeholder="Titulo" value={knowledgeForm.titulo} onChange={(e) => setKnowledgeForm((p) => ({ ...p, titulo: e.target.value }))} required />
+          </div>
+          <textarea className={styles.textarea} placeholder="Contenido del articulo" value={knowledgeForm.contenido} onChange={(e) => setKnowledgeForm((p) => ({ ...p, contenido: e.target.value }))} required />
+          <button className={styles.primaryBtn} type="submit">Guardar articulo</button>
+        </form>
+
+        <div className={styles.listWrap}>
+          {knowledgeArticles.slice(0, 12).map((article) => (
+            <div key={article._id} className={styles.item}>
+              <div className={styles.itemTitle}>{article.codigo} - v{article.version}</div>
+              <div>{article.titulo}</div>
+              <div className={styles.metaMini}>Categoria: {article.categoria}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -752,6 +807,7 @@ export default function Soporte() {
                 <th>Nivel</th>
                 <th>Estado</th>
                 <th>SLA</th>
+                <th>Enrutamiento</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -774,6 +830,11 @@ export default function Soporte() {
                   <td>
                     <div className={styles.metaMini}>Resp: {t.slaRespuestaMin}m</div>
                     <div className={styles.metaMini}>Res: {t.slaResolucionMin}m</div>
+                  </td>
+                  <td>
+                    <div className={styles.metaMini}>Nivel sugerido: {t.autoRouting?.recommendedLevel || '-'}</div>
+                    <div className={styles.metaMini}>Confianza: {t.autoRouting?.confidence || '-'}</div>
+                    <div className={styles.metaMini}>KB: {t.kbArticleRef || '-'}</div>
                   </td>
                   <td>
                     <div className={styles.inlineBtns}>
