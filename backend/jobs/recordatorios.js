@@ -46,7 +46,7 @@ async function enviarRecordatorios() {
                 <p>Si necesitas cancelar o reprogramar, ingresa a la plataforma.</p>
               </div>
               <div class="footer">
-                <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+                <p>&copy; ${new Date().getFullYear()} IntegraSalud. Todos los derechos reservados.</p>
               </div>
             </div>
           </body>
@@ -76,3 +76,4 @@ function iniciarRecordatorios() {
 }
 
 module.exports = { iniciarRecordatorios, enviarRecordatorios };
+

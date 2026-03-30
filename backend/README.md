@@ -10,7 +10,7 @@ El script `npm run seed:initial` requiere estas variables de entorno en el archi
 Ejemplo:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/sistema-reservas
+MONGODB_URI=mongodb://localhost:27017/integrasalud
 SEED_INITIAL_PASSWORD=una-clave-segura
 ```
 

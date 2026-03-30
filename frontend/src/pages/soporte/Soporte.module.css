@@ -214,6 +214,47 @@
   font-weight: 600;
 }
 
+.infoWrap {
+  margin-top: 10px;
+  margin-bottom: 3px;
+  display: grid;
+  gap: 10px;
+}
+
+.infoBtn {
+  justify-self: start;
+  border: 1px solid #98b8d8;
+  background: #eef5fc;
+  color: #15466f;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.infoPanel {
+  border: 1px solid #d5e5f5;
+  border-radius: 12px;
+  background: #f8fbff;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.infoPanel h4 {
+  margin: 0;
+  color: #173e63;
+}
+
+.infoPanel p {
+  margin: 0;
+}
+
+.infoList {
+  display: grid;
+  gap: 4px;
+}
+
 @media (max-width: 1000px) {
   .metricsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

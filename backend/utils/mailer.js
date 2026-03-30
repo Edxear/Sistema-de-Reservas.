@@ -70,7 +70,7 @@ function emailCrearReserva(paciente, medico, fecha, hora, servicio, precio) {
             <p>Completa el pago para confirmar tu turno. Si tienes preguntas, no dudes en contactarnos.</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -121,7 +121,7 @@ function emailConfirmarReserva(paciente, medico, fecha, hora, servicio, precio) 
             </p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -163,7 +163,7 @@ function emailReprogramar(nombrePaciente, nombreMedico, fechaNueva, horaNueva, s
             <p>Si esta nueva fecha no te viene bien, contáctanos de inmediato.</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -206,7 +206,7 @@ function emailCancelar(nombrePaciente, nombreMedico, fechaOriginal, horaOriginal
             <p>Si deseas agendar otro turno, por favor ingresa a la plataforma o contáctanos.</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -253,7 +253,7 @@ function emailAtendida(nombrePaciente, nombreMedico, fechaTurno, servicio) {
             </p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -296,7 +296,7 @@ function emailReservaAlMedico(nombreMedico, nombrePaciente, fecha, hora, servici
             <p>Por favor, ten en cuenta este turno en tu agenda.</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Sistema de Reservas Médicas. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} IntegraSalud Médicas. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -317,14 +317,14 @@ function generarICS(fecha, hora, servicio, medico) {
   
   const ics = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Sistema de Reservas//NONSGML Reservas Médicas//EN
+PRODID:-//IntegraSalud//NONSGML Reservas Médicas//EN
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTART:${formatoICS(startDate)}
 DTEND:${formatoICS(endDate)}
 SUMMARY:Turno - ${servicio} con ${medico}
-DESCRIPTION:Turno confirmado en Sistema de Reservas Médicas
-UID:${startDate.getTime()}@sistema-reservas.local
+DESCRIPTION:Turno confirmado en IntegraSalud Médicas
+UID:${startDate.getTime()}@integrasalud.local
 CREATED:${formatoICS(new Date())}
 LAST-MODIFIED:${formatoICS(new Date())}
 END:VEVENT
@@ -389,3 +389,4 @@ module.exports = {
   emailReservaAlMedico,
   generarICS,
 };
+

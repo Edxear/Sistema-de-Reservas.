@@ -16,6 +16,6 @@ app.use(express.json());
 
 registerApiRoutes(app);
 
-app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
+app.get('/', (req, res) => res.send('IntegraSalud backend funcionando'));
 
 module.exports = app;

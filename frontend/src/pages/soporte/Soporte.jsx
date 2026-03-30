@@ -36,6 +36,65 @@ const NIVELES = ['L1', 'L2', 'L3'];
 const ESTADOS = ['abierto', 'en_progreso', 'en_espera', 'resuelto', 'cerrado'];
 const FORMAL_STATUS = ['registrado', 'en_revision', 'derivado', 'cerrado'];
 
+const SUPPORT_INFO = {
+  operacion: {
+    title: 'Que cubre Operacion de Soporte',
+    summary:
+      'Coordina continuidad del servicio clinico, escalamiento, monitoreo y mejora continua para sostener la atencion al paciente.',
+    points: [
+      'Organiza niveles L1-L3 y responsables por criticidad.',
+      'Alinea procedimientos de incidentes, cambios, seguridad y recuperacion.',
+      'Convierte reportes operativos en decisiones de capacidad y calidad.',
+    ],
+  },
+  tickets: {
+    title: 'Para que sirve Ticketing y SLA',
+    summary:
+      'Ticketing registra y da seguimiento a cada caso; SLA define tiempos comprometidos de respuesta y resolucion. Juntos hacen el soporte medible, trazable y predecible.',
+    points: [
+      'Ticketing: registro unico, trazabilidad, priorizacion por criticidad y evidencia para auditoria.',
+      'SLA: expectativas claras para usuarios clinicos y priorizacion de incidentes con impacto asistencial.',
+      'Relacion directa: ticketing mide si el SLA se cumple; sin ambos no hay control objetivo.',
+    ],
+    slaReference: [
+      { criticidad: 'Critico', respuesta: '15 min', resolucion: '2 h' },
+      { criticidad: 'Alto', respuesta: '1 h', resolucion: '8 h' },
+      { criticidad: 'Medio', respuesta: '4 h', resolucion: '24 h' },
+      { criticidad: 'Bajo', respuesta: '24 h', resolucion: '5 dias habiles' },
+    ],
+  },
+  usuarios: {
+    title: 'Para que sirve Usuarios (RBAC)',
+    summary:
+      'Gestiona identidades y permisos para reducir riesgo operativo y cumplir controles de acceso en entornos clinicos.',
+    points: [
+      'Asigna el rol correcto segun funcion (asistencial, administrativa o tecnica).',
+      'Evita accesos indebidos a datos clinicos y operaciones sensibles.',
+      'Permite auditoria y trazabilidad de cambios de permisos.',
+    ],
+  },
+  colegas: {
+    title: 'Para que sirven Comentarios Internos',
+    summary:
+      'Habilita retroalimentacion privada y profesional entre colegas para mejorar coordinacion y calidad del trabajo.',
+    points: [
+      'Documenta observaciones relevantes para seguimiento interno.',
+      'Evita perdida de contexto en canales informales.',
+      'Facilita acciones de mejora desde administracion.',
+    ],
+  },
+  valoraciones: {
+    title: 'Para que sirven Valoraciones Formales',
+    summary:
+      'Canaliza feedback por tipo, canal y area destino para que cada caso termine en una accion concreta y verificable.',
+    points: [
+      'Estandariza valoraciones por escenario (soporte, clinico, seguridad, RRHH).',
+      'Permite seguimiento por estado y responsables.',
+      'Fortalece gobernanza y mejora continua con datos comparables.',
+    ],
+  },
+};
+
 const defaultBlueprint = {
   teamStructure: [
     { nivel: 'Soporte L1', objetivo: 'Mesa de ayuda: incidencias basicas, accesos y derivaciones.' },
@@ -114,6 +173,7 @@ export default function Soporte() {
   const [ratingStatus, setRatingStatus] = useState('registrado');
   const [ratingComment, setRatingComment] = useState('');
   const [ratingActionItem, setRatingActionItem] = useState('');
+  const [openInfoTab, setOpenInfoTab] = useState(null);
 
   const staffUsers = useMemo(() => users.filter((u) => u.rol !== 'paciente'), [users]);
   const targetUser = useMemo(() => users.find((u) => u._id === targetUserId), [users, targetUserId]);
@@ -121,6 +181,58 @@ export default function Soporte() {
     () => feedbackFramework.items.find((item) => item.key === selectedFeedbackType),
     [feedbackFramework.items, selectedFeedbackType]
   );
+
+  const renderInfoBlock = (tabKey) => {
+    const config = SUPPORT_INFO[tabKey];
+    if (!config) return null;
+
+    const isOpen = openInfoTab === tabKey;
+
+    return (
+      <div className={styles.infoWrap}>
+        <button
+          type="button"
+          className={styles.infoBtn}
+          onClick={() => setOpenInfoTab((prev) => (prev === tabKey ? null : tabKey))}
+        >
+          Informacion
+        </button>
+
+        {isOpen ? (
+          <div className={styles.infoPanel}>
+            <h4>{config.title}</h4>
+            <p>{config.summary}</p>
+            <div className={styles.infoList}>
+              {config.points.map((point) => <p key={point}>- {point}</p>)}
+            </div>
+
+            {Array.isArray(config.slaReference) ? (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Criticidad</th>
+                      <th>Respuesta</th>
+                      <th>Resolucion</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {config.slaReference.map((row) => (
+                      <tr key={row.criticidad}>
+                        <td>{row.criticidad}</td>
+                        <td>{row.respuesta}</td>
+                        <td>{row.resolucion}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   const loadBlueprint = async () => {
     try {
@@ -367,6 +479,7 @@ export default function Soporte() {
       <section className={styles.card}>
         <h1>Centro de Soporte Clinico</h1>
         <p>Cobertura operativa para incidentes, cambios, continuidad, seguridad y soporte a usuarios internos.</p>
+        {renderInfoBlock(TAB.OPERACION)}
       </section>
 
       <section className={styles.metricsGrid}>
@@ -486,6 +599,7 @@ export default function Soporte() {
     <>
       <section className={styles.card}>
         <h2>Ticketing y SLA</h2>
+        {renderInfoBlock(TAB.TICKETS)}
         <form onSubmit={handleCreateTicket} className={styles.gridForm}>
           <input className={styles.input} placeholder="Titulo" value={ticketForm.titulo} onChange={(e) => setTicketForm((p) => ({ ...p, titulo: e.target.value }))} required />
           <select className={styles.select} value={ticketForm.criticidad} onChange={(e) => setTicketForm((p) => ({ ...p, criticidad: e.target.value }))}>
@@ -580,6 +694,7 @@ export default function Soporte() {
   const renderUsuarios = () => (
     <section className={styles.card}>
       <h2>Gestion de identidades y accesos (RBAC)</h2>
+      {renderInfoBlock(TAB.USUARIOS)}
       <input className={styles.input} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre, email o telefono" />
       <div className={styles.tableWrap}>
         <table className={styles.table}>
@@ -622,6 +737,7 @@ export default function Soporte() {
     <>
       <section className={styles.card}>
         <h2>Comentarios internos entre colegas</h2>
+        {renderInfoBlock(TAB.COLEGAS)}
         <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
           <option value="">Seleccionar colega</option>
           {staffUsers.map((u) => <option key={u._id} value={u._id}>{u.nombre} - {u.rol}</option>)}
@@ -653,6 +769,7 @@ export default function Soporte() {
     <>
       <section className={styles.card}>
         <h2>Canales formales de valoraciones internas</h2>
+        {renderInfoBlock(TAB.VALORACIONES)}
         <p>
           Este apartado exclusivo formaliza cada valoracion por canal, area destino y estado de seguimiento
           para convertir feedback en mejoras operativas.
