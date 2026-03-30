@@ -19,6 +19,7 @@ const usersRoutes = require('./users');
 const colleagueRatingsRoutes = require('./colleagueRatings');
 const supportRoutes = require('./support');
 const auditLogsRoutes = require('./auditLogs');
+const ordenesMedicasRoutes = require('./ordenesMedicas');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -40,6 +41,7 @@ function registerApiRoutes(app) {
   app.use('/api/colleague-ratings', colleagueRatingsRoutes);
   app.use('/api/support', supportRoutes);
   app.use('/api/audit-logs', auditLogsRoutes);
+  app.use('/api/ordenes-medicas', ordenesMedicasRoutes);
 }
 
 module.exports = {

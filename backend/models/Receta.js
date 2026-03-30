@@ -12,6 +12,17 @@ const recetaSchema = new mongoose.Schema({
       indicaciones: String
     }
   ],
+  diagnosticoPrincipal: { type: String, default: '' },
+  diagnosticoSecundario: { type: String, default: '' },
+  observaciones: { type: String, default: '' },
+  safetyAlerts: [
+    {
+      type: { type: String, enum: ['duplicidad', 'interaccion'], required: true },
+      severity: { type: String, enum: ['media', 'alta'], default: 'media' },
+      message: { type: String, required: true },
+      medications: [{ type: String }],
+    },
+  ],
   esFavorita: { type: Boolean, default: false }
 }, { timestamps: true });
 

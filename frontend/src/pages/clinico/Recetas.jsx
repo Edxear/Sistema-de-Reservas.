@@ -254,12 +254,27 @@ export default function Recetas() {
     if (medicamentosValidos.length === 0) return toast.error('Agrega al menos un medicamento');
 
     try {
-      await API.post(
+      const res = await API.post(
         '/recetas',
-        { paciente: pacienteId, medicamentos: medicamentosValidos, esFavorita },
+        {
+          paciente: pacienteId,
+          medicamentos: medicamentosValidos,
+          esFavorita,
+          diagnosticoPrincipal: formData.diagnosticoPrincipal,
+          diagnosticoSecundario: formData.diagnosticoSecundario,
+          observaciones: formData.observaciones,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Receta creada');
+
+      const alerts = Array.isArray(res.data?.safetyAlerts) ? res.data.safetyAlerts : [];
+      if (alerts.length > 0) {
+        alerts.slice(0, 3).forEach((alert) => {
+          toast.warn(`Alerta de seguridad (${alert.severity}): ${alert.message}`);
+        });
+      }
+
       setMedicamentos([{ ...initialMed }]);
       setEsFavorita(false);
       loadData();

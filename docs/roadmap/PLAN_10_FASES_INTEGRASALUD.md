@@ -165,5 +165,6 @@ Criterio de cierre:
 - Fase 1: completada (identidad IntegraSalud, orden estructural y formato de ejecucion)
 - Fase 2: completada (auditoria base de acciones sensibles y endpoint administrativo)
 - Fase 3: completada (historia clinica longitudinal con resumen, filtros y registro de evolucion)
-- Fase activa: Fase 4
-- Proximo hito: ordenes medicas avanzadas y refuerzo de prescripcion segura
+- Fase 4: completada (ordenes medicas + alertas de seguridad en prescripcion)
+- Fase activa: Fase 5
+- Proximo hito: censo operativo de camas y base para urgencias/operacion hospitalaria
