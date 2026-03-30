@@ -166,5 +166,6 @@ Criterio de cierre:
 - Fase 2: completada (auditoria base de acciones sensibles y endpoint administrativo)
 - Fase 3: completada (historia clinica longitudinal con resumen, filtros y registro de evolucion)
 - Fase 4: completada (ordenes medicas + alertas de seguridad en prescripcion)
-- Fase activa: Fase 5
-- Proximo hito: censo operativo de camas y base para urgencias/operacion hospitalaria
+- Fase 5: completada (censo operativo de camas y control de estado en tiempo real)
+- Fase activa: Fase 6
+- Proximo hito: capa inicial de interoperabilidad FHIR/HL7 para integraciones externas

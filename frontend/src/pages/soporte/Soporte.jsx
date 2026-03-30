@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import {
+  createBedUnit,
   createPrivateComment,
   createSupportTicket,
   deleteColleagueRating,
@@ -13,10 +14,12 @@ import {
   getSupportBlueprint,
   getSupportMetrics,
   getSupportUsers,
+  listBedCensus,
   listFormalColleagueFeedback,
   listSupportTickets,
   submitColleagueRating,
   submitSupportSurvey,
+  updateBedUnit,
   updateSupportTicket,
   updateSupportUser,
 } from '../../services/soporteService';
@@ -153,6 +156,8 @@ export default function Soporte() {
 
   const [blueprint, setBlueprint] = useState(defaultBlueprint);
   const [metrics, setMetrics] = useState(null);
+  const [bedCensus, setBedCensus] = useState({ metrics: { total: 0, byEstado: {} }, beds: [] });
+  const [bedForm, setBedForm] = useState({ codigo: '', sector: '', estado: 'libre', observaciones: '' });
 
   const [tickets, setTickets] = useState([]);
   const [ticketForm, setTicketForm] = useState(initialTicketForm);
@@ -261,6 +266,18 @@ export default function Soporte() {
     }
   };
 
+  const loadBedCensus = async () => {
+    try {
+      const data = await listBedCensus();
+      setBedCensus({
+        metrics: data?.metrics || { total: 0, byEstado: {} },
+        beds: Array.isArray(data?.beds) ? data.beds : [],
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar censo de camas');
+    }
+  };
+
   const loadUsers = async () => {
     try {
       const data = await getSupportUsers({ search });
@@ -330,6 +347,7 @@ export default function Soporte() {
     loadUsers();
     loadFeedbackFramework();
     loadFormalFeedbackRecords();
+    loadBedCensus();
   }, []);
 
   useEffect(() => {
@@ -474,6 +492,33 @@ export default function Soporte() {
     }
   };
 
+  const handleCreateBed = async (e) => {
+    e.preventDefault();
+    if (!bedForm.codigo.trim() || !bedForm.sector.trim()) return;
+    try {
+      await createBedUnit({
+        codigo: bedForm.codigo.trim(),
+        sector: bedForm.sector.trim(),
+        estado: bedForm.estado,
+        observaciones: bedForm.observaciones,
+      });
+      setBedForm({ codigo: '', sector: '', estado: 'libre', observaciones: '' });
+      toast.success('Cama registrada');
+      await loadBedCensus();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo crear cama');
+    }
+  };
+
+  const handleBedStatus = async (id, estado) => {
+    try {
+      await updateBedUnit(id, { estado });
+      await loadBedCensus();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar estado de cama');
+    }
+  };
+
   const renderOperacion = () => (
     <>
       <section className={styles.card}>
@@ -487,6 +532,61 @@ export default function Soporte() {
         <article className={styles.metricCard}><span>SLA respuesta</span><strong>{metrics?.responseSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>SLA resolucion</span><strong>{metrics?.resolutionSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>Satisfaccion</span><strong>{metrics?.avgSurvey ?? 0}/5</strong></article>
+      </section>
+
+      <section className={styles.card}>
+        <h2>Censo operativo de camas</h2>
+        <p className={styles.note}>
+          Total: {bedCensus.metrics?.total || 0} | Libre: {bedCensus.metrics?.byEstado?.libre || 0} | Ocupada: {bedCensus.metrics?.byEstado?.ocupada || 0}
+        </p>
+
+        <form onSubmit={handleCreateBed} className={styles.filtersRow}>
+          <input className={styles.input} placeholder="Codigo cama (ej: UCI-01)" value={bedForm.codigo} onChange={(e) => setBedForm((p) => ({ ...p, codigo: e.target.value }))} required />
+          <input className={styles.input} placeholder="Sector" value={bedForm.sector} onChange={(e) => setBedForm((p) => ({ ...p, sector: e.target.value }))} required />
+          <select className={styles.select} value={bedForm.estado} onChange={(e) => setBedForm((p) => ({ ...p, estado: e.target.value }))}>
+            <option value="libre">libre</option>
+            <option value="ocupada">ocupada</option>
+            <option value="limpieza">limpieza</option>
+            <option value="mantenimiento">mantenimiento</option>
+            <option value="reservada">reservada</option>
+            <option value="aislamiento">aislamiento</option>
+          </select>
+          <button className={styles.primaryBtn} type="submit">Agregar cama</button>
+        </form>
+
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Codigo</th>
+                <th>Sector</th>
+                <th>Estado</th>
+                <th>Paciente</th>
+                <th>Actualizacion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(bedCensus.beds || []).map((bed) => (
+                <tr key={bed._id}>
+                  <td>{bed.codigo}</td>
+                  <td>{bed.sector}</td>
+                  <td>
+                    <select className={styles.selectCompact} value={bed.estado} onChange={(e) => handleBedStatus(bed._id, e.target.value)}>
+                      <option value="libre">libre</option>
+                      <option value="ocupada">ocupada</option>
+                      <option value="limpieza">limpieza</option>
+                      <option value="mantenimiento">mantenimiento</option>
+                      <option value="reservada">reservada</option>
+                      <option value="aislamiento">aislamiento</option>
+                    </select>
+                  </td>
+                  <td>{bed.paciente?.nombre || '-'}</td>
+                  <td>{bed.updatedBy?.nombre || '-'} | {new Date(bed.updatedAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className={styles.card}>

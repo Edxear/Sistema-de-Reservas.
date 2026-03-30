@@ -86,3 +86,18 @@ export const submitSupportSurvey = async (id, payload) => {
   const res = await API.post(`/support/tickets/${id}/survey`, payload);
   return res.data;
 };
+
+export const listBedCensus = async (params = {}) => {
+  const res = await API.get('/censo-camas', { params });
+  return res.data;
+};
+
+export const createBedUnit = async (payload) => {
+  const res = await API.post('/censo-camas', payload);
+  return res.data;
+};
+
+export const updateBedUnit = async (id, payload) => {
+  const res = await API.put(`/censo-camas/${id}`, payload);
+  return res.data;
+};
