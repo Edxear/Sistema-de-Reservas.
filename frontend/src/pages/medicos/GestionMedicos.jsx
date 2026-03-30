@@ -24,10 +24,13 @@ const GestionMedicos = () => {
     nombre: '',
     email: '',
     telefono: '',
+    rol: 'medico',
     especialidad: '',
     matriculaProfesional: '',
     bio: '',
-    direccionConsultorio: ''
+    direccionConsultorio: '',
+    areaSecretaria: '',
+    turnoLaboral: ''
   });
 
   useEffect(() => {
@@ -41,8 +44,8 @@ const GestionMedicos = () => {
       setMedicos(datos);
       setFiltrados(datos);
     } catch (err) {
-      setError('Error al cargar médicos: ' + err.message);
-      mostrarError('Error al cargar médicos');
+      setError('Error al cargar personal: ' + err.message);
+      mostrarError('Error al cargar personal');
     } finally {
       setCargando(false);
     }
@@ -91,15 +94,18 @@ const GestionMedicos = () => {
         await actualizarMedico(medicoEditandoId, {
           nombre: formulario.nombre,
           telefono: formulario.telefono,
+          rol: formulario.rol,
           especialidad: formulario.especialidad,
           matriculaProfesional: formulario.matriculaProfesional,
           bio: formulario.bio,
-          direccionConsultorio: formulario.direccionConsultorio
+          direccionConsultorio: formulario.direccionConsultorio,
+          areaSecretaria: formulario.areaSecretaria,
+          turnoLaboral: formulario.turnoLaboral
         });
-        mostrarExito('Médico actualizado exitosamente');
+        mostrarExito('Personal actualizado exitosamente');
       } else {
         await crearMedico(formulario);
-        mostrarExito('Médico creado exitosamente');
+        mostrarExito('Personal creado exitosamente');
       }
 
       setMostrarFormulario(false);
@@ -108,14 +114,17 @@ const GestionMedicos = () => {
         nombre: '',
         email: '',
         telefono: '',
+        rol: 'medico',
         especialidad: '',
         matriculaProfesional: '',
         bio: '',
-        direccionConsultorio: ''
+        direccionConsultorio: '',
+        areaSecretaria: '',
+        turnoLaboral: ''
       });
       cargarMedicos();
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Error al guardar médico';
+      const msg = err?.response?.data?.message || 'Error al guardar';
       mostrarError(msg);
     }
   };
@@ -126,10 +135,13 @@ const GestionMedicos = () => {
       nombre: medico.nombre || '',
       email: medico.email || '',
       telefono: medico.telefono || '',
+      rol: medico.rol || 'medico',
       especialidad: medico.especialidad || '',
       matriculaProfesional: medico.matriculaProfesional || '',
       bio: medico.bio || '',
-      direccionConsultorio: medico.direccionConsultorio || ''
+      direccionConsultorio: medico.direccionConsultorio || '',
+      areaSecretaria: medico.areaSecretaria || '',
+      turnoLaboral: medico.turnoLaboral || ''
     });
     setMostrarFormulario(true);
   };
@@ -157,13 +169,13 @@ const GestionMedicos = () => {
   }
 
   if (cargando) {
-    return <div className={styles.container}><p>Cargando médicos...</p></div>;
+    return <div className={styles.container}><p>Cargando personal...</p></div>;
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Médicos</h1>
+        <h1>Personal Médico y Administrativo</h1>
         <button 
           className={styles.botonAgregar}
           onClick={() => {
@@ -173,22 +185,25 @@ const GestionMedicos = () => {
                 nombre: '',
                 email: '',
                 telefono: '',
+                rol: 'medico',
                 especialidad: '',
                 matriculaProfesional: '',
                 bio: '',
-                direccionConsultorio: ''
+                direccionConsultorio: '',
+                areaSecretaria: '',
+                turnoLaboral: ''
               });
             }
             setMostrarFormulario(!mostrarFormulario);
           }}
         >
-          {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Médico'}
+          {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Personal'}
         </button>
       </div>
 
       {mostrarFormulario && (
         <div className={styles.formulario}>
-          <h2>{medicoEditandoId ? 'Editar Médico' : 'Nuevo Médico'}</h2>
+          <h2>{medicoEditandoId ? 'Editar Perfil' : 'Nuevo Personal'}</h2>
           <form onSubmit={handleGuardar}>
             <div className={styles.grid}>
               <input
@@ -215,27 +230,59 @@ const GestionMedicos = () => {
                 value={formulario.telefono}
                 onChange={handleFormularioChange}
               />
-              <input
-                type="text"
-                name="especialidad"
-                placeholder="Especialidad"
-                value={formulario.especialidad}
+              <select
+                name="rol"
+                value={formulario.rol}
                 onChange={handleFormularioChange}
-              />
-              <input
-                type="text"
-                name="matriculaProfesional"
-                placeholder="Matrícula Profesional"
-                value={formulario.matriculaProfesional}
-                onChange={handleFormularioChange}
-              />
-              <input
-                type="text"
-                name="direccionConsultorio"
-                placeholder="Dirección del Consultorio"
-                value={formulario.direccionConsultorio}
-                onChange={handleFormularioChange}
-              />
+              >
+                <option value="medico">Médico</option>
+                <option value="enfermero">Enfermero/a</option>
+                <option value="secretaria">Secretaria/o</option>
+                <option value="admin">Administrador</option>
+              </select>
+              {['medico', 'enfermero'].includes(formulario.rol) && (
+                <>
+                  <input
+                    type="text"
+                    name="especialidad"
+                    placeholder="Especialidad"
+                    value={formulario.especialidad}
+                    onChange={handleFormularioChange}
+                  />
+                  <input
+                    type="text"
+                    name="matriculaProfesional"
+                    placeholder="Matrícula Profesional"
+                    value={formulario.matriculaProfesional}
+                    onChange={handleFormularioChange}
+                  />
+                  <input
+                    type="text"
+                    name="direccionConsultorio"
+                    placeholder="Dirección del Consultorio"
+                    value={formulario.direccionConsultorio}
+                    onChange={handleFormularioChange}
+                  />
+                </>
+              )}
+              {formulario.rol === 'secretaria' && (
+                <>
+                  <input
+                    type="text"
+                    name="areaSecretaria"
+                    placeholder="Área (ej.: Recepción General)"
+                    value={formulario.areaSecretaria}
+                    onChange={handleFormularioChange}
+                  />
+                  <input
+                    type="text"
+                    name="turnoLaboral"
+                    placeholder="Turno (Mañana / Tarde)"
+                    value={formulario.turnoLaboral}
+                    onChange={handleFormularioChange}
+                  />
+                </>
+              )}
             </div>
             <textarea
               name="bio"
@@ -270,8 +317,9 @@ const GestionMedicos = () => {
             <thead>
               <tr>
                 <th>Nombre</th>
+                <th>Rol</th>
                 <th>Email</th>
-                <th>Especialidad</th>
+                <th>Especialidad / Área</th>
                 <th>Teléfono</th>
                 <th>Rating</th>
                 <th>Acciones</th>
@@ -281,8 +329,9 @@ const GestionMedicos = () => {
               {filtrados.map(medico => (
                 <tr key={medico._id}>
                   <td className={styles.nombre}>{medico.nombre}</td>
+                  <td><span className={styles.rolTag}>{medico.rol}</span></td>
                   <td>{medico.email}</td>
-                  <td>{medico.especialidad || '-'}</td>
+                  <td>{medico.especialidad || medico.areaSecretaria || '-'}</td>
                   <td>{medico.telefono}</td>
                   <td className={styles.rating}>
                     {'★'.repeat(Math.round(medico.promedioRating))}
@@ -310,7 +359,7 @@ const GestionMedicos = () => {
             </tbody>
           </table>
         ) : (
-          <p className={styles.sinResultados}>No hay médicos que coincidan con la búsqueda.</p>
+          <p className={styles.sinResultados}>No hay personal que coincida con la búsqueda.</p>
         )}
       </div>
     </div>

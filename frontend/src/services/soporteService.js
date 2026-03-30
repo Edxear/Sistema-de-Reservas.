@@ -30,13 +30,6 @@ export const getColleagueRatingSummary = async (targetUserId) => {
   return res.data;
 };
 
-export const getColleagueRatingSummaryByType = async (targetUserId, feedbackType) => {
-  const res = await API.get(`/colleague-ratings/user/${targetUserId}/summary`, {
-    params: { feedbackType },
-  });
-  return res.data;
-};
-
 export const submitColleagueRating = async (targetUserId, payload) => {
   const res = await API.post(`/colleague-ratings/user/${targetUserId}`, payload);
   return res.data;
@@ -44,11 +37,6 @@ export const submitColleagueRating = async (targetUserId, payload) => {
 
 export const deleteColleagueRating = async (ratingId) => {
   const res = await API.delete(`/colleague-ratings/${ratingId}`);
-  return res.data;
-};
-
-export const getColleagueFeedbackFramework = async () => {
-  const res = await API.get('/colleague-ratings/framework');
   return res.data;
 };
 

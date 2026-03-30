@@ -4,52 +4,21 @@ const { logAuditEvent } = require('../utils/auditLogger');
 
 const ADMIN_VIEW_ROLES = ['admin', 'superadmin'];
 const STAFF_ROLES = ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'];
-const SUPPORT_TEAM_ROLES = ['admin', 'superadmin', 'secretaria', 'enfermero'];
-const CLINICAL_ROLES = ['medico', 'enfermero'];
 
-const FEEDBACK_MATRIX = {
-  soporte_calidad_atencion: {
-    channel: 'gestion_interna_soporte',
-    destinationArea: 'gestion_interna_equipo',
-    title: 'Entre tecnicos de soporte sobre calidad de atencion',
-    requiresStars: true,
-    allowedAuthorRoles: SUPPORT_TEAM_ROLES,
-  },
-  clinico_funcionalidad_sistema: {
-    channel: 'comite_funcional',
-    destinationArea: 'comite_usuarios_y_requerimientos',
-    title: 'Entre profesionales clinicos sobre funcionalidad del sistema',
-    requiresStars: false,
-    allowedAuthorRoles: CLINICAL_ROLES,
-  },
-  clinico_uso_incorrecto: {
-    channel: 'seguridad_capacitacion',
-    destinationArea: 'capacitacion_y_seguridad',
-    title: 'Entre trabajadores clinicos sobre uso incorrecto del sistema',
-    requiresStars: false,
-    allowedAuthorRoles: CLINICAL_ROLES,
-  },
-  desempeno_no_tecnico: {
-    channel: 'rrhh_derivado',
-    destinationArea: 'rrhh_centro_salud',
-    title: 'Entre colegas sobre desempeno laboral no tecnico',
-    requiresStars: false,
-    allowedAuthorRoles: STAFF_ROLES,
-  },
-};
+const CATEGORIAS = [
+  { key: 'calidad_atencion', label: 'Calidad de atención' },
+  { key: 'trabajo_equipo', label: 'Trabajo en equipo' },
+  { key: 'comunicacion', label: 'Comunicación' },
+  { key: 'actitud', label: 'Actitud profesional' },
+  { key: 'desempeno_general', label: 'Desempeño general' },
+];
 
 const getAuthUserId = (req) => req.user?.id || req.user?._id;
 
 exports.getFeedbackFramework = async (_req, res) => {
-  const items = Object.entries(FEEDBACK_MATRIX).map(([key, item]) => ({
-    key,
-    ...item,
-  }));
-
   return res.json({
-    items,
-    conclusion:
-      'Las valoraciones se formalizan por canales diferenciados para convertir el feedback en mejoras de soporte y experiencia clinica.',
+    categorias: CATEGORIAS,
+    conclusion: 'Valora a tus colegas de forma simple y constructiva.',
   });
 };
 
@@ -58,37 +27,19 @@ exports.rateColleague = async (req, res) => {
     const targetUserId = req.params.userId;
     const authorUserId = getAuthUserId(req);
     const authorRole = req.user?.rol;
-    const {
-      stars,
-      comentario = '',
-      feedbackType = 'soporte_calidad_atencion',
-      actionItem = '',
-      status,
-    } = req.body;
-
-    const feedbackConfig = FEEDBACK_MATRIX[feedbackType];
-    if (!feedbackConfig) {
-      return res.status(400).json({ message: 'Tipo de valoracion no soportado' });
-    }
+    const { stars, comentario = '', categoria = 'desempeno_general' } = req.body;
 
     if (!STAFF_ROLES.includes(authorRole)) {
-      return res.status(403).json({ message: 'Solo colegas internos pueden calificar' });
+      return res.status(403).json({ message: 'Solo colegas internos pueden valorar' });
     }
 
-    if (!feedbackConfig.allowedAuthorRoles.includes(authorRole)) {
-      return res.status(403).json({ message: 'Tu rol no puede registrar este tipo de valoracion' });
-    }
-
-    const parsedStars = Number.isInteger(stars) ? stars : null;
-
-    if (feedbackConfig.requiresStars) {
-      if (!Number.isInteger(parsedStars) || parsedStars < 1 || parsedStars > 5) {
-        return res.status(400).json({ message: 'La calificacion debe ser un entero entre 1 y 5' });
-      }
+    const parsedStars = parseInt(stars, 10);
+    if (!parsedStars || parsedStars < 1 || parsedStars > 5) {
+      return res.status(400).json({ message: 'La calificacion debe ser entre 1 y 5' });
     }
 
     if (String(authorUserId) === String(targetUserId)) {
-      return res.status(400).json({ message: 'No puedes calificarte a ti mismo' });
+      return res.status(400).json({ message: 'No puedes valorarte a ti mismo' });
     }
 
     const targetUser = await User.findById(targetUserId).select('rol');
@@ -96,28 +47,19 @@ exports.rateColleague = async (req, res) => {
       return res.status(400).json({ message: 'Debes seleccionar un colega valido' });
     }
 
+    const resolvedCategoria = CATEGORIAS.some((c) => c.key === categoria) ? categoria : 'desempeno_general';
+
     const existing = await ColleagueRating.findOne({
       targetUser: targetUserId,
       authorUser: authorUserId,
-      feedbackType,
     });
-
-    const resolvedStatus = status && ['registrado', 'en_revision', 'derivado', 'cerrado'].includes(status)
-      ? status
-      : (feedbackConfig.channel === 'rrhh_derivado' ? 'derivado' : 'registrado');
-
-    const resolvedStars = feedbackConfig.requiresStars ? parsedStars : (parsedStars || 3);
 
     if (!existing) {
       const created = await ColleagueRating.create({
         targetUser: targetUserId,
         authorUser: authorUserId,
-        stars: resolvedStars,
-        feedbackType,
-        channel: feedbackConfig.channel,
-        destinationArea: feedbackConfig.destinationArea,
-        status: resolvedStatus,
-        actionItem: String(actionItem || '').trim(),
+        stars: parsedStars,
+        categoria: resolvedCategoria,
         comentario: String(comentario || '').trim(),
       });
       const populated = await ColleagueRating.findById(created._id)
@@ -127,17 +69,13 @@ exports.rateColleague = async (req, res) => {
         action: 'colleague-rating.create',
         resourceType: 'ColleagueRating',
         resourceId: created._id,
-        details: `Tipo=${feedbackType} Canal=${feedbackConfig.channel}`,
+        details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
       });
       return res.status(201).json(populated);
     }
 
-    existing.stars = resolvedStars;
-    existing.feedbackType = feedbackType;
-    existing.channel = feedbackConfig.channel;
-    existing.destinationArea = feedbackConfig.destinationArea;
-    existing.status = resolvedStatus;
-    existing.actionItem = String(actionItem || '').trim();
+    existing.stars = parsedStars;
+    existing.categoria = resolvedCategoria;
     existing.comentario = String(comentario || '').trim();
     existing.updatedAt = new Date();
     await existing.save();
@@ -150,12 +88,12 @@ exports.rateColleague = async (req, res) => {
       action: 'colleague-rating.update',
       resourceType: 'ColleagueRating',
       resourceId: existing._id,
-      details: `Tipo=${feedbackType} Estado=${resolvedStatus}`,
+      details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
     });
 
     return res.json(updated);
   } catch (error) {
-    return res.status(500).json({ message: 'Error guardando calificacion', error });
+    return res.status(500).json({ message: 'Error guardando valoracion', error });
   }
 };
 
@@ -164,19 +102,16 @@ exports.getColleagueRatingSummary = async (req, res) => {
     const targetUserId = req.params.userId;
     const actorId = getAuthUserId(req);
     const actorRole = req.user?.rol;
-    const feedbackType = req.query.feedbackType || 'soporte_calidad_atencion';
-
-    if (!FEEDBACK_MATRIX[feedbackType]) {
-      return res.status(400).json({ message: 'Tipo de valoracion no soportado' });
-    }
 
     if (!STAFF_ROLES.includes(actorRole)) {
-      return res.status(403).json({ message: 'No tienes permiso para ver calificaciones internas' });
+      return res.status(403).json({ message: 'No tienes permiso para ver valoraciones internas' });
     }
 
     const [ratings, myRating] = await Promise.all([
-      ColleagueRating.find({ targetUser: targetUserId, feedbackType }).populate('authorUser', 'nombre rol').sort({ createdAt: -1 }),
-      ColleagueRating.findOne({ targetUser: targetUserId, authorUser: actorId, feedbackType }),
+      ColleagueRating.find({ targetUser: targetUserId })
+        .populate('authorUser', 'nombre rol')
+        .sort({ createdAt: -1 }),
+      ColleagueRating.findOne({ targetUser: targetUserId, authorUser: actorId }),
     ]);
 
     const avg = ratings.length
@@ -187,9 +122,6 @@ exports.getColleagueRatingSummary = async (req, res) => {
       average: avg,
       total: ratings.length,
       myRating,
-      feedbackType,
-      channel: FEEDBACK_MATRIX[feedbackType].channel,
-      destinationArea: FEEDBACK_MATRIX[feedbackType].destinationArea,
     };
 
     if (ADMIN_VIEW_ROLES.includes(actorRole) || String(actorId) === String(targetUserId)) {
@@ -198,7 +130,7 @@ exports.getColleagueRatingSummary = async (req, res) => {
 
     return res.json(response);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo resumen de calificaciones', error });
+    return res.status(500).json({ message: 'Error obteniendo resumen de valoraciones', error });
   }
 };
 
@@ -206,15 +138,12 @@ exports.listFormalFeedback = async (req, res) => {
   try {
     const actorRole = req.user?.rol;
     if (!ADMIN_VIEW_ROLES.includes(actorRole)) {
-      return res.status(403).json({ message: 'Solo administradores pueden ver el tablero formal de valoraciones' });
+      return res.status(403).json({ message: 'Solo administradores pueden ver el historial de valoraciones' });
     }
 
-    const { feedbackType, channel, status } = req.query;
+    const { categoria } = req.query;
     const filter = {};
-
-    if (feedbackType) filter.feedbackType = feedbackType;
-    if (channel) filter.channel = channel;
-    if (status) filter.status = status;
+    if (categoria) filter.categoria = categoria;
 
     const records = await ColleagueRating.find(filter)
       .populate('authorUser', 'nombre rol')
@@ -224,7 +153,7 @@ exports.listFormalFeedback = async (req, res) => {
 
     return res.json(records);
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando valoraciones formales', error });
+    return res.status(500).json({ message: 'Error listando valoraciones', error });
   }
 };
 
@@ -236,13 +165,13 @@ exports.deleteColleagueRating = async (req, res) => {
 
     const rating = await ColleagueRating.findById(ratingId);
     if (!rating) {
-      return res.status(404).json({ message: 'Calificacion no encontrada' });
+      return res.status(404).json({ message: 'Valoracion no encontrada' });
     }
 
     const isOwner = String(rating.authorUser) === String(actorId);
     const canAdmin = ADMIN_VIEW_ROLES.includes(actorRole);
     if (!isOwner && !canAdmin) {
-      return res.status(403).json({ message: 'No autorizado para eliminar esta calificacion' });
+      return res.status(403).json({ message: 'No autorizado para eliminar esta valoracion' });
     }
 
     await ColleagueRating.deleteOne({ _id: ratingId });
@@ -250,10 +179,11 @@ exports.deleteColleagueRating = async (req, res) => {
       action: 'colleague-rating.delete',
       resourceType: 'ColleagueRating',
       resourceId: ratingId,
-      details: 'Eliminacion de valoracion formal',
+      details: 'Eliminacion de valoracion de colega',
     });
-    return res.json({ message: 'Calificacion eliminada' });
+    return res.json({ message: 'Valoracion eliminada' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error eliminando calificacion', error });
+    return res.status(500).json({ message: 'Error eliminando valoracion', error });
   }
 };
+

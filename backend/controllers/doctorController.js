@@ -11,8 +11,8 @@ exports.getDoctors = async (req, res) => {
 
     const [legacyDoctors, staffDoctors] = await Promise.all([
       Doctor.find(),
-      User.find({ rol: { $in: ['medico', 'admin', 'enfermero'] } })
-        .select('nombre email telefono especialidad horariosAtencion direccionConsultorio matriculaProfesional fotoPerfil bio redesSociales')
+      User.find({ rol: { $in: ['medico', 'admin', 'enfermero', 'secretaria'] } })
+        .select('nombre email telefono especialidad horariosAtencion direccionConsultorio matriculaProfesional fotoPerfil bio redesSociales rol areaSecretaria turnoLaboral')
         .sort({ nombre: 1 })
     ]);
 
@@ -78,12 +78,13 @@ exports.getDoctors = async (req, res) => {
         _id: u._id,
         nombre: u.nombre,
         name: u.nombre,
+        rol: u.rol,
         especialidad: u.especialidad || '',
         specialty: u.especialidad || '',
         email: u.email,
         telefono: u.telefono,
         phone: u.telefono,
-        horariosAtencion: (u.horariosAtencion && u.horariosAtencion.length > 0)
+        horariosAtencion: (u.horariosAtencion && u.horariosAtencion.length > 0) 
           ? u.horariosAtencion
           : (agendaPorMedico.get(String(u._id)) || []),
         direccionConsultorio: u.direccionConsultorio || '',
@@ -91,6 +92,8 @@ exports.getDoctors = async (req, res) => {
         fotoPerfil: u.fotoPerfil || '',
         bio: u.bio || '',
         redesSociales: u.redesSociales || {},
+        areaSecretaria: u.areaSecretaria || '',
+        turnoLaboral: u.turnoLaboral || '',
         promedioRating: parseFloat(promedio),
         totalRatings: calificaciones.length
       };
@@ -163,39 +166,48 @@ exports.getDoctorById = async (req, res) => {
   }
 };
 
+const ALLOWED_STAFF_ROLES = ['medico', 'enfermero', 'secretaria', 'admin'];
+
 exports.createDoctor = async (req, res) => {
   try {
     const {
       nombre,
       email,
       telefono,
+      rol = 'medico',
       especialidad = '',
       matriculaProfesional = '',
       bio = '',
       direccionConsultorio = '',
+      areaSecretaria = '',
+      turnoLaboral = '',
       password
     } = req.body;
 
     if (!nombre || !email || !telefono) {
-      return res.status(400).json({ message: 'Nombre, email y teléfono son obligatorios' });
+      return res.status(400).json({ message: 'Nombre, email y telefono son obligatorios' });
     }
+
+    const resolvedRol = ALLOWED_STAFF_ROLES.includes((rol || '').toLowerCase()) ? rol.toLowerCase() : 'medico';
 
     const normalizedEmail = String(email).trim().toLowerCase();
     const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
-      return res.status(400).json({ message: 'El email ya está registrado' });
+      return res.status(400).json({ message: 'El email ya esta registrado' });
     }
 
     const doctor = await User.create({
       nombre: String(nombre).trim(),
       email: normalizedEmail,
       telefono: String(telefono).trim(),
-      rol: 'medico',
+      rol: resolvedRol,
       password: password || process.env.DEFAULT_MANAGED_USER_PASSWORD || 'clinica123',
       especialidad: String(especialidad || '').trim(),
       matriculaProfesional: String(matriculaProfesional || '').trim(),
       bio: String(bio || '').trim(),
-      direccionConsultorio: String(direccionConsultorio || '').trim()
+      direccionConsultorio: String(direccionConsultorio || '').trim(),
+      areaSecretaria: String(areaSecretaria || '').trim(),
+      turnoLaboral: String(turnoLaboral || '').trim()
     });
 
     const safeDoctor = doctor.toObject();
@@ -219,18 +231,29 @@ exports.updateDoctor = async (req, res) => {
       'fotoPerfil',
       'mapaEmbed',
       'redesSociales',
-      'horariosAtencion'
+      'horariosAtencion',
+      'areaSecretaria',
+      'turnoLaboral',
+      'rol'
     ];
 
     const updates = {};
     for (const field of allowedFields) {
       if (Object.prototype.hasOwnProperty.call(req.body, field)) {
-        updates[field] = req.body[field];
+        if (field === 'rol') {
+          const nextRol = String(req.body.rol || '').toLowerCase();
+          if (!ALLOWED_STAFF_ROLES.includes(nextRol)) {
+            return res.status(400).json({ message: 'Rol no permitido' });
+          }
+          updates.rol = nextRol;
+        } else {
+          updates[field] = req.body[field];
+        }
       }
     }
 
     const doctor = await User.findOneAndUpdate(
-      { _id: id, rol: { $in: ['medico', 'admin', 'enfermero'] } },
+      { _id: id },
       updates,
       { new: true, runValidators: true }
     ).select('-password');
@@ -250,7 +273,7 @@ exports.deleteDoctor = async (req, res) => {
     const { id } = req.params;
 
     const target = await User.findById(id).select('rol esSuperAdminPrincipal');
-    if (!target || !['medico', 'admin', 'enfermero', 'superadmin'].includes(target.rol)) {
+    if (!target || !['medico', 'admin', 'enfermero', 'secretaria', 'superadmin'].includes(target.rol)) {
       return res.status(404).json({ message: 'Doctor no encontrado' });
     }
 
@@ -262,7 +285,7 @@ exports.deleteDoctor = async (req, res) => {
       return res.status(400).json({ message: 'No puedes eliminar tu propio usuario' });
     }
 
-    const doctor = await User.findOneAndDelete({ _id: id, rol: { $in: ['medico', 'admin', 'enfermero', 'superadmin'] } });
+    const doctor = await User.findOneAndDelete({ _id: id, rol: { $in: ['medico', 'admin', 'enfermero', 'secretaria', 'superadmin'] } });
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor no encontrado' });
     }
