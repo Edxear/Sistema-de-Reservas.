@@ -10,9 +10,9 @@ const {
 } = require('../controllers/recetaController');
 
 // Solo médicos y admins pueden crear recetas y ver recetas de pacientes
-router.post('/', authMiddleware, authorize('medico', 'admin'), crearReceta);
-router.get('/paciente/:pacienteId', authMiddleware, authorize('medico', 'admin', 'secretaria'), getRecetasPaciente);
-router.get('/favoritas', authMiddleware, authorize('medico', 'admin'), getRecetasFavoritas);
+router.post('/', authMiddleware, authorize('medico', 'admin', 'enfermero'), crearReceta);
+router.get('/paciente/:pacienteId', authMiddleware, authorize('medico', 'admin', 'secretaria', 'enfermero'), getRecetasPaciente);
+router.get('/favoritas', authMiddleware, authorize('medico', 'admin', 'enfermero'), getRecetasFavoritas);
 router.get('/mis', authMiddleware, authorize('paciente'), getMisRecetas);
 
 module.exports = router;

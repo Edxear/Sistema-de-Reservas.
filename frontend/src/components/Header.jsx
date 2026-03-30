@@ -3,14 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaBars, FaCalendarCheck, FaChevronDown, FaSitemap, FaUserMd } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import NotificacionCenter from './NotificacionCenter';
+import {
+  canAccessOrganigrama,
+  canAccessRecetas,
+  canManageDoctors,
+  canManagePatients,
+} from '../utils/roles';
 import styles from './Header.module.css';
 
 export default function Header() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const role = user?.rol;
 
   useEffect(() => {
     const onDocClick = (event) => {
@@ -54,14 +61,16 @@ export default function Header() {
                 <div className={styles.dropdownMenu}>
                   <Link to="/dashboard" onClick={closeAllMenus}>Panel principal</Link>
                   <Link to="/turnos" onClick={closeAllMenus}>Turnos</Link>
-                  <Link to="/gestion/medicos" onClick={closeAllMenus}>Medicos</Link>
-                  <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>
-                  <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>
+                  {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>Medicos</Link>}
+                  {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>}
+                  {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>}
                   <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
-                  <Link to="/organigrama" onClick={closeAllMenus}>
-                    <FaSitemap />
-                    <span>Organigrama</span>
-                  </Link>
+                  {canAccessOrganigrama(role) && (
+                    <Link to="/organigrama" onClick={closeAllMenus}>
+                      <FaSitemap />
+                      <span>Organigrama</span>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

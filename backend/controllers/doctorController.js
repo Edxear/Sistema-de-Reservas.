@@ -11,7 +11,7 @@ exports.getDoctors = async (req, res) => {
 
     const [legacyDoctors, staffDoctors] = await Promise.all([
       Doctor.find(),
-      User.find({ rol: { $in: ['medico', 'admin'] } })
+      User.find({ rol: { $in: ['medico', 'admin', 'enfermero'] } })
         .select('nombre email telefono especialidad horariosAtencion direccionConsultorio matriculaProfesional fotoPerfil bio redesSociales')
         .sort({ nombre: 1 })
     ]);
@@ -230,7 +230,7 @@ exports.updateDoctor = async (req, res) => {
     }
 
     const doctor = await User.findOneAndUpdate(
-      { _id: id, rol: { $in: ['medico', 'admin'] } },
+      { _id: id, rol: { $in: ['medico', 'admin', 'enfermero'] } },
       updates,
       { new: true, runValidators: true }
     ).select('-password');
@@ -249,11 +249,20 @@ exports.deleteDoctor = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (String(req.user.id) === String(id)) {
+    const target = await User.findById(id).select('rol esSuperAdminPrincipal');
+    if (!target || !['medico', 'admin', 'enfermero', 'superadmin'].includes(target.rol)) {
+      return res.status(404).json({ message: 'Doctor no encontrado' });
+    }
+
+    if (target.esSuperAdminPrincipal && String(req.user.id) !== String(id)) {
+      return res.status(403).json({ message: 'El superadmin principal solo puede ser eliminado por su propia cuenta' });
+    }
+
+    if (String(req.user.id) === String(id) && !target.esSuperAdminPrincipal) {
       return res.status(400).json({ message: 'No puedes eliminar tu propio usuario' });
     }
 
-    const doctor = await User.findOneAndDelete({ _id: id, rol: { $in: ['medico', 'admin'] } });
+    const doctor = await User.findOneAndDelete({ _id: id, rol: { $in: ['medico', 'admin', 'enfermero', 'superadmin'] } });
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor no encontrado' });
     }

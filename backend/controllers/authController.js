@@ -33,10 +33,14 @@ exports.registerUser = async (req, res) => {
     const { nombre, email, telefono, password, rol } = req.body;
     const normalizedEmail = (email || '').trim().toLowerCase();
 
+    if (rol && rol !== 'paciente') {
+      return res.status(403).json({ message: 'El registro publico solo permite cuentas de paciente' });
+    }
+
     const existing = await User.findOne({ email: normalizedEmail });
     if (existing) return res.status(400).json({ message: 'Email ya registrado' });
 
-    const user = new User({ nombre, email: normalizedEmail, telefono, password, rol });
+    const user = new User({ nombre, email: normalizedEmail, telefono, password, rol: 'paciente' });
     await user.save();
 
     const token = jwt.sign({ id: user._id, rol: user.rol }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
@@ -88,8 +92,10 @@ exports.updateMyProfile = async (req, res) => {
     const roleFields = {
       paciente: ['obraSocial', 'numeroAfiliado', 'alergias'],
       secretaria: ['areaSecretaria', 'turnoLaboral'],
+      enfermero: ['especialidad', 'matriculaProfesional', 'direccionConsultorio', 'mapaEmbed', 'horariosAtencion'],
       medico: ['especialidad', 'matriculaProfesional', 'direccionConsultorio', 'mapaEmbed', 'horariosAtencion'],
       admin: ['especialidad', 'matriculaProfesional', 'direccionConsultorio', 'mapaEmbed', 'horariosAtencion', 'areaSecretaria', 'turnoLaboral'],
+      superadmin: ['especialidad', 'matriculaProfesional', 'direccionConsultorio', 'mapaEmbed', 'horariosAtencion', 'areaSecretaria', 'turnoLaboral'],
     };
 
     const user = await User.findById(req.user.id);

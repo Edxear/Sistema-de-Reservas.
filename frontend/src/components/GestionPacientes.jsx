@@ -9,6 +9,7 @@ import {
   actualizarPaciente,
   eliminarPaciente
 } from '../services/patientService';
+import { canManagePatients } from '../utils/roles';
 
 const GestionPacientes = () => {
   const { user } = useContext(AuthContext);
@@ -156,7 +157,7 @@ const GestionPacientes = () => {
   };
 
   // Verificar permiso
-  if (!['admin', 'director', 'secretaria'].includes(user?.rol)) {
+  if (!canManagePatients(user?.rol)) {
     return (
       <div className={styles.container}>
         <p className={styles.noPermiso}>No tienes permiso para acceder a esta sección.</p>

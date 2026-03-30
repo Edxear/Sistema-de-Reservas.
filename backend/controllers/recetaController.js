@@ -42,7 +42,7 @@ exports.crearReceta = async (req, res) => {
         'receta_nueva',
         'Tu médico creó una nueva receta para ti. Ya puedes verla en tu perfil.',
         '💊',
-        '/perfil',
+        `/perfil?seccion=recetas&recetaId=${receta._id}`,
         receta._id,
         'Receta'
       );

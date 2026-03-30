@@ -1,4 +1,11 @@
 {
+  "principalSuperAdmin": {
+    "nombre": "Administrador Principal",
+    "email": "admin.principal@consultoriosanpablo.com",
+    "telefono": "3415000000",
+    "password": "Admin1234",
+    "rol": "superadmin"
+  },
   "medicosAdmins": [
     {
       "nombre": "Enfermera Ayelen Parada",

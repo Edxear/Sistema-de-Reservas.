@@ -9,6 +9,7 @@ import {
   actualizarMedico,
   eliminarMedico
 } from '../services/medicoService';
+import { canManageDoctors } from '../utils/roles';
 
 const GestionMedicos = () => {
   const { user } = useContext(AuthContext);
@@ -147,7 +148,7 @@ const GestionMedicos = () => {
   };
 
   // Verificar permiso
-  if (!['admin', 'director'].includes(user?.rol)) {
+  if (!canManageDoctors(user?.rol)) {
     return (
       <div className={styles.container}>
         <p className={styles.noPermiso}>No tienes permiso para acceder a esta sección.</p>

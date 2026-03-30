@@ -22,6 +22,8 @@ import PacienteDetalle from './components/PacienteDetalle';
 import Organigrama from './components/Organigrama';
 import GestionMedicos from './components/GestionMedicos';
 import GestionPacientes from './components/GestionPacientes';
+import { useAuth } from './context/AuthContext';
+import { ROLE } from './utils/roles';
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -68,18 +70,33 @@ function ScrollRestorationManager() {
 }
 
 // Componente para proteger rutas. Redirige a login si no está autenticado.
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
+const ProtectedRoute = ({ children, allowedRoles = null }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Cargando sesión...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  if (allowedRoles && !allowedRoles.includes(user?.rol)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 };
 
 // Componente para redirigir si ya está logueado. Redirige a dashboard si está autenticado.
 const PublicRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (token) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Cargando sesión...</div>;
+  }
+
+  if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
   return children;
@@ -112,12 +129,12 @@ function App() {
             }
           />
           <Route path="/historial/:pacienteId" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
               <HistoriaClinica />
             </ProtectedRoute>
           } />
           <Route path="/recetas" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
               <Recetas />
             </ProtectedRoute>
           } />
@@ -132,22 +149,22 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/pacientes/:pacienteId" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
               <PacienteDetalle />
             </ProtectedRoute>
           } />
           <Route path="/organigrama" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
               <Organigrama />
             </ProtectedRoute>
           } />
           <Route path="/gestion/medicos" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
               <GestionMedicos />
             </ProtectedRoute>
           } />
           <Route path="/gestion/pacientes" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
               <GestionPacientes />
             </ProtectedRoute>
           } />

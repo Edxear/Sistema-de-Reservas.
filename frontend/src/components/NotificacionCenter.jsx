@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotificaciones } from '../context/NotificacionContext';
+import { useAuth } from '../context/AuthContext';
 import styles from './NotificacionCenter.module.css';
 
 export default function NotificacionCenter() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { notificaciones, noLeidas, marcarComoLeida, marcarTodoComoLeido } =
     useNotificaciones();
   const [abierto, setAbierto] = useState(false);
@@ -30,6 +32,22 @@ export default function NotificacionCenter() {
     marcarComoLeida(id);
   };
 
+  const resolverEnlace = (notif) => {
+    const enlace = notif?.enlace || '';
+    if (!enlace) return '';
+
+    const esNotificacionDeTurno = String(notif?.tipo || '').startsWith('reserva_');
+    const esPaciente = user?.rol === 'paciente';
+    const matchBooking = enlace.match(/bookingId=([^&]+)/);
+    const bookingId = matchBooking?.[1] || '';
+
+    if (esPaciente && esNotificacionDeTurno && bookingId) {
+      return `/perfil?seccion=turnos&bookingId=${bookingId}`;
+    }
+
+    return enlace;
+  };
+
   const handleNavegar = (enlace) => {
     if (enlace) {
       navigate(enlace);
@@ -42,8 +60,9 @@ export default function NotificacionCenter() {
       await marcarComoLeida(notif._id);
     }
 
-    if (notif.enlace) {
-      handleNavegar(notif.enlace);
+    const enlaceDestino = resolverEnlace(notif);
+    if (enlaceDestino) {
+      handleNavegar(enlaceDestino);
       return;
     }
 

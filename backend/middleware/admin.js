@@ -5,7 +5,9 @@ module.exports = async (req, res, next) => {
 
   try {
     const user = await User.findById(req.user.id);
-    if (!user || user.rol !== 'admin') return res.status(403).json({ message: 'Acceso de administrador requerido' });
+    if (!user || !['admin', 'superadmin'].includes(user.rol)) {
+      return res.status(403).json({ message: 'Acceso de administrador requerido' });
+    }
     next();
   } catch (error) {
     res.status(500).json({ message: 'Error validando administrador', error });

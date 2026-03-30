@@ -12,6 +12,7 @@ import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatien
 import { getDisponibilidad } from '../services/disponibilidadService';
 import Chat from './Chat';
 import { crearPreferencia } from '../services/pagoService';
+import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics } from '../utils/roles';
 import styles from './Dashboard.module.css';
 
 const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
@@ -102,6 +103,7 @@ export default function Dashboard() {
   const location = useLocation();
   // Obtenemos el usuario y la función de logout del contexto
   const { user, logout, isAuthenticated } = useAuth();
+  const role = user?.rol;
 
   const [doctors, setDoctors] = useState([]);
   const [services, setServices] = useState([]);
@@ -413,7 +415,7 @@ export default function Dashboard() {
 
       setBookings(bookingsRes.data.bookings || []);
 
-      if (user?.rol === 'admin') {
+      if (canViewAdminMetrics(role)) {
         const [metricsRes, patientRes] = await Promise.all([
           getBookingMetrics(metricsPeriod),
           getPatientSummaries(),
@@ -431,7 +433,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters, logout, navigate, user?.rol, metricsPeriod]); // Dependencias: filters, logout, navigate
+  }, [filters, logout, navigate, role, metricsPeriod]); // Dependencias: filters, logout, navigate
 
   // Efecto para cargar datos al montar el componente o cuando cambian los filtros
   useEffect(() => {
@@ -501,7 +503,7 @@ export default function Dashboard() {
         </button>
       </section>
 
-      {(user?.rol === 'medico' || user?.rol === 'admin') && (
+      {canAccessRecetas(role) && (
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Accesos rapidos</h2>
           <div className={styles.actions}>
@@ -665,7 +667,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className={styles.actions}>
-                  {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                  {canAccessHistoria(role) && (
                     <>
                       <button
                         className={styles.secondaryBtn}
@@ -681,7 +683,7 @@ export default function Dashboard() {
                       )}
                     </>
                   )}
-                  {user?.rol === 'admin' && b.estado === 'pendiente' && (
+                  {canManageBookings(role) && b.estado === 'pendiente' && (
                     <>
                       <button
                         className={styles.approveBtn}
@@ -699,7 +701,7 @@ export default function Dashboard() {
                       </button>
                     </>
                   )}
-                  {user?.rol === 'admin' && ['confirmada', 'reprogramada'].includes(b.estado) && (
+                  {canManageBookings(role) && ['confirmada', 'reprogramada'].includes(b.estado) && (
                     <>
                       <button
                         className={styles.secondaryBtn}
@@ -743,7 +745,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      {user?.rol === 'admin' && (
+      {canViewAdminMetrics(role) && (
         <section className={styles.adminBox}>
           <h2>Panel de Administracion</h2>
           <p>Panel operativo con metricas y buscador rapido de pacientes.</p>

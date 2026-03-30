@@ -20,6 +20,13 @@ function getFechaFuturaConDia(diaObjetivo) {
   return fecha.toISOString().slice(0, 10);
 }
 
+function toLocalIsoDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 describe('disponibilidadService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,7 +60,7 @@ describe('disponibilidadService', () => {
     const medicoId = '507f1f77bcf86cd799439011';
     const ayer = new Date();
     ayer.setDate(ayer.getDate() - 1);
-    const fechaPasada = ayer.toISOString().slice(0, 10);
+    const fechaPasada = toLocalIsoDate(ayer);
 
     User.findById.mockResolvedValue({ _id: medicoId, rol: 'medico' });
 

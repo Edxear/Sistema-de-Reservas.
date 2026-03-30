@@ -14,6 +14,9 @@ const {
 const { crearNotificacion } = require('./notificacionController');
 const disponibilidadService = require('../services/disponibilidadService');
 
+const SCHEDULER_ROLES = ['admin', 'superadmin', 'secretaria', 'enfermero'];
+const METRICS_ROLES = ['admin', 'superadmin', 'secretaria'];
+
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
 let bookingIndexSyncPromise;
@@ -98,7 +101,7 @@ async function validarDisponibilidad({ medicoId, fecha, hora, servicioId, bookin
     Service.findById(servicioId).select('duracion nombre')
   ]);
 
-  if (!medico || !['medico', 'admin'].includes(medico.rol)) {
+  if (!medico || !['medico', 'admin', 'enfermero'].includes(medico.rol)) {
     return { ok: false, status: 400, message: 'Debe seleccionar un profesional valido' };
   }
 
@@ -160,7 +163,7 @@ async function validarDisponibilidad({ medicoId, fecha, hora, servicioId, bookin
 }
 
 function puedeCambiarEstado(reqUser, booking, nuevoEstado) {
-  if (reqUser?.rol === 'admin') return true;
+  if (SCHEDULER_ROLES.includes(reqUser?.rol)) return true;
   if (reqUser?.rol === 'paciente' && String(booking.usuario) === String(reqUser.id) && nuevoEstado === 'cancelada') {
     return ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado);
   }
@@ -169,7 +172,7 @@ function puedeCambiarEstado(reqUser, booking, nuevoEstado) {
 
 exports.getBookingMetrics = async (req, res) => {
   try {
-    if (req.user?.rol !== 'admin') {
+    if (!METRICS_ROLES.includes(req.user?.rol)) {
       return res.status(403).json({ message: 'Solo administradores pueden ver metricas' });
     }
 
@@ -243,7 +246,7 @@ exports.getBookingMetrics = async (req, res) => {
 
 exports.getPatientSummaries = async (req, res) => {
   try {
-    if (req.user?.rol !== 'admin') {
+    if (!METRICS_ROLES.includes(req.user?.rol)) {
       return res.status(403).json({ message: 'Solo administradores pueden ver resumen de pacientes' });
     }
 
@@ -390,11 +393,21 @@ exports.getBookings = async (req, res) => {
 exports.createBooking = async (req, res) => {
   try {
     await syncBookingIndexes();
+    const payload = { ...req.body };
+
+    if (req.user?.rol === 'paciente') {
+      payload.usuario = req.user.id;
+    }
+
+    if (!payload.usuario) {
+      return res.status(400).json({ message: 'Usuario es obligatorio para crear una reserva' });
+    }
+
     const disponibilidad = await validarDisponibilidad({
-      medicoId: req.body.medico,
-      fecha: req.body.fecha,
-      hora: req.body.hora,
-      servicioId: req.body.servicio,
+      medicoId: payload.medico,
+      fecha: payload.fecha,
+      hora: payload.hora,
+      servicioId: payload.servicio,
     });
 
     if (!disponibilidad.ok) {
@@ -402,7 +415,7 @@ exports.createBooking = async (req, res) => {
     }
 
     const booking = new Booking({
-      ...req.body,
+      ...payload,
       fecha: disponibilidad.fechaNormalizada,
     });
     await booking.save();
@@ -512,8 +525,8 @@ exports.updateBooking = async (req, res) => {
     const payload = { ...req.body };
 
     if (payload.fecha || payload.hora || payload.medico || payload.servicio) {
-      if (req.user?.rol !== 'admin') {
-        return res.status(403).json({ message: 'Solo administradores pueden reprogramar o reasignar turnos' });
+      if (!SCHEDULER_ROLES.includes(req.user?.rol)) {
+        return res.status(403).json({ message: 'No tienes permisos para reprogramar o reasignar turnos' });
       }
 
       const disponibilidad = await validarDisponibilidad({

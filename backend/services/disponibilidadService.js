@@ -179,18 +179,18 @@ function tieneExcepcion(excepciones, hora, horaFin) {
  */
 async function getSlotsByDate(medicoId, fecha, duracion = 30, excludeBookingId = '') {
   try {
-    // Validar médico existe
-    const medico = await User.findById(medicoId);
-    if (!medico || !['medico', 'admin'].includes(medico.rol)) {
-      throw new Error('Médico no encontrado o usuario inválido');
-    }
-
-    // Validar fecha no esté en el pasado
+    // Validar fecha no esté en el pasado antes de consultar agenda/reservas
     const fechaObj = new Date(`${fecha}T00:00:00`);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     if (fechaObj < hoy) {
       return [];
+    }
+
+    // Validar médico existe
+    const medico = await User.findById(medicoId);
+    if (!medico || !['medico', 'admin', 'enfermero', 'superadmin'].includes(medico.rol)) {
+      throw new Error('Médico no encontrado o usuario inválido');
     }
 
     const slots = [];

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
@@ -6,12 +7,20 @@ import { getBookings } from '../services/bookingService';
 import styles from './Perfil.module.css';
 
 export default function Perfil() {
+  const location = useLocation();
   const { user, refreshProfile, updateProfile } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [turnosPaciente, setTurnosPaciente] = useState([]);
   const [recetasPaciente, setRecetasPaciente] = useState([]);
   const [cargandoFicha, setCargandoFicha] = useState(false);
+  const turnosRef = useRef(null);
+  const recetasRef = useRef(null);
+
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const seccionQuery = queryParams.get('seccion') || '';
+  const recetaIdQuery = queryParams.get('recetaId') || '';
+  const bookingIdQuery = queryParams.get('bookingId') || '';
 
   useEffect(() => {
     if (user) {
@@ -70,8 +79,6 @@ export default function Perfil() {
     return [];
   }, [user]);
 
-  if (!form || !user) return <div className={styles.page}>Cargando perfil...</div>;
-
   const onChange = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const onSubmit = async (e) => {
@@ -89,6 +96,42 @@ export default function Perfil() {
 
   const turnosRecientes = turnosPaciente.slice(0, 8);
   const recetasRecientes = recetasPaciente.slice(0, 8);
+
+  useEffect(() => {
+    if (user?.rol !== 'paciente' || cargandoFicha) return;
+
+    if (seccionQuery === 'recetas' && recetasRef.current) {
+      recetasRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (seccionQuery === 'turnos' && turnosRef.current) {
+      turnosRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [cargandoFicha, seccionQuery, user]);
+
+  useEffect(() => {
+    if (!recetaIdQuery || cargandoFicha || recetasPaciente.length === 0) return;
+    const target = document.getElementById(`receta-${recetaIdQuery}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add(styles.itemFocus);
+      const t = setTimeout(() => target.classList.remove(styles.itemFocus), 2200);
+      return () => clearTimeout(t);
+    }
+  }, [cargandoFicha, recetaIdQuery, recetasPaciente]);
+
+  useEffect(() => {
+    if (!bookingIdQuery || cargandoFicha || turnosPaciente.length === 0) return;
+    const target = document.getElementById(`turno-${bookingIdQuery}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add(styles.itemFocus);
+      const t = setTimeout(() => target.classList.remove(styles.itemFocus), 2200);
+      return () => clearTimeout(t);
+    }
+  }, [bookingIdQuery, cargandoFicha, turnosPaciente]);
+
+  if (!form || !user) return <div className={styles.page}>Cargando perfil...</div>;
 
   return (
     <div className={styles.page}>
@@ -153,12 +196,13 @@ export default function Perfil() {
           ) : (
             <div className={styles.grid2}>
               <div>
+                <div ref={turnosRef} />
                 <h3 className={styles.subheading}>Turnos creados</h3>
                 <p className={styles.subtitle}>Total: {turnosPaciente.length}</p>
                 <div className={styles.timeline}>
                   {turnosRecientes.length === 0 && <p className={styles.meta}>No tienes turnos todavía.</p>}
                   {turnosRecientes.map((turno) => (
-                    <div key={turno._id} className={styles.item}>
+                    <div key={turno._id} id={`turno-${turno._id}`} className={styles.item}>
                       <div className={styles.itemTitle}>{turno.servicio?.nombre || 'Servicio'} - {turno.hora}</div>
                       <div className={styles.itemMeta}>{new Date(turno.fecha).toLocaleDateString()} | Estado: {turno.estado}</div>
                       <div className={styles.itemMeta}>Profesional: {turno.medico?.nombre || '-'}</div>
@@ -168,12 +212,13 @@ export default function Perfil() {
               </div>
 
               <div>
+                <div ref={recetasRef} />
                 <h3 className={styles.subheading}>Recetas creadas por tu médico</h3>
                 <p className={styles.subtitle}>Total: {recetasPaciente.length}</p>
                 <div className={styles.timeline}>
                   {recetasRecientes.length === 0 && <p className={styles.meta}>No tienes recetas todavía.</p>}
                   {recetasRecientes.map((receta) => (
-                    <div key={receta._id} className={styles.item}>
+                    <div key={receta._id} id={`receta-${receta._id}`} className={styles.item}>
                       <div className={styles.itemTitle}>{new Date(receta.fechaEmision).toLocaleDateString()}</div>
                       <div className={styles.itemMeta}>Médico: {receta.medico?.nombre || '-'}</div>
                       <div className={styles.itemMeta}>{(receta.medicamentos || []).length} medicamento(s)</div>

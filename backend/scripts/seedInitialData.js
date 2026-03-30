@@ -15,6 +15,13 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD || seedUsers.passwordComun || 'clinica123';
+const principalSuperAdminData = seedUsers.principalSuperAdmin || {
+  nombre: 'Administrador Principal',
+  email: 'admin.principal@consultoriosanpablo.com',
+  telefono: '3415000000',
+  password: 'SanPablo2026!'
+};
+const PRINCIPAL_SUPERADMIN_PASSWORD = process.env.SEED_SUPERADMIN_PASSWORD || principalSuperAdminData.password || SEED_INITIAL_PASSWORD;
 const asignacionesOrganigrama = organigramaHospitalario.asignacionesUsuariosExistentes || [];
 
 const getAsignacionOrganigrama = (email = '') => {
@@ -216,6 +223,19 @@ async function run() {
     HistoriaClinica.deleteMany({}),
   ]);
 
+  const principalSuperAdmin = await User.create({
+    nombre: principalSuperAdminData.nombre,
+    email: String(principalSuperAdminData.email || '').trim().toLowerCase(),
+    telefono: principalSuperAdminData.telefono,
+    rol: 'superadmin',
+    esSuperAdminPrincipal: true,
+    password: PRINCIPAL_SUPERADMIN_PASSWORD,
+    areaOrganigrama: 'Direccion General',
+    sectorOrganigrama: 'Direccion Ejecutiva',
+    cargoOrganigrama: 'Administrador Supremo',
+    bio: 'Cuenta principal de administracion suprema.'
+  });
+
   const medicosAdmins = [];
   for (const m of seedUsers.medicosAdmins) {
     const asignacion = getAsignacionOrganigrama(m.email);
@@ -345,6 +365,7 @@ async function run() {
   const conteoRecetas = await Receta.countDocuments({});
 
   console.log('Seed inicial completado:');
+  console.log(`- Superadmin principal: ${principalSuperAdmin.email}`);
   console.log(`- Medicos administradores: ${medicosAdmins.length}`);
   console.log(`- Secretarias: ${secretarias.length}`);
   console.log(`- Pacientes: ${pacientes.length}`);
