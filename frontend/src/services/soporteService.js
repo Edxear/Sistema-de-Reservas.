@@ -39,3 +39,33 @@ export const deleteColleagueRating = async (ratingId) => {
   const res = await API.delete(`/colleague-ratings/${ratingId}`);
   return res.data;
 };
+
+export const getSupportBlueprint = async () => {
+  const res = await API.get('/support/blueprint');
+  return res.data;
+};
+
+export const getSupportMetrics = async () => {
+  const res = await API.get('/support/metrics');
+  return res.data;
+};
+
+export const listSupportTickets = async (params = {}) => {
+  const res = await API.get('/support/tickets', { params });
+  return res.data;
+};
+
+export const createSupportTicket = async (payload) => {
+  const res = await API.post('/support/tickets', payload);
+  return res.data;
+};
+
+export const updateSupportTicket = async (id, payload) => {
+  const res = await API.put(`/support/tickets/${id}`, payload);
+  return res.data;
+};
+
+export const submitSupportSurvey = async (id, payload) => {
+  const res = await API.post(`/support/tickets/${id}/survey`, payload);
+  return res.data;
+};
