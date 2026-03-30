@@ -21,6 +21,7 @@ const supportRoutes = require('./support');
 const auditLogsRoutes = require('./auditLogs');
 const ordenesMedicasRoutes = require('./ordenesMedicas');
 const bedUnitsRoutes = require('./bedUnits');
+const interoperabilidadRoutes = require('./interoperabilidad');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -44,6 +45,7 @@ function registerApiRoutes(app) {
   app.use('/api/audit-logs', auditLogsRoutes);
   app.use('/api/ordenes-medicas', ordenesMedicasRoutes);
   app.use('/api/censo-camas', bedUnitsRoutes);
+  app.use('/api/interoperabilidad', interoperabilidadRoutes);
 }
 
 module.exports = {

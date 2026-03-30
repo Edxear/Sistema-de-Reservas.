@@ -167,5 +167,6 @@ Criterio de cierre:
 - Fase 3: completada (historia clinica longitudinal con resumen, filtros y registro de evolucion)
 - Fase 4: completada (ordenes medicas + alertas de seguridad en prescripcion)
 - Fase 5: completada (censo operativo de camas y control de estado en tiempo real)
-- Fase activa: Fase 6
-- Proximo hito: capa inicial de interoperabilidad FHIR/HL7 para integraciones externas
+- Fase 6: completada (interoperabilidad base FHIR Patient/Bundle y HL7 ADT)
+- Fase activa: Fase 7
+- Proximo hito: mejoras de experiencia paciente y capacidades de telemedicina
