@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logAuditEvent } = require('../utils/auditLogger');
 
 const ALLOWED_ROLES = ['medico', 'paciente', 'admin', 'secretaria', 'enfermero', 'superadmin'];
 
@@ -51,6 +52,12 @@ exports.deleteUser = async (req, res) => {
     }
 
     await User.deleteOne({ _id: id });
+    await logAuditEvent(req, {
+      action: 'user.delete',
+      resourceType: 'User',
+      resourceId: id,
+      details: `Eliminacion de usuario rol=${target.rol}`,
+    });
     return res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
     return res.status(500).json({ message: 'Error eliminando usuario', error });
@@ -107,6 +114,12 @@ exports.updateUser = async (req, res) => {
     }
 
     await target.save();
+    await logAuditEvent(req, {
+      action: 'user.update',
+      resourceType: 'User',
+      resourceId: id,
+      details: 'Actualizacion de datos de usuario desde modulo de administracion',
+    });
 
     const safe = target.toObject();
     delete safe.password;

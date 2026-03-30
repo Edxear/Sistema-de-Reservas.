@@ -1,5 +1,6 @@
 const ColleagueRating = require('../models/ColleagueRating');
 const User = require('../models/User');
+const { logAuditEvent } = require('../utils/auditLogger');
 
 const ADMIN_VIEW_ROLES = ['admin', 'superadmin'];
 const STAFF_ROLES = ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'];
@@ -122,6 +123,12 @@ exports.rateColleague = async (req, res) => {
       const populated = await ColleagueRating.findById(created._id)
         .populate('authorUser', 'nombre rol')
         .populate('targetUser', 'nombre rol');
+      await logAuditEvent(req, {
+        action: 'colleague-rating.create',
+        resourceType: 'ColleagueRating',
+        resourceId: created._id,
+        details: `Tipo=${feedbackType} Canal=${feedbackConfig.channel}`,
+      });
       return res.status(201).json(populated);
     }
 
@@ -138,6 +145,13 @@ exports.rateColleague = async (req, res) => {
     const updated = await ColleagueRating.findById(existing._id)
       .populate('authorUser', 'nombre rol')
       .populate('targetUser', 'nombre rol');
+
+    await logAuditEvent(req, {
+      action: 'colleague-rating.update',
+      resourceType: 'ColleagueRating',
+      resourceId: existing._id,
+      details: `Tipo=${feedbackType} Estado=${resolvedStatus}`,
+    });
 
     return res.json(updated);
   } catch (error) {
@@ -232,6 +246,12 @@ exports.deleteColleagueRating = async (req, res) => {
     }
 
     await ColleagueRating.deleteOne({ _id: ratingId });
+    await logAuditEvent(req, {
+      action: 'colleague-rating.delete',
+      resourceType: 'ColleagueRating',
+      resourceId: ratingId,
+      details: 'Eliminacion de valoracion formal',
+    });
     return res.json({ message: 'Calificacion eliminada' });
   } catch (error) {
     return res.status(500).json({ message: 'Error eliminando calificacion', error });

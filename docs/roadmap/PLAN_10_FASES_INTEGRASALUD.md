@@ -162,5 +162,7 @@ Criterio de cierre:
 - Si una fase detecta funcionalidad no necesaria o duplicada, se elimina dentro de la misma fase con justificacion en el commit.
 
 ## Estado actual
-- Fase activa: Fase 1
-- Proximo hito: cerrar commit/push de Fase 1 y abrir Fase 2
+- Fase 1: completada (identidad IntegraSalud, orden estructural y formato de ejecucion)
+- Fase 2: completada (auditoria base de acciones sensibles y endpoint administrativo)
+- Fase activa: Fase 3
+- Proximo hito: iniciar historia clinica longitudinal y trazabilidad de eventos clinicos

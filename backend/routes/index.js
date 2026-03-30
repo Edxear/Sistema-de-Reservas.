@@ -18,6 +18,7 @@ const comentariosPrivadosRoutes = require('./comentariosPrivados');
 const usersRoutes = require('./users');
 const colleagueRatingsRoutes = require('./colleagueRatings');
 const supportRoutes = require('./support');
+const auditLogsRoutes = require('./auditLogs');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -38,6 +39,7 @@ function registerApiRoutes(app) {
   app.use('/api/users', usersRoutes);
   app.use('/api/colleague-ratings', colleagueRatingsRoutes);
   app.use('/api/support', supportRoutes);
+  app.use('/api/audit-logs', auditLogsRoutes);
 }
 
 module.exports = {
