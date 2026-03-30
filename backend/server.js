@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { registerApiRoutes } = require('./routes');
+const securityHeaders = require('./middleware/securityHeaders');
 
 const app = express();
 
@@ -11,11 +12,13 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
+app.use(securityHeaders);
 
 app.use(express.json());
 
 registerApiRoutes(app);
 
 app.get('/', (req, res) => res.send('IntegraSalud backend funcionando'));
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'integrasalud-backend', timestamp: new Date().toISOString() }));
 
 module.exports = app;
