@@ -111,6 +111,14 @@
   font-size: 0.9rem;
 }
 
+.joinLink {
+  display: inline-block;
+  margin-top: 6px;
+  color: #0f5c99;
+  text-decoration: underline;
+  font-size: 0.88rem;
+}
+
 @media (max-width: 720px) {
   .grid2 {
     grid-template-columns: 1fr;

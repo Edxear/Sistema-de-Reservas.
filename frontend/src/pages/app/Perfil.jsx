@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
 import { getBookings } from '../../services/bookingService';
+import { getMyTeleconsultas } from '../../services/teleconsultaService';
 import styles from './Perfil.module.css';
 
 export default function Perfil() {
@@ -13,6 +14,7 @@ export default function Perfil() {
   const [saving, setSaving] = useState(false);
   const [turnosPaciente, setTurnosPaciente] = useState([]);
   const [recetasPaciente, setRecetasPaciente] = useState([]);
+  const [teleconsultas, setTeleconsultas] = useState([]);
   const [cargandoFicha, setCargandoFicha] = useState(false);
   const turnosRef = useRef(null);
   const recetasRef = useRef(null);
@@ -52,13 +54,15 @@ export default function Perfil() {
 
       setCargandoFicha(true);
       try {
-        const [bookingsRes, recetasRes] = await Promise.all([
+        const [bookingsRes, recetasRes, teleconsultasRes] = await Promise.all([
           getBookings({ page: 1, limit: 200 }),
-          API.get('/recetas/mis')
+          API.get('/recetas/mis'),
+          getMyTeleconsultas(),
         ]);
 
         setTurnosPaciente(bookingsRes.data?.bookings || []);
         setRecetasPaciente(recetasRes.data || []);
+        setTeleconsultas(Array.isArray(teleconsultasRes) ? teleconsultasRes : []);
       } catch (error) {
         toast.error(error.response?.data?.message || 'No se pudo cargar el resumen clínico del perfil');
       } finally {
@@ -96,6 +100,7 @@ export default function Perfil() {
 
   const turnosRecientes = turnosPaciente.slice(0, 8);
   const recetasRecientes = recetasPaciente.slice(0, 8);
+  const teleconsultasRecientes = teleconsultas.slice(0, 8);
 
   useEffect(() => {
     if (user?.rol !== 'paciente' || cargandoFicha) return;
@@ -225,6 +230,22 @@ export default function Perfil() {
                       <div className={styles.itemMeta}>
                         {(receta.medicamentos || []).slice(0, 2).map((m) => m.nombre).join(' | ') || '-'}
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className={styles.subheading}>Teleconsultas</h3>
+                <p className={styles.subtitle}>Total: {teleconsultas.length}</p>
+                <div className={styles.timeline}>
+                  {teleconsultasRecientes.length === 0 && <p className={styles.meta}>No tienes teleconsultas programadas.</p>}
+                  {teleconsultasRecientes.map((tc) => (
+                    <div key={tc._id} className={styles.item}>
+                      <div className={styles.itemTitle}>{new Date(tc.fechaProgramada).toLocaleString()}</div>
+                      <div className={styles.itemMeta}>Estado: {tc.estado}</div>
+                      <div className={styles.itemMeta}>Profesional: {tc.medico?.nombre || '-'}</div>
+                      <a className={styles.joinLink} href={tc.enlaceSala} target="_blank" rel="noreferrer">Ingresar a sala virtual</a>
                     </div>
                   ))}
                 </div>

@@ -168,5 +168,6 @@ Criterio de cierre:
 - Fase 4: completada (ordenes medicas + alertas de seguridad en prescripcion)
 - Fase 5: completada (censo operativo de camas y control de estado en tiempo real)
 - Fase 6: completada (interoperabilidad base FHIR Patient/Bundle y HL7 ADT)
-- Fase activa: Fase 7
-- Proximo hito: mejoras de experiencia paciente y capacidades de telemedicina
+- Fase 7: completada (teleconsultas y acceso paciente a sala virtual)
+- Fase activa: Fase 8
+- Proximo hito: soporte inteligente con enrutamiento y base de conocimiento versionada
