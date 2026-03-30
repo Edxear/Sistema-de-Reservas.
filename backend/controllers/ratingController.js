@@ -33,7 +33,7 @@ exports.getRatingsPorMedico = async (req, res) => {
 exports.crearOActualizarRating = async (req, res) => {
   try {
     const { medicoId } = req.params;
-    const { pacienteId } = req.body;
+    const pacienteId = req.user?.id || req.user?._id;
     const { calificacion, comentario } = req.body;
 
     if (!calificacion || calificacion < 1 || calificacion > 5) {
@@ -76,7 +76,7 @@ exports.crearOActualizarRating = async (req, res) => {
 exports.miRatingPorMedico = async (req, res) => {
   try {
     const { medicoId } = req.params;
-    const pacienteId = req.user._id;
+    const pacienteId = req.user?.id || req.user?._id;
 
     const rating = await Rating.findOne({ 
       medico: medicoId, 
@@ -99,7 +99,7 @@ exports.miRatingPorMedico = async (req, res) => {
 exports.eliminarRating = async (req, res) => {
   try {
     const { ratingId } = req.params;
-    const pacienteId = req.user._id;
+    const pacienteId = req.user?.id || req.user?._id;
 
     const rating = await Rating.findById(ratingId);
     if (!rating) {

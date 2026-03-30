@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
   getComentariosPorMedico,
+  getComentariosResumen,
   crearComentario,
   actualizarComentario,
   eliminarComentario
@@ -13,6 +14,7 @@ const auth = require('../middleware/auth');
  * Obtener comentarios privados de un médico (requiere auth + admin/director)
  */
 router.get('/medico/:medicoId', auth, getComentariosPorMedico);
+router.get('/', auth, getComentariosResumen);
 
 /**
  * POST /api/v1/comentarios-privados/medico/:medicoId

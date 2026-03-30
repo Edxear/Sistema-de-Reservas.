@@ -72,7 +72,7 @@ export const eliminarRating = async (ratingId) => {
 };
 
 /**
- * Obtener comentarios privados de un médico (admin/director)
+ * Obtener comentarios privados de un médico (admin/superadmin)
  */
 export const getComentariosPrivados = async (medicoId) => {
   const res = await API.get(`/comentarios-privados/medico/${medicoId}`);
@@ -80,7 +80,7 @@ export const getComentariosPrivados = async (medicoId) => {
 };
 
 /**
- * Crear comentario privado para un médico (admin/director)
+ * Crear comentario privado para un médico (admin/superadmin)
  */
 export const crearComentarioPrivado = async (medicoId, contenido) => {
   const res = await API.post(`/comentarios-privados/medico/${medicoId}`, {

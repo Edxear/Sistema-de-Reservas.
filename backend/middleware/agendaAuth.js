@@ -8,11 +8,11 @@ const User = require('../models/User');
 const agendaOwnerOrAdmin = async (req, res, next) => {
   try {
     const { id: medicoId } = req.params;
-    const currentUserId = req.user._id;
+    const currentUserId = req.user?.id || req.user?._id;
     const currentUserRole = req.user.rol;
 
     // Admin puede acceder a todo
-    if (currentUserRole === 'admin') {
+    if (['admin', 'superadmin'].includes(currentUserRole)) {
       return next();
     }
 
@@ -46,7 +46,7 @@ const medicoOrAdmin = (req, res, next) => {
   }
 
   const { rol } = req.user;
-  if (!['medico', 'admin'].includes(rol)) {
+  if (!['medico', 'admin', 'superadmin'].includes(rol)) {
     return res.status(403).json({
       message: 'Solo médicos y admins pueden acceder a esto'
     });

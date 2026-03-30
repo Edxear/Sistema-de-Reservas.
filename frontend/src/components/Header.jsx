@@ -6,6 +6,7 @@ import NotificacionCenter from './NotificacionCenter';
 import {
   canAccessOrganigrama,
   canAccessRecetas,
+  canAccessSupport,
   canManageDoctors,
   canManagePatients,
 } from '../utils/roles';
@@ -64,6 +65,7 @@ export default function Header() {
                   {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>Medicos</Link>}
                   {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>}
                   {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>}
+                  {canAccessSupport(role) && <Link to="/soporte" onClick={closeAllMenus}>Soporte</Link>}
                   <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
                   {canAccessOrganigrama(role) && (
                     <Link to="/organigrama" onClick={closeAllMenus}>

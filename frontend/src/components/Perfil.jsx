@@ -73,7 +73,7 @@ export default function Perfil() {
     if (!user) return [];
     if (user.rol === 'paciente') return ['obraSocial', 'numeroAfiliado', 'alergias'];
     if (user.rol === 'secretaria') return ['areaSecretaria', 'turnoLaboral'];
-    if (user.rol === 'medico' || user.rol === 'admin') {
+    if (['medico', 'admin', 'superadmin', 'enfermero'].includes(user.rol)) {
       return ['especialidad', 'matriculaProfesional', 'direccionConsultorio'];
     }
     return [];

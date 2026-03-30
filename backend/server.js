@@ -30,6 +30,7 @@ const organigramaRoutes = require('./routes/organigrama');
 const ratingRoutes = require('./routes/ratings');
 const comentariosPrivadosRoutes = require('./routes/comentariosPrivados');
 const usersRoutes = require('./routes/users');
+const colleagueRatingsRoutes = require('./routes/colleagueRatings');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -47,6 +48,7 @@ app.use('/api/organigrama', organigramaRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/comentarios-privados', comentariosPrivadosRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/colleague-ratings', colleagueRatingsRoutes);
 
 app.get('/', (req, res) => res.send('Sistema de reservas backend funcionando'));
 

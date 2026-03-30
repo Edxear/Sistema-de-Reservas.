@@ -6,7 +6,8 @@ module.exports = (req, res, next) => {
 
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    req.user = data;
+    const normalizedId = data.id || data._id;
+    req.user = { ...data, id: normalizedId, _id: normalizedId };
     next();
   } catch {
     res.status(401).json({ message: 'Token invalido' });

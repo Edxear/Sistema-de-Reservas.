@@ -1,22 +1,21 @@
 const ComentarioPrivado = require('../models/ComentarioPrivado');
 const User = require('../models/User');
 
-/**
- * Obtener comentarios privados de un médico
- * Solo admin/director pueden ver comentarios privados de sus colegas
- */
+const ADMIN_VIEW_ROLES = ['admin', 'superadmin'];
+const STAFF_COMMENT_ROLES = ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'];
+
+const getAuthUserId = (req) => req.user?.id || req.user?._id;
+
 exports.getComentariosPorMedico = async (req, res) => {
   try {
-    const { medicoId } = req.params;
-    const usuarioId = req.user._id;
-    const usuarioRol = req.user.rol;
+    const objetivoId = req.params.medicoId;
+    const usuarioRol = req.user?.rol;
 
-    // Verificar que usuario es admin o director
-    if (!['admin', 'director'].includes(usuarioRol)) {
+    if (!ADMIN_VIEW_ROLES.includes(usuarioRol)) {
       return res.status(403).json({ message: 'No tienes permiso para ver comentarios privados' });
     }
 
-    const comentarios = await ComentarioPrivado.find({ medico: medicoId })
+    const comentarios = await ComentarioPrivado.find({ medico: objetivoId })
       .populate('autor', 'nombre rol')
       .sort({ fechaCreacion: -1 });
 
@@ -26,31 +25,58 @@ exports.getComentariosPorMedico = async (req, res) => {
   }
 };
 
-/**
- * Crear un comentario privado
- */
-exports.crearComentario = async (req, res) => {
+exports.getComentariosResumen = async (req, res) => {
   try {
-    const { medicoId } = req.params;
-    const { contenido } = req.body;
-    const autorId = req.user._id;
-    const autorRol = req.user.rol;
+    const usuarioRol = req.user?.rol;
+    const { medicoId = '' } = req.query;
 
-    // Validar permiso
-    if (!['admin', 'director'].includes(autorRol)) {
-      return res.status(403).json({ message: 'Solo admin/director pueden crear comentarios privados' });
+    if (!ADMIN_VIEW_ROLES.includes(usuarioRol)) {
+      return res.status(403).json({ message: 'No tienes permiso para ver comentarios privados' });
     }
 
-    if (!contenido || contenido.trim().length === 0) {
+    const filter = {};
+    if (medicoId) {
+      filter.medico = medicoId;
+    }
+
+    const comentarios = await ComentarioPrivado.find(filter)
+      .populate('autor', 'nombre rol')
+      .populate('medico', 'nombre rol email')
+      .sort({ fechaCreacion: -1 })
+      .limit(200);
+
+    res.json(comentarios);
+  } catch (error) {
+    res.status(500).json({ message: 'Error obteniendo resumen de comentarios', error });
+  }
+};
+
+exports.crearComentario = async (req, res) => {
+  try {
+    const objetivoId = req.params.medicoId;
+    const { contenido } = req.body;
+    const autorId = getAuthUserId(req);
+    const autorRol = req.user?.rol;
+
+    if (!STAFF_COMMENT_ROLES.includes(autorRol)) {
+      return res.status(403).json({ message: 'Solo colegas internos pueden crear comentarios privados' });
+    }
+
+    if (!contenido || !String(contenido).trim()) {
       return res.status(400).json({ message: 'El comentario no puede estar vacío' });
     }
 
+    const objetivo = await User.findById(objetivoId).select('rol');
+    if (!objetivo || objetivo.rol === 'paciente') {
+      return res.status(400).json({ message: 'Debes seleccionar un colega válido' });
+    }
+
     const comentario = new ComentarioPrivado({
-      medico: medicoId,
+      medico: objetivoId,
       autor: autorId,
-      contenido,
+      contenido: String(contenido).trim(),
       tipoAutor: autorRol,
-      esPrivado: true
+      esPrivado: true,
     });
 
     await comentario.save();
@@ -62,26 +88,30 @@ exports.crearComentario = async (req, res) => {
   }
 };
 
-/**
- * Actualizar un comentario privado
- */
 exports.actualizarComentario = async (req, res) => {
   try {
     const { comentarioId } = req.params;
     const { contenido } = req.body;
-    const usuarioId = req.user._id;
+    const usuarioId = getAuthUserId(req);
+    const usuarioRol = req.user?.rol;
+
+    if (!contenido || !String(contenido).trim()) {
+      return res.status(400).json({ message: 'El comentario no puede estar vacío' });
+    }
 
     const comentario = await ComentarioPrivado.findById(comentarioId);
     if (!comentario) {
       return res.status(404).json({ message: 'Comentario no encontrado' });
     }
 
-    // Verificar que sea el autor o admin principal
-    if (comentario.autor.toString() !== usuarioId.toString() && req.user.rol !== 'admin') {
+    const esAutor = String(comentario.autor) === String(usuarioId);
+    const esAdminView = ADMIN_VIEW_ROLES.includes(usuarioRol);
+
+    if (!esAutor && !esAdminView) {
       return res.status(403).json({ message: 'No autorizado para actualizar este comentario' });
     }
 
-    comentario.contenido = contenido;
+    comentario.contenido = String(contenido).trim();
     comentario.updatedAt = new Date();
     await comentario.save();
     await comentario.populate('autor', 'nombre rol');
@@ -92,22 +122,21 @@ exports.actualizarComentario = async (req, res) => {
   }
 };
 
-/**
- * Eliminar un comentario privado
- */
 exports.eliminarComentario = async (req, res) => {
   try {
     const { comentarioId } = req.params;
-    const usuarioId = req.user._id;
-    const usuarioRol = req.user.rol;
+    const usuarioId = getAuthUserId(req);
+    const usuarioRol = req.user?.rol;
 
     const comentario = await ComentarioPrivado.findById(comentarioId);
     if (!comentario) {
       return res.status(404).json({ message: 'Comentario no encontrado' });
     }
 
-    // Verificar que sea el autor o admin
-    if (comentario.autor.toString() !== usuarioId.toString() && usuarioRol !== 'admin') {
+    const esAutor = String(comentario.autor) === String(usuarioId);
+    const esAdminView = ADMIN_VIEW_ROLES.includes(usuarioRol);
+
+    if (!esAutor && !esAdminView) {
       return res.status(403).json({ message: 'No autorizado' });
     }
 

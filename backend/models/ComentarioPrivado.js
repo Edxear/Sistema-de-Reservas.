@@ -18,7 +18,7 @@ const comentarioPrivadoSchema = new mongoose.Schema({
   },
   tipoAutor: {
     type: String,
-    enum: ['admin', 'director'],
+    enum: ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'],
     required: true
   },
   fechaCreacion: { 

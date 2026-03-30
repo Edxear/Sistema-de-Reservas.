@@ -363,7 +363,7 @@ export default function Turnos() {
                 </div>
 
                 <div className={styles.actions}>
-                  {(user?.rol === 'medico' || user?.rol === 'admin' || user?.rol === 'secretaria') && b.usuario?._id && (
+                  {(['medico', 'admin', 'superadmin', 'secretaria', 'enfermero'].includes(user?.rol)) && b.usuario?._id && (
                     <>
                       <button
                         className={styles.secondaryBtn}
@@ -374,12 +374,12 @@ export default function Turnos() {
                       >
                         Ver historial
                       </button>
-                      {(user?.rol === 'medico' || user?.rol === 'admin') && (
+                      {(['medico', 'admin', 'superadmin', 'enfermero'].includes(user?.rol)) && (
                         <button className={styles.secondaryBtn} onClick={() => setChatPartner({ _id: b.usuario._id, nombre: b.usuario.nombre || 'Paciente' })}>Chat</button>
                       )}
                     </>
                   )}
-                  {user?.rol === 'admin' && b.estado === 'pendiente' && (
+                  {(['admin', 'superadmin', 'secretaria', 'enfermero'].includes(user?.rol)) && b.estado === 'pendiente' && (
                     <>
                       <button
                         className={styles.approveBtn}
@@ -397,7 +397,7 @@ export default function Turnos() {
                       </button>
                     </>
                   )}
-                  {user?.rol === 'admin' && ['confirmada', 'reprogramada'].includes(b.estado) && (
+                  {(['admin', 'superadmin', 'secretaria', 'enfermero'].includes(user?.rol)) && ['confirmada', 'reprogramada'].includes(b.estado) && (
                     <>
                       <button
                         className={styles.secondaryBtn}

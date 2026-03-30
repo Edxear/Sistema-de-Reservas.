@@ -1,5 +1,7 @@
 const User = require('../models/User');
 
+const ALLOWED_ROLES = ['medico', 'paciente', 'admin', 'secretaria', 'enfermero', 'superadmin'];
+
 exports.getUsers = async (req, res) => {
   try {
     const { rol, search } = req.query;
@@ -52,5 +54,65 @@ exports.deleteUser = async (req, res) => {
     return res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
     return res.status(500).json({ message: 'Error eliminando usuario', error });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actorId = String(req.user?.id || '');
+
+    const target = await User.findById(id).select('+password');
+    if (!target) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (target.esSuperAdminPrincipal && actorId !== String(id)) {
+      return res.status(403).json({ message: 'Solo el admin principal puede modificar su propia cuenta' });
+    }
+
+    const editableFields = [
+      'nombre',
+      'telefono',
+      'rol',
+      'areaSecretaria',
+      'turnoLaboral',
+      'especialidad',
+      'matriculaProfesional',
+      'direccionConsultorio',
+      'bio',
+      'documento',
+      'direccion',
+      'obraSocial',
+      'numeroAfiliado',
+      'alergias',
+    ];
+
+    for (const field of editableFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        if (field === 'rol') {
+          const nextRole = String(req.body.rol || '').trim().toLowerCase();
+          if (!ALLOWED_ROLES.includes(nextRole)) {
+            return res.status(400).json({ message: 'Rol invalido' });
+          }
+          target.rol = nextRole;
+        } else {
+          target[field] = req.body[field];
+        }
+      }
+    }
+
+    if (req.body.password && String(req.body.password).trim().length >= 6) {
+      target.password = String(req.body.password).trim();
+    }
+
+    await target.save();
+
+    const safe = target.toObject();
+    delete safe.password;
+
+    return res.json({ message: 'Usuario actualizado correctamente', user: safe });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error actualizando usuario', error });
   }
 };

@@ -22,6 +22,7 @@ import PacienteDetalle from './components/PacienteDetalle';
 import Organigrama from './components/Organigrama';
 import GestionMedicos from './components/GestionMedicos';
 import GestionPacientes from './components/GestionPacientes';
+import Soporte from './components/Soporte';
 import { useAuth } from './context/AuthContext';
 import { ROLE } from './utils/roles';
 
@@ -79,6 +80,10 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
+  }
+
+  if (user?.rol === ROLE.SUPERADMIN) {
+    return children;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.rol)) {
@@ -166,6 +171,11 @@ function App() {
           <Route path="/gestion/pacientes" element={
             <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
               <GestionPacientes />
+            </ProtectedRoute>
+          } />
+          <Route path="/soporte" element={
+            <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
+              <Soporte />
             </ProtectedRoute>
           } />
           <Route path="/medicos" element={<MedicosList />} />

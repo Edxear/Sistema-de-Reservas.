@@ -45,7 +45,7 @@ const formatPuestos = (puestos = []) => {
 
 export default function Organigrama() {
   const { user } = useAuth();
-  const isAdmin = user?.rol === 'admin';
+  const isAdmin = user?.rol === 'admin' || user?.rol === 'superadmin';
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 12, totalItems: 0, totalPages: 1 });
   const [loading, setLoading] = useState(false);

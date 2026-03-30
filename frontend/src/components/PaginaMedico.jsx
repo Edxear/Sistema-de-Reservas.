@@ -47,8 +47,8 @@ const PaginaMedico = () => {
         }
       }
 
-      // Cargar comentarios privados si soy admin/director
-      if (user && ['admin', 'director'].includes(user.rol)) {
+      // Cargar comentarios privados si soy admin/superadmin
+      if (user && ['admin', 'superadmin'].includes(user.rol)) {
         const comentarios = await getComentariosPrivados(id);
         setComentariosPrivados(comentarios);
       }
@@ -155,7 +155,7 @@ const PaginaMedico = () => {
     return <div className={styles.container}><p>Médico no encontrado</p></div>;
   }
 
-  const esAdminODirector = user && ['admin', 'director'].includes(user.rol);
+  const esAdminODirector = user && ['admin', 'superadmin'].includes(user.rol);
 
   return (
     <div className={styles.container}>
@@ -297,7 +297,7 @@ const PaginaMedico = () => {
 
       {esAdminODirector && (
         <div className={styles.seccionComentariosPrivados}>
-          <h2>Comentarios Privados (Admin/Director)</h2>
+          <h2>Comentarios Privados (Admin/Superadmin)</h2>
 
           <div className={styles.formularioComentarioPrivado}>
             <h3>Agregar comentario privado</h3>
