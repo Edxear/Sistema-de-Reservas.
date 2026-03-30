@@ -7,7 +7,8 @@
     "start": "node start.js",
     "dev": "nodemon start.js",
     "test": "jest --runInBand",
-    "seed:initial": "node scripts/seedInitialData.js"
+    "seed:initial": "node scripts/seedInitialData.js",
+    "seed:recover-superadmin": "node scripts/recoverPrincipalSuperadmin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
