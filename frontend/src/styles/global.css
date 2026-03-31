@@ -1,14 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap');
 
 :root {
-  --color-primary: #1A3B5D;
-  --color-accent: #48A9A5;
-  --color-bg: #F4F7FA;
+  --color-primary: #1e5a7a;
+  --color-primary-dark: #1a4d69;
+  --color-accent: #4db8ff;
+  --color-bg: #f8f9fa;
   --color-surface: #FFFFFF;
-  --color-text: #1F2937;
-  --color-muted: #6B7280;
-  --color-border: #E2E8F0;
-  --shadow-soft: 0 8px 24px rgba(26, 59, 93, 0.08);
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 * {
