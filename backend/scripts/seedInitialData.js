@@ -17,7 +17,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD || seedUsers.passwordComun || 'clinica123';
 const principalSuperAdminData = seedUsers.principalSuperAdmin || {
   nombre: 'Administrador Principal',
-  email: 'admin.principal@consultoriosanpablo.com',
+  email: 'admin.principal@integraSalud.com',
   telefono: '3415000000',
   password: 'SanPablo2026!'
 };
@@ -211,8 +211,7 @@ async function run() {
   await Promise.all([
     User.deleteMany({
       $or: [
-        { email: /@consultoriosanpablo\.com$/ },
-        { email: /@pacientes\.sanpablo\.com$/ },
+        { email: /@integraSalud\.com$/ },
         { email: /@medicloud\.demo$/ },
         { email: /@paciente\.demo$/ }
       ]

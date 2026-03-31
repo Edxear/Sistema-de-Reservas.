@@ -12,7 +12,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const principalFromSeed = seedUsers.principalSuperAdmin || {};
 const principalSuperAdminData = {
   nombre: process.env.SUPERADMIN_NOMBRE || principalFromSeed.nombre || 'Administrador Principal',
-  email: String(process.env.SUPERADMIN_EMAIL || principalFromSeed.email || 'admin.principal@consultoriosanpablo.com').trim().toLowerCase(),
+  email: String(process.env.SUPERADMIN_EMAIL || principalFromSeed.email || 'admin.principal@integraSalud.com').trim().toLowerCase(),
   telefono: process.env.SUPERADMIN_TELEFONO || principalFromSeed.telefono || '3415000000',
   password: process.env.SEED_SUPERADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD || principalFromSeed.password || 'Admin1234',
 };

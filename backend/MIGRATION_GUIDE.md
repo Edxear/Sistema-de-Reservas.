@@ -35,10 +35,10 @@ INICIANDO MIGRACIÓN: horariosAtencion → AgendaMedica
 ============================================================
 ✓ Conectado a MongoDB
 
-[1/5] Migrando: Dr. Juan García (juan@consultoriosanpablo.com)
+[1/5] Migrando: Dr. Juan García (juan@integraSalud.com)
   ✓ 3 horario(s) migrado(s)
 
-[2/5] Migrando: Dra. María López (maria@consultoriosanpablo.com)
+[2/5] Migrando: Dra. María López (maria@integraSalud.com)
   ✓ 2 horario(s) migrado(s)
 
 ...

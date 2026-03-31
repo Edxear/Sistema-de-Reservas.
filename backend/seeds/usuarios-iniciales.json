@@ -1,7 +1,7 @@
 {
   "principalSuperAdmin": {
     "nombre": "Administrador Principal",
-    "email": "admin.principal@consultoriosanpablo.com",
+    "email": "admin.principal@integraSalud.com",
     "telefono": "3415000000",
     "password": "Admin1234",
     "rol": "superadmin"
@@ -9,70 +9,70 @@
   "medicosAdmins": [
     {
       "nombre": "Enfermera Ayelen Parada",
-      "email": "ayelen.parada@consultoriosanpablo.com",
+      "email": "ayelen.parada@integraSalud.com",
       "telefono": "3415101001",
       "especialidad": "Enfermeria",
       "matriculaProfesional": "MP-CRD-45821"
     },
     {
       "nombre": "Dra. Sofia Martinez",
-      "email": "sofia.martinez@consultoriosanpablo.com",
+      "email": "sofia.martinez@integraSalud.com",
       "telefono": "3415101002",
       "especialidad": "Clinica Medica",
       "matriculaProfesional": "MP-CLM-51233"
     },
     {
       "nombre": "Dr. Mateo Ruiz",
-      "email": "mateo.ruiz@consultoriosanpablo.com",
+      "email": "mateo.ruiz@integraSalud.com",
       "telefono": "3415101003",
       "especialidad": "Traumatologia",
       "matriculaProfesional": "MP-TRM-43901"
     },
     {
       "nombre": "Dr. Nicolas Peralta",
-      "email": "nicolas.peralta@consultoriosanpablo.com",
+      "email": "nicolas.peralta@integraSalud.com",
       "telefono": "3415101004",
       "especialidad": "Neurologia",
       "matriculaProfesional": "MP-NLG-56220"
     },
     {
       "nombre": "Dra. Valentina Gomez",
-      "email": "valentina.gomez@consultoriosanpablo.com",
+      "email": "valentina.gomez@integraSalud.com",
       "telefono": "3415101005",
       "especialidad": "Pediatria",
       "matriculaProfesional": "MP-PDT-47813"
     },
     {
       "nombre": "Dr. Bruno Herrera",
-      "email": "bruno.herrera@consultoriosanpablo.com",
+      "email": "bruno.herrera@integraSalud.com",
       "telefono": "3415101006",
       "especialidad": "Dermatologia",
       "matriculaProfesional": "MP-DRM-61592"
     },
     {
       "nombre": "Dra. Julia Ferrero",
-      "email": "julia.ferrero@consultoriosanpablo.com",
+      "email": "julia.ferrero@integraSalud.com",
       "telefono": "3415101007",
       "especialidad": "Endocrinologia",
       "matriculaProfesional": "MP-END-70211"
     },
     {
       "nombre": "Dra. Camila Suárez",
-      "email": "camila.suarez@consultoriosanpablo.com",
+      "email": "camila.suarez@integraSalud.com",
       "telefono": "3415101008",
       "especialidad": "Ginecologia",
       "matriculaProfesional": "MP-GIN-55844"
     },
     {
       "nombre": "Dr. Esteban Loyola",
-      "email": "esteban.loyola@consultoriosanpablo.com",
+      "email": "esteban.loyola@integraSalud.com",
       "telefono": "3415101009",
       "especialidad": "Urologia",
       "matriculaProfesional": "MP-URO-64009"
     },
     {
       "nombre": "Dr. Alan Murua",
-      "email": "alan.murua@consultoriosanpablo.com",
+      "email": "alan.murua@integraSalud.com",
       "telefono": "3415101010",
       "especialidad": "Otorrinolaringologia",
       "matriculaProfesional": "MP-ORL-73390"
@@ -81,7 +81,7 @@
   "secretarias": [
     {
       "nombre": "Carla Mendez",
-      "email": "carla.mendez@consultoriosanpablo.com",
+      "email": "carla.mendez@integraSalud.com",
       "telefono": "3415202001",
       "rol": "secretaria",
       "areaSecretaria": "Recepcion General",
@@ -89,7 +89,7 @@
     },
     {
       "nombre": "Julieta Acosta",
-      "email": "julieta.acosta@consultoriosanpablo.com",
+      "email": "julieta.acosta@integraSalud.com",
       "telefono": "3415202002",
       "rol": "secretaria",
       "areaSecretaria": "Gestion de Estudios",
@@ -99,7 +99,7 @@
   "pacientes": [
     {
       "nombre": "Juan Perez",
-      "email": "juan.perez@pacientes.sanpablo.com",
+      "email": "juan.perez@integraSalud.com",
       "telefono": "3415303001",
       "rol": "paciente",
       "obraSocial": "OSDE",
@@ -108,7 +108,7 @@
     },
     {
       "nombre": "Maria Lopez",
-      "email": "maria.lopez@pacientes.sanpablo.com",
+      "email": "maria.lopez@integraSalud.com",
       "telefono": "3415303002",
       "rol": "paciente",
       "obraSocial": "Swiss Medical",
@@ -117,7 +117,7 @@
     },
     {
       "nombre": "Pedro Alvarez",
-      "email": "pedro.alvarez@pacientes.sanpablo.com",
+      "email": "pedro.alvarez@integraSalud.com",
       "telefono": "3415303003",
       "rol": "paciente",
       "obraSocial": "IAPOS",
@@ -126,7 +126,7 @@
     },
     {
       "nombre": "Lucia Romero",
-      "email": "lucia.romero@pacientes.sanpablo.com",
+      "email": "lucia.romero@integraSalud.com",
       "telefono": "3415303004",
       "rol": "paciente",
       "obraSocial": "Galeno",
@@ -135,7 +135,7 @@
     },
     {
       "nombre": "Carlos Diaz",
-      "email": "carlos.diaz@pacientes.sanpablo.com",
+      "email": "carlos.diaz@integraSalud.com",
       "telefono": "3415303005",
       "rol": "paciente",
       "obraSocial": "Medife",
@@ -144,7 +144,7 @@
     },
     {
       "nombre": "Ana Torres",
-      "email": "ana.torres@pacientes.sanpablo.com",
+      "email": "ana.torres@integraSalud.com",
       "telefono": "3415303006",
       "rol": "paciente",
       "obraSocial": "Sancor Salud",
@@ -153,7 +153,7 @@
     },
     {
       "nombre": "Fernando Silva",
-      "email": "fernando.silva@pacientes.sanpablo.com",
+      "email": "fernando.silva@integraSalud.com",
       "telefono": "3415303007",
       "rol": "paciente",
       "obraSocial": "PAMI",
@@ -162,7 +162,7 @@
     },
     {
       "nombre": "Camila Ortiz",
-      "email": "camila.ortiz@pacientes.sanpablo.com",
+      "email": "camila.ortiz@integraSalud.com",
       "telefono": "3415303008",
       "rol": "paciente",
       "obraSocial": "Avalian",
@@ -171,7 +171,7 @@
     },
     {
       "nombre": "Diego Morales",
-      "email": "diego.morales@pacientes.sanpablo.com",
+      "email": "diego.morales@integraSalud.com",
       "telefono": "3415303009",
       "rol": "paciente",
       "obraSocial": "Federada Salud",
@@ -180,7 +180,7 @@
     },
     {
       "nombre": "Paula Rios",
-      "email": "paula.rios@pacientes.sanpablo.com",
+      "email": "paula.rios@integraSalud.com",
       "telefono": "3415303010",
       "rol": "paciente",
       "obraSocial": "Prevencion Salud",
