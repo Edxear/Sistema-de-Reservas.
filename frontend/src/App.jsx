@@ -9,6 +9,7 @@ import { NotificacionProvider } from './context/NotificacionContext';
 
 import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
+import Chatbot from './components/Chatbot';
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -64,6 +65,7 @@ function App() {
           <Header />
           <ToastContainer position="top-right" autoClose={3000} />
           <AppRoutes />
+          <Chatbot />
         </NotificacionProvider>
       </AuthProvider>
     </Router>
