@@ -3,6 +3,9 @@ import { FaComments, FaHospital, FaPaperPlane, FaTimes } from 'react-icons/fa';
 import styles from './Chatbot.module.css';
 import { useAuth } from '../context/AuthContext';
 import { ROLE, normalizeRole } from '../utils/roles';
+import { getDoctors } from '../services/appointmentService';
+import { getServices } from '../services/serviceService';
+import { getBookings } from '../services/bookingService';
 
 const CONTEXTO_STORAGE_KEY = 'integrabot-context-v1';
 
@@ -218,6 +221,55 @@ function detectarIntencionAproximada(msgNormalizado = '') {
   return regla ? regla.key : null;
 }
 
+function formatearHorarios(horarios = []) {
+  if (!Array.isArray(horarios) || horarios.length === 0) return 'Horarios a confirmar';
+  return horarios
+    .slice(0, 3)
+    .map((h) => `${h.dia || 'Dia'} ${h.horaInicio || '--:--'}-${h.horaFin || '--:--'}`)
+    .join(' | ');
+}
+
+function respuestaMedicosDinamica(doctors = []) {
+  const items = doctors
+    .slice(0, 10)
+    .map((d) => `• <strong>${d.nombre || d.name || 'Profesional'}</strong> — ${d.especialidad || d.specialty || 'Especialidad a confirmar'}<br>&nbsp;&nbsp;📅 ${formatearHorarios(d.horariosAtencion)}`)
+    .join('<br>');
+
+  return `👨‍⚕️ <strong>Equipo profesional (datos en tiempo real):</strong><br><br>${items}<br><br>Si querés, te doy el detalle de un profesional específico.`;
+}
+
+function respuestaServiciosDinamica(services = []) {
+  const items = services
+    .slice(0, 10)
+    .map((s) => `• <strong>${s.nombre || 'Servicio'}</strong> — ${s.duracion || 30} min${s.precio ? ` | $${Number(s.precio).toLocaleString('es-AR')}` : ''}`)
+    .join('<br>');
+
+  return `🏥 <strong>Servicios activos (datos en tiempo real):</strong><br><br>${items}`;
+}
+
+function respuestaHorariosDinamica(doctors = []) {
+  const items = doctors
+    .filter((d) => (d.horariosAtencion || []).length > 0)
+    .slice(0, 10)
+    .map((d) => `• <strong>${d.especialidad || d.specialty || 'Especialidad'}:</strong> ${formatearHorarios(d.horariosAtencion)}`)
+    .join('<br>');
+
+  return `⏰ <strong>Horarios de atención (datos en tiempo real):</strong><br><br>${items || 'No hay horarios cargados en este momento.'}`;
+}
+
+function respuestaTurnosPacienteDinamica(bookings = []) {
+  if (!Array.isArray(bookings) || bookings.length === 0) {
+    return '📋 No encontré turnos recientes en tu cuenta. Si querés, te ayudo a sacar uno nuevo.';
+  }
+
+  const items = bookings
+    .slice(0, 5)
+    .map((b) => `• <strong>${b.servicio?.nombre || 'Servicio'}</strong> con ${b.medico?.nombre || 'Profesional'}<br>&nbsp;&nbsp;📅 ${new Date(b.fecha).toLocaleDateString('es-AR')} ${b.hora || ''} | Estado: ${b.estado || 'pendiente'}`)
+    .join('<br>');
+
+  return `📅 <strong>Tus turnos recientes (datos en tiempo real):</strong><br><br>${items}`;
+}
+
 function detectarPerfilTecnico(msgNormalizado = '') {
   if (/\b(soy medico|soy médica|soy medica|como medico|como médica|como medica|profesional de salud|equipo medico|equipo clínico|equipo clinico)\b/.test(msgNormalizado)) {
     return 'medico';
@@ -428,9 +480,12 @@ Arancel: ${servicio.precio}`;
   return respuestaMedicoUnitaria(medico);
 }
 
-function procesarMensaje(msg, contextoActual = {}) {
+function procesarMensaje(msg, contextoActual = {}, runtimeData = null) {
   const m = normalizar(msg);
   const intencionAproximada = detectarIntencionAproximada(m);
+  const doctorsRt = runtimeData?.doctors || [];
+  const servicesRt = runtimeData?.services || [];
+  const bookingsRt = runtimeData?.bookings || [];
 
   if (detectarPerfilPaciente(m)) {
     return {
@@ -515,6 +570,13 @@ Si querés, te ayudo a redactarlo en 1 mensaje final listo para copiar.`,
     };
   }
 
+  if (contextoActual.usuarioTipo === 'paciente' && /\b(mis turnos|mi turno|mis reservas|proximo turno|próximo turno)\b/.test(m)) {
+    return {
+      text: bookingsRt.length > 0 ? respuestaTurnosPacienteDinamica(bookingsRt) : mostrarTurnos(),
+      nextContext: contextoActual,
+    };
+  }
+
   if (esAfirmacion(m) && !contextoActual.pendingAction) {
     return {
       text: 'Perfecto. Decime puntualmente qué necesitás: <strong>turnos</strong>, <strong>horarios</strong>, <strong>médicos</strong>, <strong>recetas</strong>, <strong>soporte</strong> o <strong>emergencia</strong>.',
@@ -536,6 +598,22 @@ Si querés, te ayudo a redactarlo en 1 mensaje final listo para copiar.`,
       text: respuestaTecnicaPorRolYModulo(contextoActual.perfilTecnico, modulo),
       nextContext: contextoActual,
     };
+  }
+
+  if (/\b(medico|medicos|doctor|doctores|profesional|equipo medico|quien atiende)\b/.test(m) && doctorsRt.length > 0) {
+    return { text: respuestaMedicosDinamica(doctorsRt), nextContext: contextoActual };
+  }
+
+  if (/\b(especialidad|especialidades|servicio|servicios|area|areas)\b/.test(m) && servicesRt.length > 0) {
+    return { text: respuestaServiciosDinamica(servicesRt), nextContext: contextoActual };
+  }
+
+  if (/\b(horario|horarios|atencion|cuando atiende|disponible|dias de)\b/.test(m) && doctorsRt.length > 0) {
+    return { text: respuestaHorariosDinamica(doctorsRt), nextContext: contextoActual };
+  }
+
+  if (/\b(precio|precios|costo|cuanto cuesta|valor|tarifa|arancel)\b/.test(m) && servicesRt.length > 0) {
+    return { text: respuestaServiciosDinamica(servicesRt), nextContext: contextoActual };
   }
 
   const triage = detectarRecomendacionPorSintomas(m);
@@ -678,13 +756,13 @@ Mientras tanto, te dejo una guía avanzada:<br><br>${mostrarAyudaTecnica(context
 
   if (intencionAproximada) {
     const mapa = {
-      turnos: mostrarTurnos,
-      horarios: mostrarHorarios,
-      especialidades: mostrarEspecialidades,
-      medicos: mostrarMedicos,
+      turnos: () => (contextoActual.usuarioTipo === 'paciente' && bookingsRt.length > 0 ? respuestaTurnosPacienteDinamica(bookingsRt) : mostrarTurnos()),
+      horarios: () => (doctorsRt.length > 0 ? respuestaHorariosDinamica(doctorsRt) : mostrarHorarios()),
+      especialidades: () => (servicesRt.length > 0 ? respuestaServiciosDinamica(servicesRt) : mostrarEspecialidades()),
+      medicos: () => (doctorsRt.length > 0 ? respuestaMedicosDinamica(doctorsRt) : mostrarMedicos()),
       soporte: mostrarSoporteOperativo,
       contacto: mostrarContacto,
-      precios: mostrarPrecios,
+      precios: () => (servicesRt.length > 0 ? respuestaServiciosDinamica(servicesRt) : mostrarPrecios()),
       emergencia: mostrarEmergencias,
     };
 
@@ -1080,6 +1158,7 @@ export default function Chatbot() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping]     = useState(false);
   const [hasUnread, setHasUnread]   = useState(true);
+  const [runtimeData, setRuntimeData] = useState({ doctors: [], services: [], bookings: [] });
 
   const messagesEndRef = useRef(null);
   const inputRef       = useRef(null);
@@ -1135,6 +1214,42 @@ export default function Chatbot() {
     persistirContexto(nextContext);
   }, [user?.rol]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRuntimeData = async () => {
+      try {
+        const [doctorsData, servicesData] = await Promise.all([
+          getDoctors(),
+          getServices(),
+        ]);
+
+        let bookingsData = [];
+        if (normalizeRole(user?.rol) === ROLE.PACIENTE) {
+          const bookingsRes = await getBookings({ page: 1, limit: 5 });
+          bookingsData = bookingsRes?.data?.bookings || [];
+        }
+
+        if (!cancelled) {
+          setRuntimeData({
+            doctors: Array.isArray(doctorsData) ? doctorsData : [],
+            services: Array.isArray(servicesData) ? servicesData : [],
+            bookings: Array.isArray(bookingsData) ? bookingsData : [],
+          });
+        }
+      } catch (_error) {
+        if (!cancelled) {
+          setRuntimeData((prev) => ({ ...prev }));
+        }
+      }
+    };
+
+    loadRuntimeData();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.rol, isOpen]);
+
   const handleToggle = () => {
     setIsOpen((prev) => {
       if (!prev) {
@@ -1155,14 +1270,14 @@ export default function Chatbot() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const result = procesarMensaje(text, contextoRef.current);
+      const result = procesarMensaje(text, contextoRef.current, runtimeData);
       const botText = result.text;
       contextoRef.current = result.nextContext;
       persistirContexto(contextoRef.current);
       setIsTyping(false);
       setMessages((prev) => [...prev, { id: Date.now() + 1, text: botText, isBot: true }]);
     }, 650);
-  }, []);
+  }, [runtimeData]);
 
   const handleSend = useCallback(() => {
     enviarMensaje(inputValue);
