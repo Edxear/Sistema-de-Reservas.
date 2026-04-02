@@ -107,31 +107,45 @@ function esNegacion(msgNormalizado = '') {
 }
 
 function detectarRecomendacionPorSintomas(msgNormalizado = '') {
+  if (/\b(dolor en el pecho|pecho|falta de aire|dificultad para respirar|desmayo|convulsion|convulsiones|acv|sangrado abundante|hemorragia)\b/.test(msgNormalizado)) {
+    return {
+      nivel: 'rojo',
+      medico: null,
+      motivo: 'porque hay signos de alarma que pueden indicar una urgencia tiempo-dependiente.',
+      accion: 'Llamá al 107 o 911 y acudí a guardia de inmediato.',
+    };
+  }
+
   const reglas = [
     {
       keywords: ['dolor de cabeza', 'migra', 'mareo', 'vertigo', 'hormigueo', 'memoria'],
       medico: 'Dr. Nicolas Peralta',
       motivo: 'porque esos síntomas suelen requerir una evaluación del sistema nervioso central y periférico.',
+      nivel: 'amarillo',
     },
     {
       keywords: ['mancha en piel', 'picazon', 'acne', 'erupcion', 'dermatitis', 'lunar'],
       medico: 'Dr. Bruno Herrera',
       motivo: 'porque la valoración de piel, lesiones y cambios cutáneos corresponde a Dermatología.',
+      nivel: 'verde',
     },
     {
       keywords: ['dolor de rodilla', 'esguince', 'fractura', 'golpe', 'hueso', 'articulacion'],
       medico: 'Dr. Mateo Ruiz',
       motivo: 'porque lesiones osteomusculares y articulares se atienden mejor en Traumatología.',
+      nivel: 'amarillo',
     },
     {
       keywords: ['dolor abdominal en nino', 'niño', 'nina', 'pediatrico', 'pediatrica', 'fiebre en nino'],
       medico: 'Dra. Valentina Gomez',
       motivo: 'porque cuando se trata de menores, la evaluación pediátrica es la vía correcta.',
+      nivel: 'amarillo',
     },
     {
       keywords: ['control general', 'chequeo', 'control clinico', 'presion alta', 'hipertension'],
       medico: 'Dra. Sofia Martinez',
       motivo: 'porque Clínica Médica es el punto de entrada ideal para control integral de salud.',
+      nivel: 'verde',
     },
   ];
 
@@ -142,9 +156,66 @@ function detectarRecomendacionPorSintomas(msgNormalizado = '') {
   if (!medico) return null;
 
   return {
+    nivel: encontrada.nivel || 'amarillo',
     medico,
     motivo: encontrada.motivo,
+    accion: encontrada.nivel === 'verde'
+      ? 'Podés solicitar turno programado según disponibilidad.'
+      : 'Se recomienda solicitar turno prioritario en las próximas 24-72 h según evolución.',
   };
+}
+
+function evaluarCriticidadSoporte(msgNormalizado = '') {
+  if (/\b(caido|caida total|no funciona nada|urgente|critico|crítico|sin acceso|no puedo atender|guardia)\b/.test(msgNormalizado)) {
+    return { nivel: 'Critica', color: '🔴', eta: 'Atencion inmediata', impacto: 'Operacion clinica comprometida' };
+  }
+
+  if (/\b(bloquea|error al guardar|no puedo crear|no puedo emitir|no aparece|fallando)\b/.test(msgNormalizado)) {
+    return { nivel: 'Alta', color: '🟠', eta: 'Dentro del dia', impacto: 'Bloqueo parcial de operacion' };
+  }
+
+  if (/\b(lento|demora|inconsistencia|desfase|intermitente|consulta)\b/.test(msgNormalizado)) {
+    return { nivel: 'Media', color: '🟡', eta: '24-48 h', impacto: 'Operacion con workaround' };
+  }
+
+  return { nivel: 'Baja', color: '🟢', eta: 'Proxima ventana', impacto: 'Mejora o duda funcional' };
+}
+
+function construirPlantillaTicket(msgOriginal = '', contextoActual = {}, criticidad = null) {
+  const c = criticidad || { nivel: 'Media', color: '🟡', eta: '24-48 h', impacto: 'Operacion con workaround' };
+  const rol = contextoActual.usuarioTipo === 'paciente'
+    ? 'Paciente'
+    : (contextoActual.perfilTecnico ? `Staff (${contextoActual.perfilTecnico})` : 'General');
+
+  return `🧾 <strong>Plantilla de ticket lista para enviar</strong><br><br>
+<strong>Prioridad sugerida:</strong> ${c.color} ${c.nivel}<br>
+<strong>ETA estimada:</strong> ${c.eta}<br>
+<strong>Impacto:</strong> ${c.impacto}<br><br>
+<strong>Copiá y completá este formato:</strong><br>
+• Rol: ${rol}<br>
+• Módulo afectado: [Turnos | HC | Recetas | Chat | Pagos | Acceso]<br>
+• Problema: ${escapeHtml(msgOriginal) || '[describir problema]'}<br>
+• Desde cuándo ocurre: [hora/fecha]<br>
+• Pasos para reproducir: [1..n]<br>
+• Evidencia: [captura/video]<br>
+• Usuario/correo afectado: [dato]<br><br>
+Enviarlo a <strong>soporte@integrasalud.com</strong>.`;
+}
+
+function detectarIntencionAproximada(msgNormalizado = '') {
+  const reglas = [
+    { key: 'turnos', test: /\b(turn|cita|agenda)\b/ },
+    { key: 'horarios', test: /\b(horar|atiend|disponib|dia)\b/ },
+    { key: 'especialidades', test: /\b(especial|area|servic)\b/ },
+    { key: 'medicos', test: /\b(medic|doctor|profesional)\b/ },
+    { key: 'soporte', test: /\b(soport|ticket|inciden|error)\b/ },
+    { key: 'contacto', test: /\b(contact|telefono|correo|mail)\b/ },
+    { key: 'precios', test: /\b(preci|costo|arancel|valor)\b/ },
+    { key: 'emergencia', test: /\b(urgen|emergen|911|107)\b/ },
+  ];
+
+  const regla = reglas.find((r) => r.test.test(msgNormalizado));
+  return regla ? regla.key : null;
 }
 
 function detectarPerfilTecnico(msgNormalizado = '') {
@@ -359,6 +430,7 @@ Arancel: ${servicio.precio}`;
 
 function procesarMensaje(msg, contextoActual = {}) {
   const m = normalizar(msg);
+  const intencionAproximada = detectarIntencionAproximada(m);
 
   if (detectarPerfilPaciente(m)) {
     return {
@@ -422,6 +494,20 @@ function procesarMensaje(msg, contextoActual = {}) {
     };
   }
 
+  if (esAfirmacion(m) && contextoActual.pendingAction?.type === 'support_ticket') {
+    return {
+      text: `Perfecto. Para acelerar la resolución, enviá el ticket con estos campos completos:<br><br>
+1. Rol y correo del usuario afectado<br>
+2. Módulo impactado<br>
+3. Pasos exactos para reproducir<br>
+4. Hora/fecha del incidente<br>
+5. Evidencia (captura/video)<br><br>
+Destino: <strong>soporte@integrasalud.com</strong>.<br>
+Si querés, te ayudo a redactarlo en 1 mensaje final listo para copiar.`,
+      nextContext: { ...contextoActual, pendingAction: null },
+    };
+  }
+
   if (esNegacion(m) && contextoActual.pendingAction) {
     return {
       text: 'Perfecto, no hay problema. Si querés luego te puedo ayudar con otra especialidad, médico o turno.',
@@ -429,10 +515,18 @@ function procesarMensaje(msg, contextoActual = {}) {
     };
   }
 
-  if (/\b(soporte|mesa de ayuda|ticket|incidencia|error del sistema|no puedo ingresar|no puedo entrar)\b/.test(m)) {
+  if (esAfirmacion(m) && !contextoActual.pendingAction) {
     return {
-      text: mostrarSoporteOperativo(),
-      nextContext: { ...contextoActual },
+      text: 'Perfecto. Decime puntualmente qué necesitás: <strong>turnos</strong>, <strong>horarios</strong>, <strong>médicos</strong>, <strong>recetas</strong>, <strong>soporte</strong> o <strong>emergencia</strong>.',
+      nextContext: contextoActual,
+    };
+  }
+
+  if (/\b(soporte|mesa de ayuda|ticket|incidencia|error del sistema|no puedo ingresar|no puedo entrar)\b/.test(m)) {
+    const criticidad = evaluarCriticidadSoporte(m);
+    return {
+      text: `${mostrarSoporteOperativo()}<br><br>${construirPlantillaTicket(msg, contextoActual, criticidad)}`,
+      nextContext: { ...contextoActual, pendingAction: { type: 'support_ticket' } },
     };
   }
 
@@ -446,11 +540,24 @@ function procesarMensaje(msg, contextoActual = {}) {
 
   const triage = detectarRecomendacionPorSintomas(m);
   if (triage && /\b(recom|que medico|que especialidad|dolor|sintoma|tengo|siento)\b/.test(m)) {
+    if (triage.nivel === 'rojo') {
+      return {
+        text: `🚨 <strong>Triage: ROJO (urgente)</strong><br><br>
+${triage.motivo}<br>
+<strong>Acción inmediata:</strong> ${triage.accion}<br><br>
+Si estás con un paciente en este estado, no esperes turno programado.`,
+        nextContext: { ...contextoActual, pendingAction: null },
+      };
+    }
+
+    const semaforo = triage.nivel === 'verde' ? '🟢' : '🟡';
     const servicio = buscarServicioPorEspecialidad(triage.medico.especialidad);
     return {
-      text: `🩺 Por lo que comentás, te recomiendo a <strong>${triage.medico.nombre}</strong> (${triage.medico.especialidad}), ${triage.motivo}<br><br>
+      text: `${semaforo} <strong>Triage: ${triage.nivel.toUpperCase()}</strong><br><br>
+🩺 Por lo que comentás, te recomiendo a <strong>${triage.medico.nombre}</strong> (${triage.medico.especialidad}), ${triage.motivo}<br><br>
 <strong>Horario:</strong> ${triage.medico.dias}<br>
 <strong>Servicio sugerido:</strong> ${servicio.nombre}<br><br>
+<strong>Sugerencia de acción:</strong> ${triage.accion}<br><br>
 Si querés, te indico paso a paso cómo sacar ese turno ahora mismo.`,
       nextContext: {
         ...contextoActual,
@@ -567,6 +674,27 @@ Si querés, te indico paso a paso cómo sacar ese turno ahora mismo.`,
 Mientras tanto, te dejo una guía avanzada:<br><br>${mostrarAyudaTecnica(contextoActual.perfilTecnico || 'medico')}`,
       nextContext: { ...contextoActual, perfilTecnico: contextoActual.perfilTecnico || 'medico', usuarioTipo: 'staff' },
     };
+  }
+
+  if (intencionAproximada) {
+    const mapa = {
+      turnos: mostrarTurnos,
+      horarios: mostrarHorarios,
+      especialidades: mostrarEspecialidades,
+      medicos: mostrarMedicos,
+      soporte: mostrarSoporteOperativo,
+      contacto: mostrarContacto,
+      precios: mostrarPrecios,
+      emergencia: mostrarEmergencias,
+    };
+
+    const fn = mapa[intencionAproximada];
+    if (fn) {
+      return {
+        text: `Entendí tu consulta como <strong>${intencionAproximada}</strong>. Si no era eso, decímelo y lo corrijo.<br><br>${fn()}`,
+        nextContext: contextoActual,
+      };
+    }
   }
 
   return { text: respuestaDefault(), nextContext: contextoActual };
