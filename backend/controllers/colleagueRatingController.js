@@ -1,6 +1,7 @@
 const ColleagueRating = require('../models/ColleagueRating');
 const User = require('../models/User');
 const { logAuditEvent } = require('../utils/auditLogger');
+const mongoose = require('mongoose');
 
 const ADMIN_VIEW_ROLES = ['admin', 'superadmin'];
 const STAFF_ROLES = ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'];
@@ -47,6 +48,8 @@ exports.rateColleague = async (req, res) => {
     const authorUserId = getAuthUserId(req);
     const authorRole = req.user?.rol;
     const { stars, comentario = '', categoria = 'desempeno_general', ratings = null } = req.body;
+
+    console.log('🔍 [rateColleague] Recibido:', { targetUserId, authorUserId, authorRole, ratingsCount: Array.isArray(ratings) ? ratings.length : 0 });
 
     if (!STAFF_ROLES.includes(authorRole)) {
       return res.status(403).json({ message: 'Solo colegas internos pueden valorar' });
@@ -133,12 +136,17 @@ exports.rateColleague = async (req, res) => {
         .populate('authorUser', 'nombre rol')
         .populate('targetUser', 'nombre rol');
 
-      await logAuditEvent(req, {
-        action: 'colleague-rating.batch-upsert',
-        resourceType: 'ColleagueRating',
-        resourceId: targetUserId,
-        details: `Categorias=${Array.from(dedup.keys()).join(',')}`,
-      });
+      // Log audit event (non-blocking)
+      try {
+        await logAuditEvent(req, {
+          action: 'colleague-rating.batch-upsert',
+          resourceType: 'ColleagueRating',
+          resourceId: targetUserId,
+          details: `Categorias=${Array.from(dedup.keys()).join(',')}`,
+        });
+      } catch (auditError) {
+        console.warn('⚠️ [rateColleague] Error logging audit event:', auditError.message);
+      }
 
       return res.status(201).json({
         message: 'Valoraciones guardadas',
@@ -170,12 +178,19 @@ exports.rateColleague = async (req, res) => {
       const populated = await ColleagueRating.findById(created._id)
         .populate('authorUser', 'nombre rol')
         .populate('targetUser', 'nombre rol');
-      await logAuditEvent(req, {
-        action: 'colleague-rating.create',
-        resourceType: 'ColleagueRating',
-        resourceId: created._id,
-        details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
-      });
+      
+      // Log audit event (non-blocking)
+      try {
+        await logAuditEvent(req, {
+          action: 'colleague-rating.create',
+          resourceType: 'ColleagueRating',
+          resourceId: created._id,
+          details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
+        });
+      } catch (auditError) {
+        console.warn('⚠️ [rateColleague] Error logging audit event:', auditError.message);
+      }
+      
       return res.status(201).json(populated);
     }
 
@@ -189,16 +204,22 @@ exports.rateColleague = async (req, res) => {
       .populate('authorUser', 'nombre rol')
       .populate('targetUser', 'nombre rol');
 
-    await logAuditEvent(req, {
-      action: 'colleague-rating.update',
-      resourceType: 'ColleagueRating',
-      resourceId: existing._id,
-      details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
-    });
+    // Log audit event (non-blocking)
+    try {
+      await logAuditEvent(req, {
+        action: 'colleague-rating.update',
+        resourceType: 'ColleagueRating',
+        resourceId: existing._id,
+        details: `Categoria=${resolvedCategoria} Estrellas=${parsedStars}`,
+      });
+    } catch (auditError) {
+      console.warn('⚠️ [rateColleague] Error logging audit event:', auditError.message);
+    }
 
     return res.json(updated);
   } catch (error) {
-    return res.status(500).json({ message: 'Error guardando valoracion', error });
+    console.error('❌ [rateColleague] Error:', error.message, error.stack);
+    return res.status(500).json({ message: 'Error guardando valoracion: ' + error.message });
   }
 };
 
