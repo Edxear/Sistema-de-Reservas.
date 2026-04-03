@@ -9,7 +9,6 @@ import {
   deleteSupportUser,
   getColleagueRatingSummary,
   getPrivateComments,
-  getSupportBlueprint,
   getSupportMetrics,
   getSupportAdvancedMetrics,
   getSupportUsers,
@@ -41,23 +40,21 @@ const ESTADOS = ['abierto', 'en_progreso', 'en_espera', 'resuelto', 'cerrado'];
 
 const SUPPORT_INFO = {
   operacion: {
-    title: 'Que cubre Operacion de Soporte',
+    title: 'Operacion de soporte',
     summary:
-      'Coordina continuidad del servicio clinico, escalamiento, monitoreo y mejora continua para sostener la atencion al paciente.',
+      'Gestiona incidentes, monitoreo y continuidad del servicio clinico.',
     points: [
-      'Organiza niveles L1-L3 y responsables por criticidad.',
-      'Alinea procedimientos de incidentes, cambios, seguridad y recuperacion.',
-      'Convierte reportes operativos en decisiones de capacidad y calidad.',
+      'Escalamiento por niveles L1-L3.',
+      'Priorizacion segun impacto clinico.',
     ],
   },
   tickets: {
-    title: 'Para que sirve Ticketing y SLA',
+    title: 'Ticketing y SLA',
     summary:
-      'Ticketing registra y da seguimiento a cada caso; SLA define tiempos comprometidos de respuesta y resolucion. Juntos hacen el soporte medible, trazable y predecible.',
+      'Registra casos y mide tiempos de respuesta/resolucion.',
     points: [
-      'Ticketing: registro unico, trazabilidad, priorizacion por criticidad y evidencia para auditoria.',
-      'SLA: expectativas claras para usuarios clinicos y priorizacion de incidentes con impacto asistencial.',
-      'Relacion directa: ticketing mide si el SLA se cumple; sin ambos no hay control objetivo.',
+      'Trazabilidad completa del caso.',
+      'Control de cumplimiento SLA.',
     ],
     slaReference: [
       { criticidad: 'Critico', respuesta: '15 min', resolucion: '2 h' },
@@ -67,71 +64,32 @@ const SUPPORT_INFO = {
     ],
   },
   usuarios: {
-    title: 'Para que sirve Usuarios (RBAC)',
+    title: 'Usuarios y permisos',
     summary:
-      'Gestiona identidades y permisos para reducir riesgo operativo y cumplir controles de acceso en entornos clinicos.',
+      'Administra roles y accesos segun funcion.',
     points: [
-      'Asigna el rol correcto segun funcion (asistencial, administrativa o tecnica).',
-      'Evita accesos indebidos a datos clinicos y operaciones sensibles.',
-      'Permite auditoria y trazabilidad de cambios de permisos.',
+      'Control por rol (RBAC).',
+      'Trazabilidad de cambios de permisos.',
     ],
   },
   colegas: {
-    title: 'Para que sirven Comentarios Internos',
+    title: 'Comentarios internos',
     summary:
-      'Habilita retroalimentacion privada y profesional entre colegas para mejorar coordinacion y calidad del trabajo.',
+      'Canal privado para seguimiento entre colegas.',
     points: [
-      'Documenta observaciones relevantes para seguimiento interno.',
-      'Evita perdida de contexto en canales informales.',
-      'Facilita acciones de mejora desde administracion.',
+      'Seguimiento profesional ordenado.',
+      'Mejor coordinacion del equipo.',
     ],
   },
   valoraciones: {
-    title: 'Para que sirven Valoraciones Formales',
+    title: 'Valoraciones formales',
     summary:
-      'Canaliza feedback por tipo, canal y area destino para que cada caso termine en una accion concreta y verificable.',
+      'Feedback estructurado para acciones de mejora.',
     points: [
-      'Estandariza valoraciones por escenario (soporte, clinico, seguridad, RRHH).',
-      'Permite seguimiento por estado y responsables.',
-      'Fortalece gobernanza y mejora continua con datos comparables.',
+      'Seguimiento por estado y responsables.',
+      'Datos comparables para mejora continua.',
     ],
   },
-};
-
-const defaultBlueprint = {
-  teamStructure: [
-    { nivel: 'Soporte L1', objetivo: 'Mesa de ayuda: incidencias basicas, accesos y derivaciones.' },
-    { nivel: 'Soporte L2', objetivo: 'Soporte tecnico especializado: configuracion, integraciones y BD.' },
-    { nivel: 'Soporte L3', objetivo: 'Desarrollo/proveedor: bugs, parches y cambios estructurales.' },
-    { nivel: 'Coordinador', objetivo: 'Gobierno SLA, comunicacion y priorizacion clinica.' },
-  ],
-  processMatrix: [
-    { proceso: 'Gestion de incidentes', foco: 'Clasificacion por impacto clinico y prioridad.' },
-    { proceso: 'Gestion de cambios', foco: 'Pruebas en entorno aislado antes de produccion.' },
-    { proceso: 'Gestion de problemas', foco: 'Analisis causa raiz y prevencion de recurrencia.' },
-    { proceso: 'Backup y DR', foco: 'Recuperacion validada periodicamente.' },
-    { proceso: 'Seguridad y accesos', foco: 'RBAC, auditoria y cumplimiento normativo.' },
-  ],
-  tooling: [
-    'Ticketing con seguimiento, SLA y reportes',
-    'Monitorizacion proactiva de servicios e integraciones',
-    'Base de conocimiento reutilizable',
-    'Acceso remoto seguro con MFA',
-    'Entornos de pruebas aislados',
-  ],
-  criticalClinicalAspects: [
-    'Integracion con equipos medicos (HL7, DICOM)',
-    'Cobertura 24/7 para modulos criticos',
-    'Trazabilidad y cumplimiento normativo',
-    'Capacitacion continua por perfil',
-    'Gestion de identidades con AD/SSO',
-  ],
-  mandatoryDocs: [
-    'Manual de procedimientos de soporte',
-    'Matriz de escalamiento',
-    'Inventario de hardware/software',
-    'Plan de continuidad operativa',
-  ],
 };
 
 const initialTicketForm = {
@@ -154,7 +112,6 @@ export default function Soporte() {
   const role = user?.rol;
   const [activeTab, setActiveTab] = useState(TAB.OPERACION);
 
-  const [blueprint, setBlueprint] = useState(defaultBlueprint);
   const [metrics, setMetrics] = useState(null);
   const [advancedMetrics, setAdvancedMetrics] = useState({ kpis: {}, alerts: [] });
   const [bedCensus, setBedCensus] = useState({ metrics: { total: 0, byEstado: {} }, beds: [] });
@@ -241,15 +198,6 @@ export default function Soporte() {
         ) : null}
       </div>
     );
-  };
-
-  const loadBlueprint = async () => {
-    try {
-      const data = await getSupportBlueprint();
-      setBlueprint(data || defaultBlueprint);
-    } catch {
-      setBlueprint(defaultBlueprint);
-    }
   };
 
   const loadMetrics = async () => {
@@ -352,7 +300,6 @@ export default function Soporte() {
   };
 
   useEffect(() => {
-    loadBlueprint();
     loadMetrics();
     loadTickets();
     loadUsers();
@@ -550,7 +497,7 @@ export default function Soporte() {
     <>
       <section className={styles.card}>
         <h1>Centro de Soporte Clinico</h1>
-        <p>Cobertura operativa para incidentes, cambios, continuidad, seguridad y soporte a usuarios internos.</p>
+        <p>Panel operativo para monitoreo, tickets y continuidad del servicio.</p>
         {renderInfoBlock(TAB.OPERACION)}
       </section>
 
@@ -657,117 +604,13 @@ export default function Soporte() {
           ))}
         </div>
       </section>
-
-      <section className={styles.card}>
-        <h2>Estructura del equipo</h2>
-        <div className={styles.listWrap}>
-          {blueprint.teamStructure.map((row) => (
-            <div key={row.nivel} className={styles.item}>
-              <div className={styles.itemTitle}>{row.nivel}</div>
-              <div>{row.objetivo}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.grid2}>
-        <article className={styles.card}>
-          <h3>Procesos y procedimientos</h3>
-          <div className={styles.listWrap}>
-            {blueprint.processMatrix.map((row) => (
-              <div key={row.proceso} className={styles.item}>
-                <div className={styles.itemTitle}>{row.proceso}</div>
-                <div>{row.foco}</div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className={styles.card}>
-          <h3>Herramientas tecnologicas</h3>
-          <div className={styles.listWrap}>
-            {blueprint.tooling.map((tool) => (
-              <div key={tool} className={styles.item}>{tool}</div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section className={styles.grid2}>
-        <article className={styles.card}>
-          <h3>Aspectos criticos clinicos</h3>
-          <div className={styles.listWrap}>
-            {blueprint.criticalClinicalAspects.map((aspect) => (
-              <div key={aspect} className={styles.item}>{aspect}</div>
-            ))}
-          </div>
-          <p className={styles.note}>Cobertura 24/7 sugerida para UCI, urgencias y prescripcion electronica.</p>
-        </article>
-
-        <article className={styles.card}>
-          <h3>Documentacion obligatoria</h3>
-          <div className={styles.listWrap}>
-            {blueprint.mandatoryDocs.map((doc) => (
-              <label key={doc} className={styles.checkline}>
-                <input type="checkbox" />
-                <span>{doc}</span>
-              </label>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section className={styles.card}>
-        <h3>Matriz de escalamiento</h3>
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nivel</th>
-                <th>Cuando escala</th>
-                <th>Notificar a</th>
-                <th>Tiempo objetivo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>L1 a L2</td><td>Sin solucion base o requiere analisis tecnico</td><td>Especialista tecnico</td><td>30 min</td></tr>
-              <tr><td>L2 a L3</td><td>Bug, parche o cambio estructural</td><td>Desarrollo/Proveedor</td><td>60 min</td></tr>
-              <tr><td>Critico</td><td>Impacto clinico alto (prescripcion, UCI, urgencias)</td><td>Coordinador + Direccion</td><td>15 min</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className={styles.grid2}>
-        <article className={styles.card}>
-          <h3>Base de conocimiento</h3>
-          <div className={styles.listWrap}>
-            <div className={styles.item}>Guia rapida de restablecimiento de credenciales y MFA.</div>
-            <div className={styles.item}>Procedimiento de recuperacion de modulo de prescripcion.</div>
-            <div className={styles.item}>Checklist de validacion post cambio en entorno de pruebas.</div>
-            <div className={styles.item}>Runbook de integraciones HL7/FHIR/DICOM y validaciones de conectividad.</div>
-            <div className={styles.item}>Procedimiento de respaldo y restauracion por modulo critico.</div>
-          </div>
-        </article>
-
-        <article className={styles.card}>
-          <h3>Continuidad operativa e inventario</h3>
-          <div className={styles.listWrap}>
-            <div className={styles.item}><strong>Modo contingencia:</strong> plan manual ante caida total del sistema clinico.</div>
-            <div className={styles.item}><strong>Inventario:</strong> servidores, licencias, integraciones, dispositivos y responsables.</div>
-            <div className={styles.item}><strong>Guardias 24/7:</strong> calendario de cobertura activa/pasiva por nivel L1-L3.</div>
-            <div className={styles.item}><strong>Cumplimiento:</strong> auditoria de trazabilidad de accesos a historia clinica y consentimientos.</div>
-            <div className={styles.item}><strong>Reportes gerenciales:</strong> tendencia de incidentes, impacto por area y costo operativo.</div>
-          </div>
-        </article>
-      </section>
     </>
   );
 
   const renderTickets = () => (
     <>
       <section className={styles.card}>
-        <h2>Ticketing y SLA</h2>
+        <h2>Tickets y SLA</h2>
         {renderInfoBlock(TAB.TICKETS)}
         <form onSubmit={handleCreateTicket} className={styles.gridForm}>
           <input className={styles.input} placeholder="Titulo" value={ticketForm.titulo} onChange={(e) => setTicketForm((p) => ({ ...p, titulo: e.target.value }))} required />
@@ -821,7 +664,6 @@ export default function Soporte() {
                 <th>Nivel</th>
                 <th>Estado</th>
                 <th>SLA</th>
-                <th>Enrutamiento</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -846,11 +688,6 @@ export default function Soporte() {
                     <div className={styles.metaMini}>Res: {t.slaResolucionMin}m</div>
                   </td>
                   <td>
-                    <div className={styles.metaMini}>Nivel sugerido: {t.autoRouting?.recommendedLevel || '-'}</div>
-                    <div className={styles.metaMini}>Confianza: {t.autoRouting?.confidence || '-'}</div>
-                    <div className={styles.metaMini}>KB: {t.kbArticleRef || '-'}</div>
-                  </td>
-                  <td>
                     <div className={styles.inlineBtns}>
                       <button className={styles.linkBtn} onClick={() => handleTicketQuickUpdate(t._id, { escalarA: 'L2', motivoEscalamiento: 'Escalamiento tecnico' })}>Escalar L2</button>
                       <button className={styles.linkBtn} onClick={() => handleTicketQuickUpdate(t._id, { escalarA: 'L3', motivoEscalamiento: 'Escalamiento desarrollo' })}>Escalar L3</button>
@@ -868,9 +705,9 @@ export default function Soporte() {
 
   const renderUsuarios = () => (
     <section className={styles.card}>
-      <h2>Gestion de identidades y accesos (RBAC)</h2>
+      <h2>Usuarios y accesos</h2>
       {renderInfoBlock(TAB.USUARIOS)}
-      <input className={styles.input} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre, email o telefono" />
+      <input className={styles.input} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar usuario" />
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
@@ -904,7 +741,6 @@ export default function Soporte() {
           </tbody>
         </table>
       </div>
-      <p className={styles.note}>Recomendado: integrar AD/SSO y MFA para acceso remoto seguro.</p>
     </section>
   );
 
