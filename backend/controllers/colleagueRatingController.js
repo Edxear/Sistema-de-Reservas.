@@ -27,15 +27,10 @@ exports.rateColleague = async (req, res) => {
     const targetUserId = req.params.userId;
     const authorUserId = getAuthUserId(req);
     const authorRole = req.user?.rol;
-    const { stars, comentario = '', categoria = 'desempeno_general' } = req.body;
+    const { stars, comentario = '', categoria = 'desempeno_general', ratings = null } = req.body;
 
     if (!STAFF_ROLES.includes(authorRole)) {
       return res.status(403).json({ message: 'Solo colegas internos pueden valorar' });
-    }
-
-    const parsedStars = parseInt(stars, 10);
-    if (!parsedStars || parsedStars < 1 || parsedStars > 5) {
-      return res.status(400).json({ message: 'La calificacion debe ser entre 1 y 5' });
     }
 
     if (String(authorUserId) === String(targetUserId)) {
@@ -47,11 +42,88 @@ exports.rateColleague = async (req, res) => {
       return res.status(400).json({ message: 'Debes seleccionar un colega valido' });
     }
 
+    const normalizedComment = String(comentario || '').trim();
+
+    if (Array.isArray(ratings) && ratings.length > 0) {
+      const normalizedRatings = ratings
+        .map((item) => {
+          const safeCategoria = CATEGORIAS.some((c) => c.key === item?.categoria)
+            ? item.categoria
+            : null;
+          const safeStars = parseInt(item?.stars, 10);
+          return {
+            categoria: safeCategoria,
+            stars: safeStars,
+          };
+        })
+        .filter((item) => item.categoria && item.stars >= 1 && item.stars <= 5);
+
+      if (!normalizedRatings.length) {
+        return res.status(400).json({ message: 'Debes enviar al menos una categoria valida con estrellas entre 1 y 5' });
+      }
+
+      const dedup = new Map();
+      normalizedRatings.forEach((item) => {
+        dedup.set(item.categoria, item.stars);
+      });
+
+      const upserts = Array.from(dedup.entries()).map(([cat, catStars]) => (
+        ColleagueRating.findOneAndUpdate(
+          {
+            targetUser: targetUserId,
+            authorUser: authorUserId,
+            categoria: cat,
+          },
+          {
+            $set: {
+              stars: catStars,
+              comentario: normalizedComment,
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              targetUser: targetUserId,
+              authorUser: authorUserId,
+              categoria: cat,
+              createdAt: new Date(),
+            },
+          },
+          {
+            new: true,
+            upsert: true,
+          },
+        )
+      ));
+
+      const saved = await Promise.all(upserts);
+      const ids = saved.map((item) => item._id);
+      const populated = await ColleagueRating.find({ _id: { $in: ids } })
+        .populate('authorUser', 'nombre rol')
+        .populate('targetUser', 'nombre rol');
+
+      await logAuditEvent(req, {
+        action: 'colleague-rating.batch-upsert',
+        resourceType: 'ColleagueRating',
+        resourceId: targetUserId,
+        details: `Categorias=${Array.from(dedup.keys()).join(',')}`,
+      });
+
+      return res.status(201).json({
+        message: 'Valoraciones guardadas',
+        ratings: populated,
+      });
+    }
+
+    const parsedStars = parseInt(stars, 10);
+    if (!parsedStars || parsedStars < 1 || parsedStars > 5) {
+      return res.status(400).json({ message: 'La calificacion debe ser entre 1 y 5' });
+    }
+
     const resolvedCategoria = CATEGORIAS.some((c) => c.key === categoria) ? categoria : 'desempeno_general';
 
     const existing = await ColleagueRating.findOne({
       targetUser: targetUserId,
       authorUser: authorUserId,
+      categoria: resolvedCategoria,
     });
 
     if (!existing) {
@@ -60,7 +132,7 @@ exports.rateColleague = async (req, res) => {
         authorUser: authorUserId,
         stars: parsedStars,
         categoria: resolvedCategoria,
-        comentario: String(comentario || '').trim(),
+        comentario: normalizedComment,
       });
       const populated = await ColleagueRating.findById(created._id)
         .populate('authorUser', 'nombre rol')
@@ -76,7 +148,7 @@ exports.rateColleague = async (req, res) => {
 
     existing.stars = parsedStars;
     existing.categoria = resolvedCategoria;
-    existing.comentario = String(comentario || '').trim();
+    existing.comentario = normalizedComment;
     existing.updatedAt = new Date();
     await existing.save();
 
@@ -107,21 +179,31 @@ exports.getColleagueRatingSummary = async (req, res) => {
       return res.status(403).json({ message: 'No tienes permiso para ver valoraciones internas' });
     }
 
-    const [ratings, myRating] = await Promise.all([
+    const [ratings, myRatings] = await Promise.all([
       ColleagueRating.find({ targetUser: targetUserId })
         .populate('authorUser', 'nombre rol')
         .sort({ createdAt: -1 }),
-      ColleagueRating.findOne({ targetUser: targetUserId, authorUser: actorId }),
+      ColleagueRating.find({ targetUser: targetUserId, authorUser: actorId }),
     ]);
 
     const avg = ratings.length
       ? Number((ratings.reduce((acc, r) => acc + r.stars, 0) / ratings.length).toFixed(2))
       : 0;
 
+    const categoryAverages = CATEGORIAS.reduce((acc, category) => {
+      const list = ratings.filter((r) => r.categoria === category.key);
+      acc[category.key] = list.length
+        ? Number((list.reduce((sum, r) => sum + r.stars, 0) / list.length).toFixed(2))
+        : 0;
+      return acc;
+    }, {});
+
     const response = {
       average: avg,
       total: ratings.length,
-      myRating,
+      myRating: myRatings[0] || null,
+      myRatings,
+      categoryAverages,
     };
 
     if (ADMIN_VIEW_ROLES.includes(actorRole) || String(actorId) === String(targetUserId)) {

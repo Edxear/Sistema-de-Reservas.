@@ -37,6 +37,14 @@ const TAB = {
 const CRITICIDAD = ['critico', 'alto', 'medio', 'bajo'];
 const NIVELES = ['L1', 'L2', 'L3'];
 const ESTADOS = ['abierto', 'en_progreso', 'en_espera', 'resuelto', 'cerrado'];
+const RATING_CATEGORIES = ['calidad_atencion', 'trabajo_equipo', 'comunicacion', 'actitud', 'desempeno_general'];
+const initialCategoryStars = {
+  calidad_atencion: 5,
+  trabajo_equipo: 5,
+  comunicacion: 5,
+  actitud: 5,
+  desempeno_general: 5,
+};
 
 const SUPPORT_INFO = {
   operacion: {
@@ -160,11 +168,10 @@ export default function Soporte() {
 
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
-  const [ratingSummary, setRatingSummary] = useState({ average: 0, total: 0, ratings: [], myRating: null });
+  const [ratingSummary, setRatingSummary] = useState({ average: 0, total: 0, ratings: [], myRating: null, myRatings: [], categoryAverages: {} });
   const [formalFeedbackRecords, setFormalFeedbackRecords] = useState([]);
   const [formalFilter, setFormalFilter] = useState({ categoria: '' });
-  const [stars, setStars] = useState(5);
-  const [ratingCategoria, setRatingCategoria] = useState('desempeno_general');
+  const [categoryStars, setCategoryStars] = useState(initialCategoryStars);
   const [ratingComment, setRatingComment] = useState('');
   const [openInfoTab, setOpenInfoTab] = useState(null);
 
@@ -316,6 +323,8 @@ export default function Soporte() {
         total: data?.total || 0,
         ratings: Array.isArray(data?.ratings) ? data.ratings : [],
         myRating: data?.myRating || null,
+        myRatings: Array.isArray(data?.myRatings) ? data.myRatings : [],
+        categoryAverages: data?.categoryAverages || {},
       });
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo cargar valoracion del colega');
@@ -368,11 +377,28 @@ export default function Soporte() {
   }, [formalFilter]);
 
   useEffect(() => {
-    if (!ratingSummary?.myRating) return;
-    setStars(ratingSummary.myRating.stars || 5);
-    setRatingCategoria(ratingSummary.myRating.categoria || 'desempeno_general');
-    setRatingComment(ratingSummary.myRating.comentario || '');
-  }, [ratingSummary?.myRating?._id]);
+    if (activeTab === TAB.VALORACIONES || activeTab === TAB.COLEGAS) {
+      loadUsers();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!Array.isArray(ratingSummary?.myRatings) || ratingSummary.myRatings.length === 0) {
+      setCategoryStars(initialCategoryStars);
+      setRatingComment('');
+      return;
+    }
+
+    const nextStars = { ...initialCategoryStars };
+    ratingSummary.myRatings.forEach((item) => {
+      if (RATING_CATEGORIES.includes(item?.categoria)) {
+        nextStars[item.categoria] = item.stars || 5;
+      }
+    });
+
+    setCategoryStars(nextStars);
+    setRatingComment(ratingSummary.myRatings[0]?.comentario || '');
+  }, [targetUserId, ratingSummary?.myRatings]);
 
   if (!canAccessSupport(role)) {
     return (
@@ -456,17 +482,28 @@ export default function Soporte() {
     e.preventDefault();
     if (!targetUserId) return;
     try {
+      const ratingsPayload = RATING_CATEGORIES.map((categoria) => ({
+        categoria,
+        stars: Number(categoryStars[categoria] || 5),
+      }));
+
       await submitColleagueRating(targetUserId, {
-        stars,
+        ratings: ratingsPayload,
         comentario: ratingComment,
-        categoria: ratingCategoria,
       });
-      toast.success('Valoracion guardada');
+      toast.success('Valoraciones guardadas');
       await loadRatingSummary();
       await loadFormalFeedbackRecords();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo guardar valoracion');
     }
+  };
+
+  const setCategoryStar = (categoria, value) => {
+    setCategoryStars((prev) => ({
+      ...prev,
+      [categoria]: value,
+    }));
   };
 
   const handleDeleteRating = async (ratingId) => {
@@ -823,32 +860,39 @@ export default function Soporte() {
         <article className={styles.card}>
           <h3>Registrar valoración</h3>
           <form onSubmit={handleRating} className={styles.formCol}>
+            <label className={styles.fieldLabel}>Seleccionar colega del personal</label>
             <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
-              <option value="">Seleccionar colega</option>
+              <option value="">{staffUsers.length ? 'Seleccionar colega' : 'No hay personal cargado'}</option>
               {staffUsers.map((u) => <option key={u._id} value={u._id}>{u.nombre} — {u.rol}</option>)}
             </select>
 
-            <select className={styles.select} value={ratingCategoria} onChange={(e) => setRatingCategoria(e.target.value)}>
-              <option value="calidad_atencion">Calidad de atención</option>
-              <option value="trabajo_equipo">Trabajo en equipo</option>
-              <option value="comunicacion">Comunicación</option>
-              <option value="actitud">Actitud profesional</option>
-              <option value="desempeno_general">Desempeño general</option>
-            </select>
+            {!staffUsers.length ? <p className={styles.note}>No se encontraron trabajadores para valorar.</p> : null}
 
-            <div className={styles.filtersRow}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={styles.starBtn}
-                  onClick={() => setStars(n)}
-                  style={{ color: stars >= n ? '#f59e0b' : '#d1d5db', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  {stars >= n ? '★' : '☆'}
-                </button>
-              ))}
-              <span style={{ marginLeft: '0.5rem' }}>{stars}/5</span>
+            <div className={styles.ratingGrid}>
+              {RATING_CATEGORIES.map((categoria) => {
+                const current = Number(categoryStars[categoria] || 5);
+                return (
+                  <div key={categoria} className={styles.ratingRow}>
+                    <div className={styles.ratingLabel}>{CATEGORIAS_LABEL[categoria] || categoria}</div>
+                    <div className={styles.ratingStarsWrap}>
+                      <div className={styles.starGroup}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            className={`${styles.starBtn} ${current >= n ? styles.starBtnActive : ''}`}
+                            onClick={() => setCategoryStar(categoria, n)}
+                            aria-label={`${CATEGORIAS_LABEL[categoria] || categoria}: ${n} estrellas`}
+                          >
+                            {current >= n ? '★' : '☆'}
+                          </button>
+                        ))}
+                      </div>
+                      <span className={styles.starScore}>{current}/5</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <textarea
@@ -868,6 +912,14 @@ export default function Soporte() {
           <h3>Valoraciones recibidas</h3>
           {targetUser && <p>Colega seleccionado: <strong>{targetUser.nombre}</strong></p>}
           <p>Promedio: <strong>{ratingSummary.average} ★</strong> ({ratingSummary.total} valoración/es)</p>
+          <div className={styles.categoryAvgGrid}>
+            {RATING_CATEGORIES.map((categoria) => (
+              <div key={categoria} className={styles.categoryAvgItem}>
+                <span>{CATEGORIAS_LABEL[categoria] || categoria}</span>
+                <strong>{Number(ratingSummary.categoryAverages?.[categoria] || 0).toFixed(1)} ★</strong>
+              </div>
+            ))}
+          </div>
           <div className={styles.listWrap}>
             {Array.isArray(ratingSummary.ratings) && ratingSummary.ratings.length > 0 ? ratingSummary.ratings.map((r) => (
               <div key={r._id} className={styles.item}>

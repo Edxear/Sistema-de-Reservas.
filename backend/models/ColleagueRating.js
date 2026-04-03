@@ -37,7 +37,7 @@ const colleagueRatingSchema = new mongoose.Schema({
   },
 });
 
-colleagueRatingSchema.index({ targetUser: 1, authorUser: 1 }, { unique: true });
+colleagueRatingSchema.index({ targetUser: 1, authorUser: 1, categoria: 1 }, { unique: true });
 colleagueRatingSchema.index({ targetUser: 1, createdAt: -1 });
 
 module.exports = mongoose.model('ColleagueRating', colleagueRatingSchema);
