@@ -290,6 +290,34 @@ function obtenerTurnoCancelable(bookings = []) {
     .sort((a, b) => a.fechaHora - b.fechaHora)[0];
 }
 
+function seleccionarPorNumeroOTexto(input = '', options = [], labelFn = (o) => String(o || '')) {
+  const clean = input.trim();
+  const byNumber = clean.match(/^\d+$/);
+  if (byNumber) {
+    const index = Number(byNumber[0]) - 1;
+    if (index >= 0 && index < options.length) return options[index];
+  }
+
+  const nInput = normalizar(clean);
+  return options.find((opt) => normalizar(labelFn(opt)).includes(nInput)) || null;
+}
+
+function filtrarDoctoresPorServicio(service, doctors = []) {
+  const serviceName = normalizar(service?.nombre || '');
+  const rules = [
+    { key: 'neurolog', esp: 'neurolog' },
+    { key: 'traumatolog', esp: 'traumatolog' },
+    { key: 'pediatr', esp: 'pediatr' },
+    { key: 'clinica', esp: 'clinica medica' },
+  ];
+
+  const rule = rules.find((r) => serviceName.includes(r.key));
+  if (!rule) return doctors;
+
+  const filtered = doctors.filter((d) => normalizar(d.especialidad || d.specialty || '').includes(rule.esp));
+  return filtered.length > 0 ? filtered : doctors;
+}
+
 function formatearHorarios(horarios = []) {
   if (!Array.isArray(horarios) || horarios.length === 0) return 'Horarios a confirmar';
   return horarios
@@ -1333,6 +1361,160 @@ export default function Chatbot() {
     const m = normalizar(text);
     const currentContext = contextoRef.current;
 
+    if (currentContext.pendingAction?.type === 'booking_wizard') {
+      const wizard = currentContext.pendingAction;
+
+      if (wizard.step === 'service') {
+        const service = seleccionarPorNumeroOTexto(text, wizard.options || [], (s) => s.nombre || '');
+        if (!service) {
+          return {
+            handled: true,
+            text: 'No pude identificar el servicio. Respondé con el número o nombre del servicio de la lista.',
+          };
+        }
+
+        const doctorOptions = filtrarDoctoresPorServicio(service, runtimeData.doctors || []).slice(0, 10);
+        contextoRef.current = {
+          ...currentContext,
+          pendingAction: {
+            type: 'booking_wizard',
+            step: 'doctor',
+            data: { service },
+            options: doctorOptions,
+          },
+        };
+        persistirContexto(contextoRef.current);
+
+        const doctorList = doctorOptions
+          .map((d, i) => `${i + 1}. ${d.nombre || d.name} (${d.especialidad || d.specialty || 'Especialidad'})`)
+          .join('<br>');
+
+        return {
+          handled: true,
+          text: `Perfecto. Elegiste <strong>${service.nombre}</strong>.<br><br>Ahora elegí el profesional:<br>${doctorList}<br><br>Respondé con número o nombre.`,
+        };
+      }
+
+      if (wizard.step === 'doctor') {
+        const doctor = seleccionarPorNumeroOTexto(text, wizard.options || [], (d) => `${d.nombre || d.name} ${d.especialidad || d.specialty || ''}`);
+        if (!doctor) {
+          return {
+            handled: true,
+            text: 'No pude identificar el profesional. Respondé con el número o nombre de la lista.',
+          };
+        }
+
+        contextoRef.current = {
+          ...currentContext,
+          pendingAction: {
+            type: 'booking_wizard',
+            step: 'fecha',
+            data: { ...wizard.data, doctor },
+          },
+        };
+        persistirContexto(contextoRef.current);
+
+        return {
+          handled: true,
+          text: `Excelente. Seleccionaste a <strong>${doctor.nombre || doctor.name}</strong>.<br><br>Indicame la fecha con formato <strong>YYYY-MM-DD</strong> (ejemplo: 2026-04-10).`,
+        };
+      }
+
+      if (wizard.step === 'fecha') {
+        const fechaMatch = text.match(/\b\d{4}-\d{2}-\d{2}\b/);
+        if (!fechaMatch) {
+          return {
+            handled: true,
+            text: 'Formato de fecha inválido. Usá <strong>YYYY-MM-DD</strong> (ejemplo: 2026-04-10).',
+          };
+        }
+
+        contextoRef.current = {
+          ...currentContext,
+          pendingAction: {
+            type: 'booking_wizard',
+            step: 'hora',
+            data: { ...wizard.data, fecha: fechaMatch[0] },
+          },
+        };
+        persistirContexto(contextoRef.current);
+
+        return {
+          handled: true,
+          text: 'Perfecto. Ahora indicame la hora en formato <strong>HH:mm</strong> (ejemplo: 14:30).',
+        };
+      }
+
+      if (wizard.step === 'hora') {
+        const horaMatch = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+        if (!horaMatch) {
+          return {
+            handled: true,
+            text: 'Formato de hora inválido. Usá <strong>HH:mm</strong> (ejemplo: 14:30).',
+          };
+        }
+
+        const hora = `${horaMatch[1].padStart(2, '0')}:${horaMatch[2]}`;
+        const data = { ...wizard.data, hora };
+
+        contextoRef.current = {
+          ...currentContext,
+          pendingAction: {
+            type: 'booking_wizard',
+            step: 'confirm',
+            data,
+          },
+        };
+        persistirContexto(contextoRef.current);
+
+        return {
+          handled: true,
+          text: `Confirmame este turno:<br><br><strong>Servicio:</strong> ${data.service.nombre}<br><strong>Profesional:</strong> ${data.doctor.nombre || data.doctor.name}<br><strong>Fecha:</strong> ${data.fecha}<br><strong>Hora:</strong> ${data.hora}<br><br>Respondé <strong>si</strong> para crear o <strong>no</strong> para cancelar.`,
+        };
+      }
+
+      if (wizard.step === 'confirm') {
+        if (esNegacion(m)) {
+          contextoRef.current = { ...currentContext, pendingAction: null };
+          persistirContexto(contextoRef.current);
+          return { handled: true, text: 'Reserva guiada cancelada. Si querés, iniciamos otra.' };
+        }
+
+        if (!esAfirmacion(m)) {
+          return { handled: true, text: 'Respondé <strong>si</strong> para confirmar o <strong>no</strong> para cancelar.' };
+        }
+
+        try {
+          const data = wizard.data;
+          const payload = {
+            servicio: data.service._id,
+            medico: data.doctor._id,
+            fecha: data.fecha,
+            hora: data.hora,
+            fechaHoraReserva: `${data.fecha}T${data.hora}:00`,
+          };
+          await createBooking(payload);
+
+          const refreshed = await getBookings({ page: 1, limit: 5 });
+          const bookings = refreshed?.data?.bookings || [];
+          setRuntimeData((prev) => ({ ...prev, bookings }));
+
+          contextoRef.current = { ...currentContext, pendingAction: null };
+          persistirContexto(contextoRef.current);
+
+          return {
+            handled: true,
+            text: `✅ Turno creado correctamente.<br><br><strong>${data.service.nombre}</strong> con ${data.doctor.nombre || data.doctor.name}<br>📅 ${data.fecha} ${data.hora}`,
+          };
+        } catch (error) {
+          return {
+            handled: true,
+            text: `No pude crear el turno. ${escapeHtml(error?.response?.data?.message || 'Revisá disponibilidad e intentá nuevamente.')}`,
+          };
+        }
+      }
+    }
+
     if (currentContext.pendingAction?.type === 'confirm_cancel_latest') {
       if (esAfirmacion(m)) {
         const booking = currentContext.pendingAction.booking;
@@ -1388,13 +1570,43 @@ export default function Chatbot() {
       };
     }
 
+    if (/\b(sacar|crear|agendar|reservar)\b/.test(m) && /\b(turno|cita|reserva)\b/.test(m) && contextoRef.current.usuarioTipo === 'paciente') {
+      const serviceOptions = (runtimeData.services || []).slice(0, 10);
+      if (serviceOptions.length === 0) {
+        return {
+          handled: true,
+          text: 'No pude cargar servicios en este momento. Intentá nuevamente en unos segundos.',
+        };
+      }
+
+      contextoRef.current = {
+        ...currentContext,
+        pendingAction: {
+          type: 'booking_wizard',
+          step: 'service',
+          options: serviceOptions,
+          data: {},
+        },
+      };
+      persistirContexto(contextoRef.current);
+
+      const servicesList = serviceOptions
+        .map((s, i) => `${i + 1}. ${s.nombre} (${s.duracion || 30} min)`)
+        .join('<br>');
+
+      return {
+        handled: true,
+        text: `Vamos a crear tu turno paso a paso.<br><br>Elegí el servicio:<br>${servicesList}<br><br>Respondé con número o nombre.`,
+      };
+    }
+
     const parsed = extraerDatosReserva(text, runtimeData);
     if (!parsed?.isIntent) return { handled: false };
 
     if (parsed.missing.length > 0) {
       return {
         handled: true,
-        text: `Para crear el turno me faltan: <strong>${parsed.missing.join(', ')}</strong>.<br><br>Formato sugerido:<br><strong>crear turno servicio: Consulta Neurológica, médico: Nicolas Peralta, fecha: 2026-04-10, hora: 14:00</strong>`,
+        text: `Para crear el turno me faltan: <strong>${parsed.missing.join(', ')}</strong>.<br><br>Podés seguir en formato libre, o escribir <strong>"quiero sacar turno"</strong> y te guío paso a paso.`,
       };
     }
 
