@@ -66,16 +66,30 @@ exports.rateColleague = async (req, res) => {
     if (Array.isArray(ratings) && ratings.length > 0) {
       const normalizedRatings = ratings
         .map((item) => {
+          // Validar categoría
           const safeCategoria = CATEGORIAS.some((c) => c.key === item?.categoria)
             ? item.categoria
             : null;
-          const safeStars = parseInt(item?.stars, 10);
+          
+          // Validar estrellas: convertir a número de forma segura
+          let safeStars = null;
+          if (typeof item?.stars === 'number') {
+            safeStars = item.stars;
+          } else if (typeof item?.stars === 'string') {
+            safeStars = parseInt(item.stars, 10);
+          }
+          
+          // Validar que sea número válido entre 1-5
+          if (typeof safeStars !== 'number' || isNaN(safeStars) || safeStars < 1 || safeStars > 5) {
+            safeStars = null;
+          }
+          
           return {
             categoria: safeCategoria,
             stars: safeStars,
           };
         })
-        .filter((item) => item.categoria && item.stars >= 1 && item.stars <= 5);
+        .filter((item) => item.categoria !== null && item.stars !== null);
 
       if (!normalizedRatings.length) {
         return res.status(400).json({ message: 'Debes enviar al menos una categoria valida con estrellas entre 1 y 5' });
