@@ -42,10 +42,41 @@ const SUPPORT_INFO = {
   operacion: {
     title: 'Operacion de soporte',
     summary:
-      'Gestiona incidentes, monitoreo y continuidad del servicio clinico.',
+      'Centraliza el control diario del soporte clinico para sostener disponibilidad y continuidad asistencial.',
     points: [
-      'Escalamiento por niveles L1-L3.',
-      'Priorizacion segun impacto clinico.',
+      'Coordinacion de incidentes, cambios y seguimiento de casos activos.',
+      'Escalamiento claro por niveles L1-L3 con foco en impacto clinico.',
+      'Monitoreo continuo de cumplimiento SLA y satisfaccion de usuarios internos.',
+    ],
+  },
+  analitica: {
+    title: 'Analitica avanzada y alertas',
+    summary:
+      'Resume indicadores clave para detectar desvíos operativos y actuar antes de que afecten la atencion.',
+    points: [
+      'Visualiza backlog, criticidad y carga operativa en tiempo real.',
+      'Detecta alertas tempranas para priorizar acciones del equipo.',
+      'Facilita decisiones con datos para mejorar capacidad y respuesta.',
+    ],
+  },
+  censo: {
+    title: 'Censo operativo de camas',
+    summary:
+      'Permite mantener actualizado el estado de camas y coordinar disponibilidad por sector clinico.',
+    points: [
+      'Registro rapido de camas nuevas y cambios de estado.',
+      'Visibilidad de ocupacion para admision, enfermeria y guardia.',
+      'Trazabilidad de la ultima actualizacion por usuario.',
+    ],
+  },
+  conocimiento: {
+    title: 'Base de conocimiento versionada',
+    summary:
+      'Documenta procedimientos reutilizables y conserva historial de versiones para respuestas consistentes.',
+    points: [
+      'Estandariza soluciones frecuentes con articulos versionados.',
+      'Reduce tiempos de resolucion y dependencias personales.',
+      'Conserva continuidad operativa ante cambios de equipo o turnos.',
     ],
   },
   tickets: {
@@ -159,9 +190,10 @@ export default function Soporte() {
         <button
           type="button"
           className={styles.infoBtn}
+          aria-expanded={isOpen}
           onClick={() => setOpenInfoTab((prev) => (prev === tabKey ? null : tabKey))}
         >
-          Informacion
+          {isOpen ? 'Ocultar informacion' : 'Ver informacion'}
         </button>
 
         {isOpen ? (
@@ -510,6 +542,7 @@ export default function Soporte() {
 
       <section className={styles.card}>
         <h2>Analitica avanzada y alertas</h2>
+        {renderInfoBlock('analitica')}
         <div className={styles.metricsGrid}>
           <article className={styles.metricCard}><span>Backlog abierto</span><strong>{advancedMetrics.kpis?.abiertos ?? 0}</strong></article>
           <article className={styles.metricCard}><span>Criticos abiertos</span><strong>{advancedMetrics.kpis?.criticosAbiertos ?? 0}</strong></article>
@@ -529,6 +562,7 @@ export default function Soporte() {
 
       <section className={styles.card}>
         <h2>Censo operativo de camas</h2>
+        {renderInfoBlock('censo')}
         <p className={styles.note}>
           Total: {bedCensus.metrics?.total || 0} | Libre: {bedCensus.metrics?.byEstado?.libre || 0} | Ocupada: {bedCensus.metrics?.byEstado?.ocupada || 0}
         </p>
@@ -584,6 +618,7 @@ export default function Soporte() {
 
       <section className={styles.card}>
         <h2>Base de conocimiento versionada</h2>
+        {renderInfoBlock('conocimiento')}
         <form onSubmit={handleSaveKnowledge} className={styles.formCol}>
           <div className={styles.filtersRow}>
             <input className={styles.input} placeholder="Codigo (ej: incidente-login)" value={knowledgeForm.codigo} onChange={(e) => setKnowledgeForm((p) => ({ ...p, codigo: e.target.value }))} required />
