@@ -272,6 +272,95 @@
   color: #154870;
 }
 
+.ratingCard {
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: #fbfdff;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.ratingCardHeader {
+  background: #f0f6fc;
+  border-bottom: 1px solid #cde2f0;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ratingCardHeader strong {
+  color: #154870;
+  font-size: 14px;
+}
+
+.ratingCardHeader span {
+  color: #7a8e9f;
+  margin: 0 6px;
+}
+
+.ratingCardBody {
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.ratingCategoryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eef5fc;
+  font-size: 13px;
+}
+
+.ratingCategoryRow:last-of-type {
+  border-bottom: none;
+}
+
+.ratingCategoryLabel {
+  color: #2c4a68;
+  font-weight: 500;
+}
+
+.ratingStars {
+  color: #f59e0b;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.ratingComment {
+  background: #fef9f3;
+  border-left: 3px solid #fcd34d;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.ratingComment strong {
+  color: #78350f;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ratingComment p {
+  color: #92400e;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ratingCardFooter {
+  border-top: 1px solid #eef5fc;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background: #f9fbfd;
+  font-size: 13px;
+}
+
 .rowEnd {
   display: flex;
   align-items: center;
@@ -414,5 +503,20 @@
 
   .categoryAvgGrid {
     grid-template-columns: 1fr;
+  }
+
+  .ratingCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ratingCategoryRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .ratingStars {
+    align-self: flex-start;
   }
 }

@@ -958,21 +958,64 @@ export default function Soporte() {
               </div>
             ))}
           </div>
-          <div className={styles.listWrap}>
-            {Array.isArray(ratingSummary.ratings) && ratingSummary.ratings.length > 0 ? ratingSummary.ratings.map((r) => (
-              <div key={r._id} className={styles.item}>
-                <div className={styles.itemTitle}>
-                  {'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)} — {CATEGORIAS_LABEL[r.categoria] || r.categoria}
-                </div>
-                <div>{r.authorUser?.nombre || 'Colega'}</div>
-                {r.comentario && <div className={styles.metaMini}>{r.comentario}</div>}
-                <div className={styles.rowEnd}>
-                  <small>{new Date(r.createdAt).toLocaleDateString()}</small>
-                  <button className={styles.linkBtn} onClick={() => handleDeleteRating(r._id)}>Eliminar</button>
-                </div>
-              </div>
-            )) : <p>No hay valoraciones aún para este colega.</p>}
-          </div>
+          
+          {Array.isArray(ratingSummary.ratings) && ratingSummary.ratings.length > 0 ? (
+            <div className={styles.listWrap}>
+              {(() => {
+                // Agrupar ratings por autor
+                const grouped = {};
+                ratingSummary.ratings.forEach((r) => {
+                  const authorId = r.authorUser?._id || 'unknown';
+                  if (!grouped[authorId]) {
+                    grouped[authorId] = {
+                      author: r.authorUser,
+                      ratings: [],
+                      createdAt: r.createdAt,
+                    };
+                  }
+                  grouped[authorId].ratings.push(r);
+                });
+
+                return Object.values(grouped).map((group) => (
+                  <div key={group.author?._id} className={styles.ratingCard}>
+                    <div className={styles.ratingCardHeader}>
+                      <div>
+                        <strong>{group.author?.nombre || 'Colega'}</strong>
+                        <p className={styles.metaMini}>{new Date(group.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div className={styles.ratingCardBody}>
+                      {group.ratings.map((r) => (
+                        <div key={r._id} className={styles.ratingCategoryRow}>
+                          <span className={styles.ratingCategoryLabel}>{CATEGORIAS_LABEL[r.categoria] || r.categoria}</span>
+                          <span className={styles.ratingStars}>{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</span>
+                        </div>
+                      ))}
+                      
+                      {group.ratings.some((r) => r.comentario) && (
+                        <div className={styles.ratingComment}>
+                          <strong>Comentario:</strong>
+                          <p>{group.ratings.find((r) => r.comentario)?.comentario}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className={styles.ratingCardFooter}>
+                      <button 
+                        className={styles.linkBtn} 
+                        onClick={() => group.ratings.forEach((r) => handleDeleteRating(r._id))}
+                      >
+                        Eliminar valoración
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          ) : (
+            <p>No hay valoraciones aún para este colega.</p>
+          )}
         </article>
       </section>
 
@@ -988,32 +1031,58 @@ export default function Soporte() {
             <option value="desempeno_general">Desempeño general</option>
           </select>
         </div>
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>De</th>
-                <th>Para</th>
-                <th>Categoría</th>
-                <th>Estrellas</th>
-                <th>Comentario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formalFeedbackRecords.map((record) => (
-                <tr key={record._id}>
-                  <td>{new Date(record.createdAt).toLocaleDateString()}</td>
-                  <td>{record.authorUser?.nombre || '-'}</td>
-                  <td>{record.targetUser?.nombre || '-'}</td>
-                  <td>{CATEGORIAS_LABEL[record.categoria] || record.categoria || '-'}</td>
-                  <td>{'★'.repeat(record.stars)}{'☆'.repeat(5 - record.stars)}</td>
-                  <td>{record.comentario || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {formalFeedbackRecords.length > 0 ? (
+          <div className={styles.listWrap}>
+            {(() => {
+              // Agrupar por (authorUser, targetUser, createdAt)
+              const grouped = {};
+              formalFeedbackRecords.forEach((record) => {
+                const key = `${record.authorUser?._id}-${record.targetUser?._id}-${new Date(record.createdAt).toLocaleDateString()}`;
+                if (!grouped[key]) {
+                  grouped[key] = {
+                    author: record.authorUser,
+                    target: record.targetUser,
+                    ratings: [],
+                    createdAt: record.createdAt,
+                  };
+                }
+                grouped[key].ratings.push(record);
+              });
+
+              return Object.values(grouped).map((group, idx) => (
+                <div key={idx} className={styles.ratingCard}>
+                  <div className={styles.ratingCardHeader}>
+                    <div>
+                      <strong>{group.author?.nombre || '-'}</strong>
+                      <span>{' → '}</span>
+                      <strong>{group.target?.nombre || '-'}</strong>
+                      <p className={styles.metaMini}>{new Date(group.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.ratingCardBody}>
+                    {group.ratings.map((r) => (
+                      <div key={r._id} className={styles.ratingCategoryRow}>
+                        <span className={styles.ratingCategoryLabel}>{CATEGORIAS_LABEL[r.categoria] || r.categoria}</span>
+                        <span className={styles.ratingStars}>{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</span>
+                      </div>
+                    ))}
+                    
+                    {group.ratings.some((r) => r.comentario) && (
+                      <div className={styles.ratingComment}>
+                        <strong>Comentario:</strong>
+                        <p>{group.ratings.find((r) => r.comentario)?.comentario}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        ) : (
+          <p>No hay valoraciones registradas.</p>
+        )}
       </section>
     </>
   );
