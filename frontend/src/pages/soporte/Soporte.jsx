@@ -172,6 +172,7 @@ export default function Soporte() {
   const [ticketForm, setTicketForm] = useState(initialTicketForm);
   const [ticketFilter, setTicketFilter] = useState({ criticidad: '', estado: '', soporteNivel: '', q: '' });
   const [obraSocialForm, setObraSocialForm] = useState(initialObraSocialForm);
+  const [obraSocialFilter, setObraSocialFilter] = useState({ q: '', estado: '', desde: '', hasta: '' });
 
   const [users, setUsers] = useState([]);
   const [staffDirectory, setStaffDirectory] = useState([]);
@@ -197,10 +198,32 @@ export default function Soporte() {
 
   const staffUsers = useMemo(() => staffDirectory.filter((u) => u.rol !== 'paciente'), [staffDirectory]);
   const targetUser = useMemo(() => staffDirectory.find((u) => u._id === targetUserId), [staffDirectory, targetUserId]);
-  const obraSocialRequests = useMemo(
-    () => tickets.filter((t) => t.tipoGestion === 'obra_social').slice(0, 10),
-    [tickets],
-  );
+  const obraSocialRequests = useMemo(() => {
+    const query = String(obraSocialFilter.q || '').trim().toLowerCase();
+    const desdeTs = obraSocialFilter.desde ? new Date(`${obraSocialFilter.desde}T00:00:00`).getTime() : null;
+    const hastaTs = obraSocialFilter.hasta ? new Date(`${obraSocialFilter.hasta}T23:59:59`).getTime() : null;
+
+    return tickets
+      .filter((t) => t.tipoGestion === 'obra_social')
+      .filter((t) => (obraSocialFilter.estado ? t.estado === obraSocialFilter.estado : true))
+      .filter((t) => {
+        if (!query) return true;
+        const haystack = [
+          t.titulo,
+          t.descripcion,
+          t.codigo,
+          Array.isArray(t.tags) ? t.tags.join(' ') : '',
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      })
+      .filter((t) => {
+        const createdTs = new Date(t.createdAt).getTime();
+        if (desdeTs && createdTs < desdeTs) return false;
+        if (hastaTs && createdTs > hastaTs) return false;
+        return true;
+      })
+      .slice(0, 30);
+  }, [tickets, obraSocialFilter]);
 
   const renderInfoBlock = (tabKey) => {
     const config = SUPPORT_INFO[tabKey];
@@ -744,8 +767,37 @@ export default function Soporte() {
           <button type="submit" className={styles.primaryBtn} disabled={!isAdminRole(role)}>Registrar solicitud</button>
         </form>
 
+        <div className={styles.filtersRow}>
+          <input
+            className={styles.input}
+            placeholder="Filtrar por obra social / codigo / texto"
+            value={obraSocialFilter.q}
+            onChange={(e) => setObraSocialFilter((p) => ({ ...p, q: e.target.value }))}
+          />
+          <select
+            className={styles.select}
+            value={obraSocialFilter.estado}
+            onChange={(e) => setObraSocialFilter((p) => ({ ...p, estado: e.target.value }))}
+          >
+            <option value="">Todos los estados</option>
+            {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <input
+            type="date"
+            className={styles.input}
+            value={obraSocialFilter.desde}
+            onChange={(e) => setObraSocialFilter((p) => ({ ...p, desde: e.target.value }))}
+          />
+          <input
+            type="date"
+            className={styles.input}
+            value={obraSocialFilter.hasta}
+            onChange={(e) => setObraSocialFilter((p) => ({ ...p, hasta: e.target.value }))}
+          />
+        </div>
+
         <div className={styles.listWrap}>
-          {obraSocialRequests.length === 0 ? <p>Aun no hay solicitudes con obra social registradas.</p> : obraSocialRequests.map((req) => (
+          {obraSocialRequests.length === 0 ? <p>No hay solicitudes con obra social para los filtros aplicados.</p> : obraSocialRequests.map((req) => (
             <div key={req._id} className={styles.item}>
               <div className={styles.itemTitle}>{req.titulo}</div>
               <div className={styles.metaMini}>Codigo: {req.codigo} | Estado: {req.estado} | Criticidad: {req.criticidad}</div>
