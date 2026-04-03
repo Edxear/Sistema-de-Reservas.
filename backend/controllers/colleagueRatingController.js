@@ -24,7 +24,9 @@ exports.getFeedbackFramework = async (_req, res) => {
 
 exports.getStaffDirectory = async (req, res) => {
   try {
-    const actorRole = req.user?.rol;
+    const actorId = getAuthUserId(req);
+    const actor = await User.findById(actorId).select('rol');
+    const actorRole = String(actor?.rol || req.user?.rol || '').toLowerCase();
     if (!STAFF_ROLES.includes(actorRole)) {
       return res.status(403).json({ message: 'No tienes permiso para ver colegas internos' });
     }

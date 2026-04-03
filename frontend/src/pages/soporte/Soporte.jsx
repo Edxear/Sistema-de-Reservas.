@@ -313,7 +313,17 @@ export default function Soporte() {
         setTargetUserId(staff[0]._id);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'No se pudo cargar el personal');
+      try {
+        const fallback = await getSupportUsers();
+        const fallbackParsed = Array.isArray(fallback) ? fallback : [];
+        const fallbackStaff = fallbackParsed.filter((u) => u.rol !== 'paciente');
+        setStaffDirectory(fallbackStaff);
+        if (!targetUserId && fallbackStaff.length) {
+          setTargetUserId(fallbackStaff[0]._id);
+        }
+      } catch {
+        toast.error(error.response?.data?.message || 'No se pudo cargar el personal');
+      }
     }
   };
 
