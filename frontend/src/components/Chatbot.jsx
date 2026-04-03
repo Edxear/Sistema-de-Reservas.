@@ -827,7 +827,9 @@ Si querés, te indico paso a paso cómo sacar ese turno ahora mismo.`,
 
   if (/\b(ayuda|funciones|opciones|que puedes|que haces|menu|comandos)\b/.test(m))
     return {
-      text: contextoActual.perfilTecnico ? mostrarAyudaTecnica(contextoActual.perfilTecnico) : mostrarAyuda(),
+      text: contextoActual.perfilTecnico
+        ? mostrarAyudaTecnica(contextoActual.perfilTecnico)
+        : mostrarAyuda({ mostrarModoTecnico: contextoActual.usuarioTipo !== 'paciente' }),
       nextContext: contextoActual,
     };
 
@@ -1167,7 +1169,16 @@ Podés pedirme ayuda técnica específica, por ejemplo:<br>
 • "cómo estructurar una evolución clínica clara"`;
 }
 
-function mostrarAyuda() {
+function mostrarAyuda({ mostrarModoTecnico = false } = {}) {
+  const bloqueModoTecnico = mostrarModoTecnico
+    ? `<strong>👨‍⚕️ MODO TÉCNICO:</strong><br>
+• "modo medico"<br>
+• "modo enfermeria"<br>
+• "modo secretaria"<br>
+• "modo admin"<br>
+• "salir modo tecnico"<br><br>`
+    : '';
+
   return `🤖 <strong>¿Qué puedo hacer por vos?</strong><br><br>
 <strong>📅 TURNOS:</strong><br>
 • "Turnos" — Cómo sacar, modificar o cancelar<br>
@@ -1197,12 +1208,7 @@ Si tenés un error, escribí:<br>
 • "Soporte: error al crear receta"<br>
 • "Soporte: no aparecen turnos"<br><br>
 Te voy a pedir los datos clave para resolverlo más rápido.<br><br>
-<strong>👨‍⚕️ MODO TÉCNICO:</strong><br>
-• "modo medico"<br>
-• "modo enfermeria"<br>
-• "modo secretaria"<br>
-• "modo admin"<br>
-• "salir modo tecnico"<br><br>
+${bloqueModoTecnico}
 ¿Con qué querés empezar?`;
 }
 
