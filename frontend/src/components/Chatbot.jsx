@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { ROLE, normalizeRole } from '../utils/roles';
 import { getDoctors } from '../services/appointmentService';
 import { getServices } from '../services/serviceService';
-import { getBookings } from '../services/bookingService';
+import { getBookings, createBooking, deleteBooking } from '../services/bookingService';
 
 const CONTEXTO_STORAGE_KEY = 'integrabot-context-v1';
 
@@ -219,6 +219,75 @@ function detectarIntencionAproximada(msgNormalizado = '') {
 
   const regla = reglas.find((r) => r.test.test(msgNormalizado));
   return regla ? regla.key : null;
+}
+
+function inferirServicioPorEspecialidad(doctor, services = []) {
+  const especialidad = normalizar(doctor?.especialidad || '');
+  const reglas = [
+    { key: 'neurolog', servicio: 'neurolog' },
+    { key: 'traumatolog', servicio: 'traumatolog' },
+    { key: 'pediatr', servicio: 'pediatr' },
+    { key: 'clinica medica', servicio: 'clinica general' },
+  ];
+
+  const regla = reglas.find((r) => especialidad.includes(r.key));
+  if (regla) {
+    const match = services.find((s) => normalizar(s.nombre || '').includes(regla.servicio));
+    if (match) return match;
+  }
+
+  return services.find((s) => normalizar(s.nombre || '').includes('seguimiento')) || services[0] || null;
+}
+
+function extraerDatosReserva(mensajeOriginal = '', runtimeData = {}) {
+  const normalized = normalizar(mensajeOriginal);
+  const isIntent = /\b(crear|agendar|reservar|sacar|nuevo)\b/.test(normalized) && /\b(turno|cita|reserva)\b/.test(normalized);
+  if (!isIntent) return null;
+
+  const doctors = runtimeData.doctors || [];
+  const services = runtimeData.services || [];
+
+  const fechaMatch = mensajeOriginal.match(/\b\d{4}-\d{2}-\d{2}\b/);
+  const horaMatch = mensajeOriginal.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+
+  const doctor = doctors.find((d) => {
+    const n = normalizar(`${d.nombre || d.name || ''} ${d.especialidad || d.specialty || ''}`);
+    return n.split(' ').some((token) => token.length > 3 && normalized.includes(token));
+  }) || null;
+
+  let service = services.find((s) => {
+    const n = normalizar(s.nombre || '');
+    return n.split(' ').some((token) => token.length > 4 && normalized.includes(token));
+  }) || null;
+
+  if (!service && doctor) {
+    service = inferirServicioPorEspecialidad(doctor, services);
+  }
+
+  const missing = [];
+  if (!service) missing.push('servicio');
+  if (!doctor) missing.push('medico');
+  if (!fechaMatch) missing.push('fecha(YYYY-MM-DD)');
+  if (!horaMatch) missing.push('hora(HH:mm)');
+
+  return {
+    isIntent,
+    service,
+    doctor,
+    fecha: fechaMatch ? fechaMatch[0] : null,
+    hora: horaMatch ? `${horaMatch[1].padStart(2, '0')}:${horaMatch[2]}` : null,
+    missing,
+  };
+}
+
+function obtenerTurnoCancelable(bookings = []) {
+  const activos = ['pendiente', 'confirmada', 'reprogramada'];
+  const list = (bookings || []).filter((b) => activos.includes((b.estado || '').toLowerCase()));
+  if (list.length === 0) return null;
+
+  return list
+    .map((b) => ({ ...b, fechaHora: new Date(`${new Date(b.fecha).toISOString().slice(0, 10)}T${b.hora || '00:00'}:00`) }))
+    .sort((a, b) => a.fechaHora - b.fechaHora)[0];
 }
 
 function formatearHorarios(horarios = []) {
@@ -1260,6 +1329,101 @@ export default function Chatbot() {
     });
   };
 
+  const manejarAccionesDeTurno = useCallback(async (text) => {
+    const m = normalizar(text);
+    const currentContext = contextoRef.current;
+
+    if (currentContext.pendingAction?.type === 'confirm_cancel_latest') {
+      if (esAfirmacion(m)) {
+        const booking = currentContext.pendingAction.booking;
+        try {
+          await deleteBooking(booking._id);
+          const refreshed = await getBookings({ page: 1, limit: 5 });
+          const bookings = refreshed?.data?.bookings || [];
+          setRuntimeData((prev) => ({ ...prev, bookings }));
+
+          contextoRef.current = { ...currentContext, pendingAction: null };
+          persistirContexto(contextoRef.current);
+
+          return {
+            handled: true,
+            text: `✅ Turno cancelado correctamente.<br><br>Servicio: <strong>${booking.servicio?.nombre || 'Servicio'}</strong><br>Profesional: <strong>${booking.medico?.nombre || 'Profesional'}</strong><br>Fecha: ${new Date(booking.fecha).toLocaleDateString('es-AR')} ${booking.hora || ''}`,
+          };
+        } catch (error) {
+          return {
+            handled: true,
+            text: `No pude cancelar el turno en este momento. ${escapeHtml(error?.response?.data?.message || 'Intentá nuevamente en unos minutos.')}`,
+          };
+        }
+      }
+
+      if (esNegacion(m)) {
+        contextoRef.current = { ...currentContext, pendingAction: null };
+        persistirContexto(contextoRef.current);
+        return { handled: true, text: 'Perfecto, mantengo tu turno sin cambios.' };
+      }
+    }
+
+    if (/\b(cancelar|eliminar|dar de baja)\b/.test(m) && /\b(turno|reserva|cita)\b/.test(m)) {
+      const target = obtenerTurnoCancelable(runtimeData.bookings || []);
+      if (!target) {
+        return {
+          handled: true,
+          text: 'No encontré turnos activos para cancelar. Si querés, puedo ayudarte a crear uno nuevo.',
+        };
+      }
+
+      contextoRef.current = {
+        ...currentContext,
+        pendingAction: {
+          type: 'confirm_cancel_latest',
+          booking: target,
+        },
+      };
+      persistirContexto(contextoRef.current);
+
+      return {
+        handled: true,
+        text: `¿Confirmás cancelar este turno?<br><br><strong>${target.servicio?.nombre || 'Servicio'}</strong> con ${target.medico?.nombre || 'Profesional'}<br>📅 ${new Date(target.fecha).toLocaleDateString('es-AR')} ${target.hora || ''}<br><br>Respondé <strong>si</strong> o <strong>no</strong>.`,
+      };
+    }
+
+    const parsed = extraerDatosReserva(text, runtimeData);
+    if (!parsed?.isIntent) return { handled: false };
+
+    if (parsed.missing.length > 0) {
+      return {
+        handled: true,
+        text: `Para crear el turno me faltan: <strong>${parsed.missing.join(', ')}</strong>.<br><br>Formato sugerido:<br><strong>crear turno servicio: Consulta Neurológica, médico: Nicolas Peralta, fecha: 2026-04-10, hora: 14:00</strong>`,
+      };
+    }
+
+    try {
+      const payload = {
+        servicio: parsed.service._id,
+        medico: parsed.doctor._id,
+        fecha: parsed.fecha,
+        hora: parsed.hora,
+        fechaHoraReserva: `${parsed.fecha}T${parsed.hora}:00`,
+      };
+
+      const created = await createBooking(payload);
+      const refreshed = await getBookings({ page: 1, limit: 5 });
+      const bookings = refreshed?.data?.bookings || [];
+      setRuntimeData((prev) => ({ ...prev, bookings }));
+
+      return {
+        handled: true,
+        text: `✅ Turno creado correctamente.<br><br><strong>Servicio:</strong> ${parsed.service.nombre}<br><strong>Profesional:</strong> ${parsed.doctor.nombre || parsed.doctor.name}<br><strong>Fecha:</strong> ${parsed.fecha}<br><strong>Hora:</strong> ${parsed.hora}<br><br>ID de reserva: ${escapeHtml(created?.data?._id || created?._id || 'generado')}`,
+      };
+    } catch (error) {
+      return {
+        handled: true,
+        text: `No pude crear el turno. ${escapeHtml(error?.response?.data?.message || 'Revisá la disponibilidad de fecha/hora y volvé a intentar.')}`,
+      };
+    }
+  }, [runtimeData]);
+
   const enviarMensaje = useCallback((texto) => {
     const text = texto.trim();
     if (!text) return;
@@ -1269,7 +1433,14 @@ export default function Chatbot() {
     setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      const transaccional = await manejarAccionesDeTurno(text);
+      if (transaccional?.handled) {
+        setIsTyping(false);
+        setMessages((prev) => [...prev, { id: Date.now() + 1, text: transaccional.text, isBot: true }]);
+        return;
+      }
+
       const result = procesarMensaje(text, contextoRef.current, runtimeData);
       const botText = result.text;
       contextoRef.current = result.nextContext;
@@ -1277,7 +1448,7 @@ export default function Chatbot() {
       setIsTyping(false);
       setMessages((prev) => [...prev, { id: Date.now() + 1, text: botText, isBot: true }]);
     }, 650);
-  }, [runtimeData]);
+  }, [runtimeData, manejarAccionesDeTurno]);
 
   const handleSend = useCallback(() => {
     enviarMensaje(inputValue);
