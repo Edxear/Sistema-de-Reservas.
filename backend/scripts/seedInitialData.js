@@ -211,7 +211,9 @@ async function run() {
   await Promise.all([
     User.deleteMany({
       $or: [
-        { email: /@integraSalud\.com$/ },
+        { email: /@integrasalud\.com$/i },
+        { email: /@pacientes\.sanpablo\.com$/i },
+        { email: /@consultoriosanpablo\.com$/i },
         { email: /@medicloud\.demo$/ },
         { email: /@paciente\.demo$/ }
       ]

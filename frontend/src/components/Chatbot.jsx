@@ -1088,30 +1088,21 @@ function mostrarContacto() {
 
 function mostrarSoporteOperativo() {
   return `🛠️ <strong>Soporte IntegraSalud — Mesa de ayuda</strong><br><br>
-<strong>Canales de soporte:</strong><br>
-• 📧 Soporte técnico: <strong>soporte@integrasalud.com</strong><br>
-• 📧 Consulta general: <strong>contacto@integrasalud.com</strong><br>
-• 🏢 Soporte interno presencial: Secretaría (Recepción General)<br><br>
+<strong>Contacto:</strong><br>
+• 📧 Soporte: <strong>soporte@integrasalud.com</strong><br>
+• 📧 General: <strong>contacto@integrasalud.com</strong><br><br>
 
-<strong>¿Qué problemas podemos resolver?</strong><br>
-• Acceso/login, bloqueo de cuenta, recuperación de contraseña<br>
-• Errores en turnos, recetas, historia clínica o chat interno<br>
-• Carga o corrección de datos de pacientes y cobertura<br>
-• Dudas de permisos por rol (paciente, médico, enfermería, secretaría, admin)<br><br>
+<strong>Te ayudamos con:</strong><br>
+• Login/acceso<br>
+• Errores en turnos, recetas o historia clínica<br>
+• Problemas de permisos o datos<br><br>
 
-<strong>Para escalar más rápido tu ticket, enviá:</strong><br>
-1. Rol de usuario y correo de la cuenta<br>
-2. Módulo afectado (Turnos, HC, Recetas, etc.)<br>
-3. Hora aproximada y pasos para reproducir<br>
-4. Captura de pantalla del error<br><br>
+<strong>Para resolver rápido, enviá:</strong><br>
+1. Módulo afectado<br>
+2. Qué pasó y desde cuándo<br>
+3. Captura del error<br><br>
 
-<strong>Prioridad sugerida:</strong><br>
-• 🔴 Crítica: caída total o sin acceso clínico<br>
-• 🟠 Alta: bloquea operación diaria parcial<br>
-• 🟡 Media: existe workaround
-<br>• 🟢 Baja: mejora o consulta funcional<br><br>
-
-Si querés, te ayudo a redactar el mensaje de soporte con formato completo.`;
+Si querés, te genero ahora el ticket listo para copiar.`;
 }
 
 function mostrarRecomendacion() {
