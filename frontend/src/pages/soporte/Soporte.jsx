@@ -24,7 +24,7 @@ import {
   updateSupportTicket,
   updateSupportUser,
 } from '../../services/soporteService';
-import { canAccessSupport, canViewPrivateColleagueComments } from '../../utils/roles';
+import { canAccessSupport, canViewPrivateColleagueComments, isAdminRole } from '../../utils/roles';
 import styles from './Soporte.module.css';
 
 const TAB = {
@@ -147,6 +147,15 @@ const initialTicketForm = {
   requiresChangeValidation: false,
 };
 
+const initialObraSocialForm = {
+  obraSocial: '',
+  tipoSolicitud: 'autorizacion',
+  pacienteRef: '',
+  nroAfiliado: '',
+  descripcion: '',
+  criticidad: 'medio',
+};
+
 export default function Soporte() {
   const { user } = useAuth();
   const role = user?.rol;
@@ -162,6 +171,7 @@ export default function Soporte() {
   const [tickets, setTickets] = useState([]);
   const [ticketForm, setTicketForm] = useState(initialTicketForm);
   const [ticketFilter, setTicketFilter] = useState({ criticidad: '', estado: '', soporteNivel: '', q: '' });
+  const [obraSocialForm, setObraSocialForm] = useState(initialObraSocialForm);
 
   const [users, setUsers] = useState([]);
   const [staffDirectory, setStaffDirectory] = useState([]);
@@ -187,6 +197,10 @@ export default function Soporte() {
 
   const staffUsers = useMemo(() => staffDirectory.filter((u) => u.rol !== 'paciente'), [staffDirectory]);
   const targetUser = useMemo(() => staffDirectory.find((u) => u._id === targetUserId), [staffDirectory, targetUserId]);
+  const obraSocialRequests = useMemo(
+    () => tickets.filter((t) => t.tipoGestion === 'obra_social').slice(0, 10),
+    [tickets],
+  );
 
   const renderInfoBlock = (tabKey) => {
     const config = SUPPORT_INFO[tabKey];
@@ -480,6 +494,48 @@ export default function Soporte() {
     }
   };
 
+  const handleCreateObraSocialRequest = async (e) => {
+    e.preventDefault();
+    if (!isAdminRole(role)) {
+      toast.error('Solo administradores pueden registrar solicitudes con obra social');
+      return;
+    }
+    if (!obraSocialForm.obraSocial.trim() || !obraSocialForm.descripcion.trim()) {
+      toast.error('Completa obra social y descripcion para registrar la solicitud');
+      return;
+    }
+
+    try {
+      await createSupportTicket({
+        titulo: `Solicitud ${obraSocialForm.tipoSolicitud} - ${obraSocialForm.obraSocial.trim()}`,
+        descripcion: `${obraSocialForm.descripcion.trim()}${obraSocialForm.nroAfiliado?.trim() ? `\nAfiliado: ${obraSocialForm.nroAfiliado.trim()}` : ''}`,
+        criticidad: obraSocialForm.criticidad,
+        tipoGestion: 'obra_social',
+        soporteNivel: 'L2',
+        areaClinica: 'Gestion institucional',
+        modulo: 'Obra Social',
+        impactoClinico: obraSocialForm.pacienteRef?.trim() ? `Paciente referencia: ${obraSocialForm.pacienteRef.trim()}` : '',
+        solicitanteNombre: user?.nombre || '',
+        solicitanteRol: role || '',
+        solicitanteArea: 'Gestion',
+        requiresChangeValidation: false,
+        tags: [
+          'obra_social',
+          'interinstitucional',
+          obraSocialForm.tipoSolicitud,
+          obraSocialForm.obraSocial.trim().toLowerCase().replace(/\s+/g, '_'),
+        ],
+      });
+
+      setObraSocialForm(initialObraSocialForm);
+      toast.success('Solicitud con obra social registrada');
+      await loadTickets();
+      await loadMetrics();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo crear la solicitud con obra social');
+    }
+  };
+
   const handleDeleteUser = async (id) => {
     if (!window.confirm('Esta accion eliminara el usuario seleccionado. Deseas continuar?')) return;
     try {
@@ -555,6 +611,27 @@ export default function Soporte() {
     }
   };
 
+  const handleDeleteRatingGroup = async (groupRatings) => {
+    if (!isAdminRole(role)) {
+      toast.error('Solo administradores pueden eliminar valoraciones');
+      return;
+    }
+
+    const ids = (Array.isArray(groupRatings) ? groupRatings : []).map((r) => r?._id).filter(Boolean);
+    if (!ids.length) return;
+
+    if (!window.confirm('Se eliminara toda la valoracion agrupada. Deseas continuar?')) return;
+
+    try {
+      await Promise.all(ids.map((id) => deleteColleagueRating(id)));
+      toast.success('Valoracion eliminada');
+      await loadRatingSummary();
+      await loadFormalFeedbackRecords();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo eliminar la valoracion');
+    }
+  };
+
   const handleCreateBed = async (e) => {
     e.preventDefault();
     if (!bedForm.codigo.trim() || !bedForm.sector.trim()) return;
@@ -613,6 +690,70 @@ export default function Soporte() {
         <article className={styles.metricCard}><span>SLA respuesta</span><strong>{metrics?.responseSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>SLA resolucion</span><strong>{metrics?.resolutionSlaPct ?? 0}%</strong></article>
         <article className={styles.metricCard}><span>Satisfaccion</span><strong>{metrics?.avgSurvey ?? 0}/5</strong></article>
+      </section>
+
+      <section className={styles.card}>
+        <h2>Solicitudes institucionales con obra social</h2>
+        <p className={styles.note}>Apartado exclusivo para administracion: gestiona requerimientos entre la institucion y financiadores.</p>
+
+        <form onSubmit={handleCreateObraSocialRequest} className={styles.gridForm}>
+          <input
+            className={styles.input}
+            placeholder="Obra social (ej: IAPOS, PAMI, OSDE)"
+            value={obraSocialForm.obraSocial}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, obraSocial: e.target.value }))}
+            required
+          />
+          <select
+            className={styles.select}
+            value={obraSocialForm.tipoSolicitud}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, tipoSolicitud: e.target.value }))}
+          >
+            <option value="autorizacion">Autorizacion</option>
+            <option value="rechazo">Reconsideracion de rechazo</option>
+            <option value="auditoria">Auditoria / documentacion</option>
+            <option value="facturacion">Ajuste de facturacion</option>
+            <option value="prestacion">Alta o modificacion de prestacion</option>
+          </select>
+          <input
+            className={styles.input}
+            placeholder="Paciente referencia (opcional)"
+            value={obraSocialForm.pacienteRef}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, pacienteRef: e.target.value }))}
+          />
+          <input
+            className={styles.input}
+            placeholder="Nro afiliado (opcional)"
+            value={obraSocialForm.nroAfiliado}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, nroAfiliado: e.target.value }))}
+          />
+          <select
+            className={styles.select}
+            value={obraSocialForm.criticidad}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, criticidad: e.target.value }))}
+          >
+            {CRITICIDAD.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <textarea
+            className={styles.textarea}
+            placeholder="Detalle de la solicitud interinstitucional"
+            value={obraSocialForm.descripcion}
+            onChange={(e) => setObraSocialForm((p) => ({ ...p, descripcion: e.target.value }))}
+            required
+          />
+          <button type="submit" className={styles.primaryBtn} disabled={!isAdminRole(role)}>Registrar solicitud</button>
+        </form>
+
+        <div className={styles.listWrap}>
+          {obraSocialRequests.length === 0 ? <p>Aun no hay solicitudes con obra social registradas.</p> : obraSocialRequests.map((req) => (
+            <div key={req._id} className={styles.item}>
+              <div className={styles.itemTitle}>{req.titulo}</div>
+              <div className={styles.metaMini}>Codigo: {req.codigo} | Estado: {req.estado} | Criticidad: {req.criticidad}</div>
+              <div>{req.descripcion}</div>
+              <div className={styles.metaMini}>Creado: {new Date(req.createdAt).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className={styles.card}>
@@ -1001,14 +1142,16 @@ export default function Soporte() {
                       )}
                     </div>
                     
-                    <div className={styles.ratingCardFooter}>
-                      <button 
-                        className={styles.linkBtn} 
-                        onClick={() => group.ratings.forEach((r) => handleDeleteRating(r._id))}
-                      >
-                        Eliminar valoración
-                      </button>
-                    </div>
+                    {isAdminRole(role) ? (
+                      <div className={styles.ratingCardFooter}>
+                        <button
+                          className={styles.linkBtn}
+                          onClick={() => handleDeleteRatingGroup(group.ratings)}
+                        >
+                          Eliminar valoración
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ));
               })()}

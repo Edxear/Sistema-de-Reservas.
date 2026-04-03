@@ -17,6 +17,6 @@ router.get('/staff-directory', auth, admin, getStaffDirectory);
 router.get('/records', auth, listFormalFeedback);
 router.get('/user/:userId/summary', auth, getColleagueRatingSummary);
 router.post('/user/:userId', auth, rateColleague);
-router.delete('/:ratingId', auth, deleteColleagueRating);
+router.delete('/:ratingId', auth, admin, deleteColleagueRating);
 
 module.exports = router;

@@ -28,7 +28,7 @@ const inferRouting = ({ criticidad, tipoGestion, modulo }) => {
     return { recommendedLevel: 'L3', confidence: 0.92, routingReason: 'Criticidad critica con potencial impacto asistencial' };
   }
 
-  if (['seguridad', 'continuidad', 'backup'].includes(tipoGestion)) {
+  if (['seguridad', 'continuidad', 'backup', 'obra_social'].includes(tipoGestion)) {
     return { recommendedLevel: 'L2', confidence: 0.82, routingReason: 'Tipo de gestion requiere atencion especializada' };
   }
 

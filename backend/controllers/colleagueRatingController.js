@@ -296,18 +296,15 @@ exports.listFormalFeedback = async (req, res) => {
 exports.deleteColleagueRating = async (req, res) => {
   try {
     const ratingId = req.params.ratingId;
-    const actorId = getAuthUserId(req);
     const actorRole = req.user?.rol;
+
+    if (!ADMIN_VIEW_ROLES.includes(actorRole)) {
+      return res.status(403).json({ message: 'Solo administradores pueden eliminar valoraciones' });
+    }
 
     const rating = await ColleagueRating.findById(ratingId);
     if (!rating) {
       return res.status(404).json({ message: 'Valoracion no encontrada' });
-    }
-
-    const isOwner = String(rating.authorUser) === String(actorId);
-    const canAdmin = ADMIN_VIEW_ROLES.includes(actorRole);
-    if (!isOwner && !canAdmin) {
-      return res.status(403).json({ message: 'No autorizado para eliminar esta valoracion' });
     }
 
     await ColleagueRating.deleteOne({ _id: ratingId });

@@ -14,7 +14,7 @@ const supportTicketSchema = new mongoose.Schema({
   descripcion: { type: String, required: true, trim: true, maxlength: 4000 },
   tipoGestion: {
     type: String,
-    enum: ['incidente', 'cambio', 'problema', 'seguridad', 'backup', 'capacitacion', 'continuidad', 'identidad'],
+    enum: ['incidente', 'cambio', 'problema', 'seguridad', 'backup', 'capacitacion', 'continuidad', 'identidad', 'obra_social'],
     default: 'incidente',
   },
   criticidad: { type: String, enum: ['critico', 'alto', 'medio', 'bajo'], default: 'medio' },
