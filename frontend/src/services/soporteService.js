@@ -30,6 +30,11 @@ export const getColleagueRatingSummary = async (targetUserId) => {
   return res.data;
 };
 
+export const getStaffDirectory = async () => {
+  const res = await API.get('/colleague-ratings/staff-directory');
+  return res.data;
+};
+
 export const submitColleagueRating = async (targetUserId, payload) => {
   const res = await API.post(`/colleague-ratings/user/${targetUserId}`, payload);
   return res.data;

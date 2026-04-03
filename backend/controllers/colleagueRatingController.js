@@ -22,6 +22,23 @@ exports.getFeedbackFramework = async (_req, res) => {
   });
 };
 
+exports.getStaffDirectory = async (req, res) => {
+  try {
+    const actorRole = req.user?.rol;
+    if (!STAFF_ROLES.includes(actorRole)) {
+      return res.status(403).json({ message: 'No tienes permiso para ver colegas internos' });
+    }
+
+    const staff = await User.find({ rol: { $in: STAFF_ROLES } })
+      .select('_id nombre email rol telefono')
+      .sort({ nombre: 1 });
+
+    return res.json(staff);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error obteniendo directorio de colegas', error });
+  }
+};
+
 exports.rateColleague = async (req, res) => {
   try {
     const targetUserId = req.params.userId;

@@ -8,9 +8,11 @@ const {
   deleteColleagueRating,
   listFormalFeedback,
   getFeedbackFramework,
+  getStaffDirectory,
 } = require('../controllers/colleagueRatingController');
 
 router.get('/framework', auth, getFeedbackFramework);
+router.get('/staff-directory', auth, getStaffDirectory);
 router.get('/records', auth, listFormalFeedback);
 router.get('/user/:userId/summary', auth, getColleagueRatingSummary);
 router.post('/user/:userId', auth, rateColleague);

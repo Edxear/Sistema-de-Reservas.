@@ -8,6 +8,7 @@ import {
   deleteColleagueRating,
   deleteSupportUser,
   getColleagueRatingSummary,
+  getStaffDirectory,
   getPrivateComments,
   getSupportMetrics,
   getSupportAdvancedMetrics,
@@ -303,7 +304,7 @@ export default function Soporte() {
 
   const loadStaffDirectory = async () => {
     try {
-      const data = await getSupportUsers();
+      const data = await getStaffDirectory();
       const parsed = Array.isArray(data) ? data : [];
       const staff = parsed.filter((u) => u.rol !== 'paciente');
       setStaffDirectory(staff);
