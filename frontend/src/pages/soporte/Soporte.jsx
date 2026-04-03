@@ -163,6 +163,7 @@ export default function Soporte() {
   const [ticketFilter, setTicketFilter] = useState({ criticidad: '', estado: '', soporteNivel: '', q: '' });
 
   const [users, setUsers] = useState([]);
+  const [staffDirectory, setStaffDirectory] = useState([]);
   const [search, setSearch] = useState('');
   const [targetUserId, setTargetUserId] = useState('');
 
@@ -183,8 +184,8 @@ export default function Soporte() {
     desempeno_general: 'Desempeño general',
   };
 
-  const staffUsers = useMemo(() => users.filter((u) => u.rol !== 'paciente'), [users]);
-  const targetUser = useMemo(() => users.find((u) => u._id === targetUserId), [users, targetUserId]);
+  const staffUsers = useMemo(() => staffDirectory.filter((u) => u.rol !== 'paciente'), [staffDirectory]);
+  const targetUser = useMemo(() => staffDirectory.find((u) => u._id === targetUserId), [staffDirectory, targetUserId]);
 
   const renderInfoBlock = (tabKey) => {
     const config = SUPPORT_INFO[tabKey];
@@ -295,12 +296,23 @@ export default function Soporte() {
       const data = await getSupportUsers({ search });
       const parsed = Array.isArray(data) ? data : [];
       setUsers(parsed);
-      if (!targetUserId) {
-        const firstStaff = parsed.find((u) => u.rol !== 'paciente');
-        if (firstStaff) setTargetUserId(firstStaff._id);
-      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudieron cargar usuarios');
+    }
+  };
+
+  const loadStaffDirectory = async () => {
+    try {
+      const data = await getSupportUsers();
+      const parsed = Array.isArray(data) ? data : [];
+      const staff = parsed.filter((u) => u.rol !== 'paciente');
+      setStaffDirectory(staff);
+
+      if (!targetUserId && staff.length) {
+        setTargetUserId(staff[0]._id);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar el personal');
     }
   };
 
@@ -344,6 +356,7 @@ export default function Soporte() {
     loadMetrics();
     loadTickets();
     loadUsers();
+    loadStaffDirectory();
     loadFormalFeedbackRecords();
     loadBedCensus();
     loadKnowledgeArticles();
@@ -378,9 +391,21 @@ export default function Soporte() {
 
   useEffect(() => {
     if (activeTab === TAB.VALORACIONES || activeTab === TAB.COLEGAS) {
-      loadUsers();
+      loadStaffDirectory();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!staffUsers.length) {
+      if (targetUserId) setTargetUserId('');
+      return;
+    }
+
+    const exists = staffUsers.some((u) => u._id === targetUserId);
+    if (!exists) {
+      setTargetUserId(staffUsers[0]._id);
+    }
+  }, [staffUsers, targetUserId]);
 
   useEffect(() => {
     if (!Array.isArray(ratingSummary?.myRatings) || ratingSummary.myRatings.length === 0) {
@@ -450,6 +475,7 @@ export default function Soporte() {
       await deleteSupportUser(id);
       toast.success('Usuario eliminado');
       await loadUsers();
+      await loadStaffDirectory();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo eliminar usuario');
     }
@@ -460,6 +486,7 @@ export default function Soporte() {
       await updateSupportUser(id, { rol: nextRole });
       toast.success('Rol actualizado');
       await loadUsers();
+      await loadStaffDirectory();
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo actualizar rol');
     }
@@ -861,7 +888,7 @@ export default function Soporte() {
           <h3>Registrar valoración</h3>
           <form onSubmit={handleRating} className={styles.formCol}>
             <label className={styles.fieldLabel}>Seleccionar colega del personal</label>
-            <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
+            <select className={styles.select} value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)} disabled={!staffUsers.length}>
               <option value="">{staffUsers.length ? 'Seleccionar colega' : 'No hay personal cargado'}</option>
               {staffUsers.map((u) => <option key={u._id} value={u._id}>{u.nombre} — {u.rol}</option>)}
             </select>
