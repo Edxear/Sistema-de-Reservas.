@@ -23,3 +23,4 @@ export const canManageBookings = (role) => [ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SE
 export const canViewAdminMetrics = (role) => [ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA].includes(normalizeRole(role));
 export const canAccessSupport = (role) => [ROLE.ADMIN, ROLE.SUPERADMIN].includes(normalizeRole(role));
 export const canViewPrivateColleagueComments = (role) => [ROLE.ADMIN, ROLE.SUPERADMIN].includes(normalizeRole(role));
+export const canAccessNursingArea = (role) => [ROLE.ENFERMERO, ROLE.SUPERADMIN].includes(normalizeRole(role));

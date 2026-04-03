@@ -17,6 +17,8 @@ import HistoriaClinica from '../pages/clinico/HistoriaClinica';
 import Recetas from '../pages/clinico/Recetas';
 import Organigrama from '../pages/organizacion/Organigrama';
 import Soporte from '../pages/soporte/Soporte';
+import GestionObraSocial from '../pages/gestion/GestionObraSocial';
+import Enfermeria from '../pages/enfermeria/Enfermeria';
 
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -142,6 +144,22 @@ export default function AppRoutes() {
         element={(
           <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <Soporte />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/gestion/obra-social"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
+            <GestionObraSocial />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/enfermeria"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.ENFERMERO]}>
+            <Enfermeria />
           </ProtectedRoute>
         )}
       />

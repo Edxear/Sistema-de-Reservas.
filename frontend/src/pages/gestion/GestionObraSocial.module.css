@@ -1,0 +1,96 @@
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #d7e4f3;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.gridForm {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.input,
+.select,
+.textarea {
+  border: 1px solid #c7d8ea;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.textarea {
+  grid-column: span 3;
+  min-height: 90px;
+  resize: vertical;
+}
+
+.primaryBtn {
+  border: 0;
+  border-radius: 10px;
+  background: #104a78;
+  color: #fff;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.filters {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.listWrap {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 12px;
+}
+
+.itemTitle {
+  font-weight: 700;
+  color: #154870;
+}
+
+.meta {
+  margin-top: 4px;
+  color: #506980;
+  font-size: 13px;
+}
+
+@media (max-width: 1000px) {
+  .gridForm,
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .textarea {
+    grid-column: span 1;
+  }
+}
