@@ -10,6 +10,7 @@ const ENFERMERIA_RAMAS = [
   { nombre: 'Quirurgica', nivel: 'Alto', descripcion: 'Preparacion prequirurgica y recuperacion postoperatoria.' },
   { nombre: 'Pediatrica', nivel: 'Alto', descripcion: 'Atencion integral del nino con enfoque familiar.' },
   { nombre: 'Neonatologia', nivel: 'Critico', descripcion: 'Cuidados especializados para recien nacidos.' },
+  { nombre: 'Salud Mental', nivel: 'Alto', descripcion: 'Contencion, seguimiento interdisciplinario y abordaje de crisis.' },
   { nombre: 'Vacunatorio', nivel: 'Medio', descripcion: 'Campanas, calendario y control de inmunizaciones.' },
   { nombre: 'Control de Infecciones', nivel: 'Alto', descripcion: 'Protocolos, vigilancia y prevencion epidemiologica.' },
 ];

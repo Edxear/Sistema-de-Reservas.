@@ -166,6 +166,10 @@ function construirBioAdmin(especialidad = '') {
   return `${especialidad}. Medico con permisos administrativos.`;
 }
 
+function construirBioEnfermeria(rama = '') {
+  return rama ? `Enfermeria - Rama ${rama}. Perfil de ejemplo para pruebas iniciales.` : 'Enfermeria asistencial. Perfil de ejemplo para pruebas iniciales.';
+}
+
 function encontrarMedicoDisponible(fecha, medicosAdmins) {
   const diaSemana = obtenerDiaSemana(fecha);
   const medicosDisponibles = medicosAdmins.filter((medico) => {
@@ -285,6 +289,28 @@ async function run() {
     secretarias.push(secretaria);
   }
 
+  const enfermeros = [];
+  for (const enf of (seedUsers.enfermeros || [])) {
+    const asignacion = getAsignacionOrganigrama(enf.email);
+    const enfermero = await User.create({
+      nombre: enf.nombre,
+      email: String(enf.email || '').trim().toLowerCase(),
+      telefono: enf.telefono,
+      rol: 'enfermero',
+      password: SEED_INITIAL_PASSWORD,
+      especialidad: 'Enfermeria',
+      bio: construirBioEnfermeria(enf.ramaEnfermeria),
+      areaOrganigrama: asignacion?.areaOrganigrama || 'Enfermeria',
+      sectorOrganigrama: asignacion?.sectorOrganigrama || enf.ramaEnfermeria || 'Enfermeria General',
+      cargoOrganigrama: asignacion?.cargoOrganigrama || enf.cargoOrganigrama || 'Enfermero/a',
+      horariosAtencion: horariosPorEspecialidad.Enfermeria || [
+        { dia: 'Lunes', horaInicio: '08:00', horaFin: '12:00' },
+        { dia: 'Miercoles', horaInicio: '08:00', horaFin: '12:00' },
+      ],
+    });
+    enfermeros.push(enfermero);
+  }
+
   const pacientes = [];
   for (const p of seedUsers.pacientes) {
     const paciente = await User.create({
@@ -369,6 +395,7 @@ async function run() {
   console.log(`- Superadmin principal: ${principalSuperAdmin.email}`);
   console.log(`- Medicos administradores: ${medicosAdmins.length}`);
   console.log(`- Secretarias: ${secretarias.length}`);
+  console.log(`- Enfermeros: ${enfermeros.length}`);
   console.log(`- Pacientes: ${pacientes.length}`);
   console.log(`- Servicios: ${servicios.length}`);
   console.log(`- Turnos: ${conteoTurnos}`);

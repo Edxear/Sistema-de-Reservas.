@@ -96,6 +96,80 @@
       "turnoLaboral": "Tarde"
     }
   ],
+  "enfermeros": [
+    {
+      "nombre": "Enf. Lucas Ibarra",
+      "email": "lucas.ibarra@integrasalud.com",
+      "telefono": "3415404001",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Guardia",
+      "cargoOrganigrama": "Subjefe de Turno"
+    },
+    {
+      "nombre": "Enf. Marina Ojeda",
+      "email": "marina.ojeda@integrasalud.com",
+      "telefono": "3415404002",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Internacion Adultos",
+      "cargoOrganigrama": "Coordinadora de Internacion"
+    },
+    {
+      "nombre": "Enf. Paula Ferreyra",
+      "email": "paula.ferreyra@integrasalud.com",
+      "telefono": "3415404003",
+      "rol": "enfermero",
+      "ramaEnfermeria": "UTI / Cuidados Criticos",
+      "cargoOrganigrama": "Coordinadora UTI"
+    },
+    {
+      "nombre": "Enf. Matias Roldan",
+      "email": "matias.roldan@integrasalud.com",
+      "telefono": "3415404004",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Quirurgica",
+      "cargoOrganigrama": "Instrumentacion y Recuperacion"
+    },
+    {
+      "nombre": "Enf. Rocio Benitez",
+      "email": "rocio.benitez@integrasalud.com",
+      "telefono": "3415404005",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Pediatrica",
+      "cargoOrganigrama": "Coordinadora Pediatrica"
+    },
+    {
+      "nombre": "Enf. Sabrina Nuñez",
+      "email": "sabrina.nunez@integrasalud.com",
+      "telefono": "3415404006",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Neonatologia",
+      "cargoOrganigrama": "Referente Neonatal"
+    },
+    {
+      "nombre": "Enf. Valeria Sosa",
+      "email": "valeria.sosa@integrasalud.com",
+      "telefono": "3415404007",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Salud Mental",
+      "cargoOrganigrama": "Referente de Salud Mental"
+    },
+    {
+      "nombre": "Enf. Dario Quiroga",
+      "email": "dario.quiroga@integrasalud.com",
+      "telefono": "3415404008",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Vacunatorio",
+      "cargoOrganigrama": "Coordinador de Vacunatorio"
+    },
+    {
+      "nombre": "Enf. Noelia Cabrera",
+      "email": "noelia.cabrera@integrasalud.com",
+      "telefono": "3415404009",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Control de Infecciones",
+      "cargoOrganigrama": "Control de Infecciones"
+    }
+  ],
   "pacientes": [
     {
       "nombre": "Juan Perez",
