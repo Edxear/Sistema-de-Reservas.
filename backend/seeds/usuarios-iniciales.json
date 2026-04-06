@@ -103,6 +103,7 @@
       "telefono": "3415404001",
       "rol": "enfermero",
       "ramaEnfermeria": "Guardia",
+      "rolJerarquicoEnfermeria": "subjefatura",
       "cargoOrganigrama": "Subjefe de Turno"
     },
     {
@@ -111,6 +112,7 @@
       "telefono": "3415404002",
       "rol": "enfermero",
       "ramaEnfermeria": "Internacion Adultos",
+      "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Coordinadora de Internacion"
     },
     {
@@ -119,6 +121,7 @@
       "telefono": "3415404003",
       "rol": "enfermero",
       "ramaEnfermeria": "UTI / Cuidados Criticos",
+      "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Coordinadora UTI"
     },
     {
@@ -127,6 +130,7 @@
       "telefono": "3415404004",
       "rol": "enfermero",
       "ramaEnfermeria": "Quirurgica",
+      "rolJerarquicoEnfermeria": "senior",
       "cargoOrganigrama": "Instrumentacion y Recuperacion"
     },
     {
@@ -135,6 +139,7 @@
       "telefono": "3415404005",
       "rol": "enfermero",
       "ramaEnfermeria": "Pediatrica",
+      "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Coordinadora Pediatrica"
     },
     {
@@ -143,6 +148,7 @@
       "telefono": "3415404006",
       "rol": "enfermero",
       "ramaEnfermeria": "Neonatologia",
+      "rolJerarquicoEnfermeria": "senior",
       "cargoOrganigrama": "Referente Neonatal"
     },
     {
@@ -151,6 +157,7 @@
       "telefono": "3415404007",
       "rol": "enfermero",
       "ramaEnfermeria": "Salud Mental",
+      "rolJerarquicoEnfermeria": "senior",
       "cargoOrganigrama": "Referente de Salud Mental"
     },
     {
@@ -159,6 +166,7 @@
       "telefono": "3415404008",
       "rol": "enfermero",
       "ramaEnfermeria": "Vacunatorio",
+      "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Coordinador de Vacunatorio"
     },
     {
@@ -167,6 +175,7 @@
       "telefono": "3415404009",
       "rol": "enfermero",
       "ramaEnfermeria": "Control de Infecciones",
+      "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Control de Infecciones"
     }
   ],

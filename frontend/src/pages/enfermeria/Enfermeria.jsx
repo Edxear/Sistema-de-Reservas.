@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { jsPDF } from 'jspdf';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -6,11 +7,13 @@ import {
   createNursingIncident,
   createNursingInitiative,
   getNursingCatalog,
+  getNursingConfig,
   getNursingDashboard,
   getNursingOrganigrama,
   listNursingChecklists,
   listNursingIncidents,
   listNursingInitiatives,
+  updateNursingConfig,
   updateNursingIncidentStatus,
   updateNursingInitiative,
 } from '../../services/enfermeriaService';
@@ -57,12 +60,34 @@ const initialIncident = {
   acciones: '',
 };
 
+const defaultThresholds = {
+  eventosPor1000: { greenMax: 5, yellowMax: 10 },
+  respuestaMin: { greenMax: 15, yellowMax: 45 },
+  cumplimientoChecklistPct: { yellowMin: 85, greenMin: 95 },
+  ausentismoPct: { greenMax: 5, yellowMax: 10 },
+  adherenciaCapacitacionPct: { yellowMin: 80, greenMin: 92 },
+};
+
+const defaultPermissions = {
+  canViewModule: false,
+  canCreateChecklist: false,
+  canCreateIncident: false,
+  canManageIncidentStatus: false,
+  canManageInitiatives: false,
+  canConfigureThresholds: false,
+};
+
+const pickItems = (payload) => (Array.isArray(payload) ? payload : (payload?.items || []));
+
+const toCsvLine = (values) => values.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',');
+
 export default function Enfermeria() {
   const { user } = useAuth();
   const [catalog, setCatalog] = useState({ branches: [], hierarchy: [] });
   const [dashboard, setDashboard] = useState({
     windowDays: 30,
     kpis: {},
+    semaforoGlobal: {},
     initiativesSummary: {},
     branchSummary: [],
     recentIncidents: [],
@@ -72,6 +97,8 @@ export default function Enfermeria() {
   const [initiatives, setInitiatives] = useState([]);
   const [checklists, setChecklists] = useState([]);
   const [incidents, setIncidents] = useState([]);
+  const [thresholds, setThresholds] = useState(defaultThresholds);
+  const [permissions, setPermissions] = useState(defaultPermissions);
   const [loading, setLoading] = useState(false);
 
   const [ramaFilter, setRamaFilter] = useState('');
@@ -82,8 +109,9 @@ export default function Enfermeria() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [catalogData, dashboardData, organigramaData, initiativesData, checklistData, incidentsData] = await Promise.all([
+      const [catalogData, configData, dashboardData, organigramaData, initiativesData, checklistData, incidentsData] = await Promise.all([
         getNursingCatalog(),
+        getNursingConfig(),
         getNursingDashboard({ days: 30 }),
         getNursingOrganigrama(),
         listNursingInitiatives({}),
@@ -92,18 +120,22 @@ export default function Enfermeria() {
       ]);
 
       setCatalog(catalogData || { branches: [], hierarchy: [] });
+      setThresholds(configData?.thresholds || defaultThresholds);
       setDashboard(dashboardData || {});
       setOrganigrama(organigramaData || { hierarchy: [], branches: [], byBranch: [], total: 0 });
-      setInitiatives(Array.isArray(initiativesData) ? initiativesData : []);
-      setChecklists(Array.isArray(checklistData) ? checklistData : []);
-      setIncidents(Array.isArray(incidentsData) ? incidentsData : []);
+      setInitiatives(pickItems(initiativesData));
+      setChecklists(pickItems(checklistData));
+      setIncidents(pickItems(incidentsData));
+
+      setPermissions({
+        ...defaultPermissions,
+        ...(configData?.permissions || {}),
+        ...(dashboardData?.permissions || {}),
+      });
 
       const firstBranch = (catalogData?.branches || [])[0] || 'Guardia';
       setChecklistForm((prev) => ({ ...prev, rama: firstBranch }));
       setIncidentForm((prev) => ({ ...prev, rama: firstBranch }));
-      if (initiativeForm.rama === 'general' && firstBranch) {
-        setInitiativeForm((prev) => ({ ...prev }));
-      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo cargar el modulo de enfermeria');
     } finally {
@@ -127,18 +159,100 @@ export default function Enfermeria() {
     [incidents, ramaFilter],
   );
 
-  const initiativesByCategory = useMemo(() => {
-    return {
-      transversal: initiatives.filter((i) => i.categoria === 'transversal'),
-      rama: initiatives.filter((i) => i.categoria === 'rama'),
-      organigrama: initiatives.filter((i) => i.categoria === 'organigrama'),
-      digitalizacion: initiatives.filter((i) => i.categoria === 'digitalizacion'),
-      kpi: initiatives.filter((i) => i.categoria === 'kpi'),
-    };
-  }, [initiatives]);
+  const initiativesByCategory = useMemo(() => ({
+    transversal: initiatives.filter((i) => i.categoria === 'transversal'),
+    rama: initiatives.filter((i) => i.categoria === 'rama'),
+    organigrama: initiatives.filter((i) => i.categoria === 'organigrama'),
+    digitalizacion: initiatives.filter((i) => i.categoria === 'digitalizacion'),
+    kpi: initiatives.filter((i) => i.categoria === 'kpi'),
+  }), [initiatives]);
+
+  const statusClass = (status) => {
+    if (status === 'red') return styles.badgeRed;
+    if (status === 'yellow') return styles.badgeYellow;
+    return styles.badgeGreen;
+  };
+
+  const handleExportCsv = () => {
+    try {
+      const lines = [];
+      lines.push(toCsvLine(['Seccion', 'Metrica', 'Valor', 'Semaforo']));
+      lines.push(toCsvLine(['KPI', 'Eventos adversos por 1000 pacientes-dia', dashboard.kpis?.eventosAdversosPor1000PacientesDia || 0, dashboard.semaforoGlobal?.eventosAdversosPor1000PacientesDia || 'green']));
+      lines.push(toCsvLine(['KPI', 'Tiempo de respuesta alertas (min)', dashboard.kpis?.tiempoRespuestaAlertasMin || 0, dashboard.semaforoGlobal?.tiempoRespuestaAlertasMin || 'green']));
+      lines.push(toCsvLine(['KPI', 'Cumplimiento checklist (%)', dashboard.kpis?.cumplimientoChecklistPct || 0, dashboard.semaforoGlobal?.cumplimientoChecklistPct || 'green']));
+      lines.push(toCsvLine(['KPI', 'Ausentismo (%)', dashboard.kpis?.ausentismoPct || 0, dashboard.semaforoGlobal?.ausentismoPct || 'green']));
+      lines.push(toCsvLine(['KPI', 'Adherencia capacitacion (%)', dashboard.kpis?.adherenciaCapacitacionPct || 0, dashboard.semaforoGlobal?.adherenciaCapacitacionPct || 'green']));
+
+      branchSummaryVisible.forEach((row) => {
+        lines.push(toCsvLine(['Rama', row.rama, `Incidentes ${row.incidentes} | Cumplimiento ${row.cumplimientoProtocolos}% | Eventos/1000 ${row.eventosPor1000}`, row.semaforo || 'green']));
+      });
+
+      incidentsVisible.forEach((item) => {
+        lines.push(toCsvLine(['Incidente', `${item.rama} - ${item.tipo}`, `${item.estado} - ${item.severidad}`, '']));
+      });
+
+      const blob = new Blob([`\ufeff${lines.join('\n')}`], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `enfermeria-reporte-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success('Reporte CSV generado');
+    } catch (error) {
+      toast.error('No se pudo generar el CSV');
+    }
+  };
+
+  const handleExportPdf = () => {
+    try {
+      const doc = new jsPDF();
+      let y = 14;
+      doc.setFontSize(14);
+      doc.text('Reporte de Enfermeria', 14, y);
+      y += 8;
+      doc.setFontSize(10);
+      doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, y);
+      y += 8;
+
+      const writeLine = (text) => {
+        if (y > 280) {
+          doc.addPage();
+          y = 14;
+        }
+        doc.text(text, 14, y);
+        y += 6;
+      };
+
+      writeLine(`Eventos por 1000: ${dashboard.kpis?.eventosAdversosPor1000PacientesDia || 0}`);
+      writeLine(`Respuesta alertas (min): ${dashboard.kpis?.tiempoRespuestaAlertasMin || 0}`);
+      writeLine(`Cumplimiento checklist: ${dashboard.kpis?.cumplimientoChecklistPct || 0}%`);
+      writeLine(`Ausentismo: ${dashboard.kpis?.ausentismoPct || 0}%`);
+      writeLine(`Adherencia capacitacion: ${dashboard.kpis?.adherenciaCapacitacionPct || 0}%`);
+      y += 2;
+      writeLine('Ramas:');
+      branchSummaryVisible.forEach((row) => {
+        writeLine(`- ${row.rama}: incidentes ${row.incidentes}, cumplimiento ${row.cumplimientoProtocolos}%, semaforo ${row.semaforo || 'green'}`);
+      });
+
+      y += 2;
+      writeLine('Incidentes recientes:');
+      incidentsVisible.slice(0, 12).forEach((item) => {
+        writeLine(`- ${item.rama} / ${item.tipo} / ${item.estado} / ${item.severidad}`);
+      });
+
+      doc.save(`enfermeria-reporte-${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success('Reporte PDF generado');
+    } catch (error) {
+      toast.error('No se pudo generar el PDF');
+    }
+  };
 
   const handleCreateInitiative = async (e) => {
     e.preventDefault();
+    if (!permissions.canManageInitiatives) {
+      toast.error('No tienes permisos para gestionar iniciativas');
+      return;
+    }
     if (!initiativeForm.titulo.trim()) {
       toast.error('El titulo de la iniciativa es obligatorio');
       return;
@@ -158,6 +272,10 @@ export default function Enfermeria() {
   };
 
   const handleInitiativeStatus = async (id, estado) => {
+    if (!permissions.canManageInitiatives) {
+      toast.error('No tienes permisos para cambiar estado de iniciativas');
+      return;
+    }
     try {
       await updateNursingInitiative(id, { estado });
       await loadAll();
@@ -168,6 +286,10 @@ export default function Enfermeria() {
 
   const handleCreateChecklist = async (e) => {
     e.preventDefault();
+    if (!permissions.canCreateChecklist) {
+      toast.error('No tienes permisos para crear checklists');
+      return;
+    }
     try {
       const items = TRANSVERSAL_ITEMS.map((label, idx) => ({
         key: `t-${idx + 1}`,
@@ -190,6 +312,10 @@ export default function Enfermeria() {
 
   const handleCreateIncident = async (e) => {
     e.preventDefault();
+    if (!permissions.canCreateIncident) {
+      toast.error('No tienes permisos para registrar incidentes');
+      return;
+    }
     if (!incidentForm.descripcion.trim()) {
       toast.error('La descripcion del incidente es obligatoria');
       return;
@@ -210,6 +336,10 @@ export default function Enfermeria() {
   };
 
   const handleIncidentStatus = async (id, estado) => {
+    if (!permissions.canManageIncidentStatus) {
+      toast.error('No tienes permisos para cambiar estado de incidentes');
+      return;
+    }
     try {
       await updateNursingIncidentStatus(id, { estado });
       await loadAll();
@@ -217,6 +347,44 @@ export default function Enfermeria() {
       toast.error(error.response?.data?.message || 'No se pudo actualizar el incidente');
     }
   };
+
+  const updateThresholdValue = (group, key, value) => {
+    const numericValue = Number(value || 0);
+    setThresholds((prev) => ({
+      ...prev,
+      [group]: {
+        ...prev[group],
+        [key]: numericValue,
+      },
+    }));
+  };
+
+  const handleSaveThresholds = async (e) => {
+    e.preventDefault();
+    if (!permissions.canConfigureThresholds) {
+      toast.error('Solo administracion puede modificar umbrales');
+      return;
+    }
+    try {
+      const result = await updateNursingConfig({ thresholds });
+      setThresholds(result?.thresholds || thresholds);
+      toast.success('Umbrales actualizados');
+      await loadAll();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar configuracion');
+    }
+  };
+
+  if (!permissions.canViewModule && !loading) {
+    return (
+      <div className={styles.page}>
+        <section className={styles.card}>
+          <h2>Modulo de Enfermeria</h2>
+          <p>No tienes permisos para acceder a este modulo.</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -231,64 +399,124 @@ export default function Enfermeria() {
       </section>
 
       <section className={styles.card}>
-        <h2>KPIs Prioritarios</h2>
+        <div className={styles.actionsRow}>
+          <h2>KPIs Prioritarios</h2>
+          <div className={styles.actionsRow}>
+            <button className={styles.pill} type="button" onClick={handleExportCsv}>Exportar CSV</button>
+            <button className={styles.pill} type="button" onClick={handleExportPdf}>Exportar PDF</button>
+          </div>
+        </div>
         <div className={styles.grid}>
-          <article className={styles.ramaCard}><h3>Eventos adversos</h3><p>{dashboard.kpis?.eventosAdversosPor1000PacientesDia || 0} por 1000 pacientes-dia</p></article>
-          <article className={styles.ramaCard}><h3>Respuesta a alertas</h3><p>{dashboard.kpis?.tiempoRespuestaAlertasMin || 0} min promedio</p></article>
-          <article className={styles.ramaCard}><h3>Cumplimiento checklist</h3><p>{dashboard.kpis?.cumplimientoChecklistPct || 0}%</p></article>
+          <article className={styles.ramaCard}>
+            <h3>Eventos adversos</h3>
+            <p>{dashboard.kpis?.eventosAdversosPor1000PacientesDia || 0} por 1000 pacientes-dia</p>
+            <span className={`${styles.pill} ${statusClass(dashboard.semaforoGlobal?.eventosAdversosPor1000PacientesDia)}`}>{dashboard.semaforoGlobal?.eventosAdversosPor1000PacientesDia || 'green'}</span>
+          </article>
+          <article className={styles.ramaCard}>
+            <h3>Respuesta a alertas</h3>
+            <p>{dashboard.kpis?.tiempoRespuestaAlertasMin || 0} min promedio</p>
+            <span className={`${styles.pill} ${statusClass(dashboard.semaforoGlobal?.tiempoRespuestaAlertasMin)}`}>{dashboard.semaforoGlobal?.tiempoRespuestaAlertasMin || 'green'}</span>
+          </article>
+          <article className={styles.ramaCard}>
+            <h3>Cumplimiento checklist</h3>
+            <p>{dashboard.kpis?.cumplimientoChecklistPct || 0}%</p>
+            <span className={`${styles.pill} ${statusClass(dashboard.semaforoGlobal?.cumplimientoChecklistPct)}`}>{dashboard.semaforoGlobal?.cumplimientoChecklistPct || 'green'}</span>
+          </article>
           <article className={styles.ramaCard}><h3>Infecciones asociadas</h3><p>{dashboard.kpis?.infeccionesAsistenciales || 0}</p></article>
-          <article className={styles.ramaCard}><h3>Ausentismo</h3><p>{dashboard.kpis?.ausentismoPct || 0}%</p></article>
-          <article className={styles.ramaCard}><h3>Adherencia capacitacion</h3><p>{dashboard.kpis?.adherenciaCapacitacionPct || 0}%</p></article>
+          <article className={styles.ramaCard}>
+            <h3>Ausentismo</h3>
+            <p>{dashboard.kpis?.ausentismoPct || 0}%</p>
+            <span className={`${styles.pill} ${statusClass(dashboard.semaforoGlobal?.ausentismoPct)}`}>{dashboard.semaforoGlobal?.ausentismoPct || 'green'}</span>
+          </article>
+          <article className={styles.ramaCard}>
+            <h3>Adherencia capacitacion</h3>
+            <p>{dashboard.kpis?.adherenciaCapacitacionPct || 0}%</p>
+            <span className={`${styles.pill} ${statusClass(dashboard.semaforoGlobal?.adherenciaCapacitacionPct)}`}>{dashboard.semaforoGlobal?.adherenciaCapacitacionPct || 'green'}</span>
+          </article>
         </div>
       </section>
+
+      {permissions.canConfigureThresholds ? (
+        <section className={styles.card}>
+          <h2>Configuracion de Umbrales (Semaforo)</h2>
+          <form className={styles.gridMini} onSubmit={handleSaveThresholds}>
+            <div className={styles.miniCard}>
+              <strong>Eventos por 1000 (menor es mejor)</strong>
+              <input type="number" className={styles.select} value={thresholds.eventosPor1000.greenMax} onChange={(e) => updateThresholdValue('eventosPor1000', 'greenMax', e.target.value)} />
+              <input type="number" className={styles.select} value={thresholds.eventosPor1000.yellowMax} onChange={(e) => updateThresholdValue('eventosPor1000', 'yellowMax', e.target.value)} />
+            </div>
+            <div className={styles.miniCard}>
+              <strong>Respuesta alertas en min (menor es mejor)</strong>
+              <input type="number" className={styles.select} value={thresholds.respuestaMin.greenMax} onChange={(e) => updateThresholdValue('respuestaMin', 'greenMax', e.target.value)} />
+              <input type="number" className={styles.select} value={thresholds.respuestaMin.yellowMax} onChange={(e) => updateThresholdValue('respuestaMin', 'yellowMax', e.target.value)} />
+            </div>
+            <div className={styles.miniCard}>
+              <strong>Cumplimiento checklist % (mayor es mejor)</strong>
+              <input type="number" className={styles.select} value={thresholds.cumplimientoChecklistPct.yellowMin} onChange={(e) => updateThresholdValue('cumplimientoChecklistPct', 'yellowMin', e.target.value)} />
+              <input type="number" className={styles.select} value={thresholds.cumplimientoChecklistPct.greenMin} onChange={(e) => updateThresholdValue('cumplimientoChecklistPct', 'greenMin', e.target.value)} />
+            </div>
+            <div className={styles.miniCard}>
+              <strong>Ausentismo % (menor es mejor)</strong>
+              <input type="number" className={styles.select} value={thresholds.ausentismoPct.greenMax} onChange={(e) => updateThresholdValue('ausentismoPct', 'greenMax', e.target.value)} />
+              <input type="number" className={styles.select} value={thresholds.ausentismoPct.yellowMax} onChange={(e) => updateThresholdValue('ausentismoPct', 'yellowMax', e.target.value)} />
+            </div>
+            <div className={styles.miniCard}>
+              <strong>Adherencia capacitacion % (mayor es mejor)</strong>
+              <input type="number" className={styles.select} value={thresholds.adherenciaCapacitacionPct.yellowMin} onChange={(e) => updateThresholdValue('adherenciaCapacitacionPct', 'yellowMin', e.target.value)} />
+              <input type="number" className={styles.select} value={thresholds.adherenciaCapacitacionPct.greenMin} onChange={(e) => updateThresholdValue('adherenciaCapacitacionPct', 'greenMin', e.target.value)} />
+            </div>
+            <button className={styles.pill} type="submit">Guardar umbrales</button>
+          </form>
+        </section>
+      ) : null}
 
       <section className={styles.card}>
         <h2>Mejoras Transversales y por Rama</h2>
         <div className={styles.filterRow}>
           <label htmlFor="ramaFilter" className={styles.filterLabel}>Filtrar por rama:</label>
-          <select
-            id="ramaFilter"
-            className={styles.select}
-            value={ramaFilter}
-            onChange={(e) => setRamaFilter(e.target.value)}
-          >
+          <select id="ramaFilter" className={styles.select} value={ramaFilter} onChange={(e) => setRamaFilter(e.target.value)}>
             <option value="">Todas las ramas</option>
             {branches.map((rama) => <option key={rama} value={rama}>{rama}</option>)}
           </select>
         </div>
 
-        <form onSubmit={handleCreateInitiative} className={styles.gridMini}>
-          <input className={styles.select} placeholder="Titulo de mejora" value={initiativeForm.titulo} onChange={(e) => setInitiativeForm((p) => ({ ...p, titulo: e.target.value }))} />
-          <select className={styles.select} value={initiativeForm.categoria} onChange={(e) => setInitiativeForm((p) => ({ ...p, categoria: e.target.value }))}>
-            <option value="transversal">Transversal</option>
-            <option value="rama">Por rama</option>
-            <option value="organigrama">Organigrama y gestion</option>
-            <option value="digitalizacion">Digitalizacion</option>
-            <option value="kpi">KPI</option>
-          </select>
-          <select className={styles.select} value={initiativeForm.rama} onChange={(e) => setInitiativeForm((p) => ({ ...p, rama: e.target.value }))}>
-            <option value="general">General</option>
-            {branches.map((rama) => <option key={rama} value={rama}>{rama}</option>)}
-          </select>
-          <select className={styles.select} value={initiativeForm.prioridad} onChange={(e) => setInitiativeForm((p) => ({ ...p, prioridad: e.target.value }))}>
-            <option value="baja">Baja</option>
-            <option value="media">Media</option>
-            <option value="alta">Alta</option>
-            <option value="critica">Critica</option>
-          </select>
-          <input className={styles.select} placeholder="Responsable" value={initiativeForm.responsable} onChange={(e) => setInitiativeForm((p) => ({ ...p, responsable: e.target.value }))} />
-          <input type="date" className={styles.select} value={initiativeForm.fechaObjetivo} onChange={(e) => setInitiativeForm((p) => ({ ...p, fechaObjetivo: e.target.value }))} />
-          <textarea className={styles.select} placeholder="Descripcion" value={initiativeForm.descripcion} onChange={(e) => setInitiativeForm((p) => ({ ...p, descripcion: e.target.value }))} />
-          <button className={styles.pill} type="submit">Guardar iniciativa</button>
-        </form>
+        {permissions.canManageInitiatives ? (
+          <form onSubmit={handleCreateInitiative} className={styles.gridMini}>
+            <input className={styles.select} placeholder="Titulo de mejora" value={initiativeForm.titulo} onChange={(e) => setInitiativeForm((p) => ({ ...p, titulo: e.target.value }))} />
+            <select className={styles.select} value={initiativeForm.categoria} onChange={(e) => setInitiativeForm((p) => ({ ...p, categoria: e.target.value }))}>
+              <option value="transversal">Transversal</option>
+              <option value="rama">Por rama</option>
+              <option value="organigrama">Organigrama y gestion</option>
+              <option value="digitalizacion">Digitalizacion</option>
+              <option value="kpi">KPI</option>
+            </select>
+            <select className={styles.select} value={initiativeForm.rama} onChange={(e) => setInitiativeForm((p) => ({ ...p, rama: e.target.value }))}>
+              <option value="general">General</option>
+              {branches.map((rama) => <option key={rama} value={rama}>{rama}</option>)}
+            </select>
+            <select className={styles.select} value={initiativeForm.prioridad} onChange={(e) => setInitiativeForm((p) => ({ ...p, prioridad: e.target.value }))}>
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Critica</option>
+            </select>
+            <input className={styles.select} placeholder="Responsable" value={initiativeForm.responsable} onChange={(e) => setInitiativeForm((p) => ({ ...p, responsable: e.target.value }))} />
+            <input type="date" className={styles.select} value={initiativeForm.fechaObjetivo} onChange={(e) => setInitiativeForm((p) => ({ ...p, fechaObjetivo: e.target.value }))} />
+            <textarea className={styles.select} placeholder="Descripcion" value={initiativeForm.descripcion} onChange={(e) => setInitiativeForm((p) => ({ ...p, descripcion: e.target.value }))} />
+            <button className={styles.pill} type="submit">Guardar iniciativa</button>
+          </form>
+        ) : (
+          <p>Solo jefaturas/coordinaciones o administracion pueden crear y modificar iniciativas.</p>
+        )}
 
         <div className={styles.grid}>
           {branchSummaryVisible.map((rama) => (
-            <article key={rama.nombre} className={styles.ramaCard}>
+            <article key={rama.rama} className={styles.ramaCard}>
               <h3>{rama.rama}</h3>
               <p>Cumplimiento protocolos: {rama.cumplimientoProtocolos}%</p>
               <p>Alertas criticas: {rama.alertasCriticas}</p>
-              <span className={styles.pill}>Incidentes: {rama.incidentes}</span>
+              <p>Eventos/1000: {rama.eventosPor1000 || 0}</p>
+              <span className={`${styles.pill} ${statusClass(rama.semaforo)}`}>Semaforo: {rama.semaforo || 'green'}</span>
             </article>
           ))}
         </div>
@@ -299,7 +527,12 @@ export default function Enfermeria() {
             {[...initiativesByCategory.transversal, ...initiativesByCategory.rama].slice(0, 20).map((item) => (
               <li key={item._id}>
                 <strong>{item.titulo}</strong> ({item.categoria} / {item.rama}) - {item.prioridad}
-                <select className={styles.select} value={item.estado} onChange={(e) => handleInitiativeStatus(item._id, e.target.value)}>
+                <select
+                  className={styles.select}
+                  value={item.estado}
+                  disabled={!permissions.canManageInitiatives}
+                  onChange={(e) => handleInitiativeStatus(item._id, e.target.value)}
+                >
                   <option value="pendiente">pendiente</option>
                   <option value="en_progreso">en_progreso</option>
                   <option value="implementado">implementado</option>
@@ -358,7 +591,7 @@ export default function Enfermeria() {
             <input type="number" className={styles.select} placeholder="Cumplimiento protocolos %" value={checklistForm.cumplimientoProtocolos} onChange={(e) => setChecklistForm((p) => ({ ...p, cumplimientoProtocolos: Number(e.target.value || 0) }))} />
             <input type="number" className={styles.select} placeholder="Adherencia capacitacion %" value={checklistForm.adherenciaCapacitacion} onChange={(e) => setChecklistForm((p) => ({ ...p, adherenciaCapacitacion: Number(e.target.value || 0) }))} />
             <textarea className={styles.select} placeholder="Observaciones" value={checklistForm.observaciones} onChange={(e) => setChecklistForm((p) => ({ ...p, observaciones: e.target.value }))} />
-            <button className={styles.pill} type="submit">Guardar checklist</button>
+            <button className={styles.pill} type="submit" disabled={!permissions.canCreateChecklist}>Guardar checklist</button>
           </form>
 
           <form onSubmit={handleCreateIncident} className={styles.miniCard}>
@@ -382,7 +615,7 @@ export default function Enfermeria() {
             <input className={styles.select} placeholder="Paciente referencia" value={incidentForm.pacienteRef} onChange={(e) => setIncidentForm((p) => ({ ...p, pacienteRef: e.target.value }))} />
             <textarea className={styles.select} placeholder="Descripcion del incidente" value={incidentForm.descripcion} onChange={(e) => setIncidentForm((p) => ({ ...p, descripcion: e.target.value }))} />
             <textarea className={styles.select} placeholder="Acciones iniciales" value={incidentForm.acciones} onChange={(e) => setIncidentForm((p) => ({ ...p, acciones: e.target.value }))} />
-            <button className={styles.pill} type="submit">Registrar incidente</button>
+            <button className={styles.pill} type="submit" disabled={!permissions.canCreateIncident}>Registrar incidente</button>
           </form>
         </div>
 
@@ -395,7 +628,12 @@ export default function Enfermeria() {
                 <p>Severidad: {i.severidad}</p>
                 <p>Estado: {i.estado}</p>
                 <p>{i.descripcion}</p>
-                <select className={styles.select} value={i.estado} onChange={(e) => handleIncidentStatus(i._id, e.target.value)}>
+                <select
+                  className={styles.select}
+                  value={i.estado}
+                  disabled={!permissions.canManageIncidentStatus}
+                  onChange={(e) => handleIncidentStatus(i._id, e.target.value)}
+                >
                   <option value="abierto">abierto</option>
                   <option value="en_investigacion">en_investigacion</option>
                   <option value="cerrado">cerrado</option>

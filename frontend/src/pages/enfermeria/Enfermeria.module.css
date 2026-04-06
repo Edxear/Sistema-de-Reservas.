@@ -33,6 +33,14 @@
   font-size: 13px;
 }
 
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .filterRow {
   margin: 8px 0 12px;
   display: flex;
@@ -90,6 +98,24 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 600;
+}
+
+.badgeGreen {
+  background: #e8f8ee;
+  border-color: #89d9a8;
+  color: #1f7a3e;
+}
+
+.badgeYellow {
+  background: #fff8e2;
+  border-color: #f1cf76;
+  color: #8a6405;
+}
+
+.badgeRed {
+  background: #fdeaea;
+  border-color: #ef9c9c;
+  color: #9f2424;
 }
 
 .timeline {

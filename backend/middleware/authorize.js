@@ -4,7 +4,7 @@ const authorize = (...roles) => {
       return res.status(403).json({ message: 'No tienes permiso para acceder a este recurso' });
     }
 
-    if (req.user.rol === 'superadmin') {
+    if (req.user.rol === 'superadmin' || req.user.esSuperAdminPrincipal === true) {
       return next();
     }
 

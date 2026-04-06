@@ -300,6 +300,7 @@ async function run() {
       password: SEED_INITIAL_PASSWORD,
       especialidad: 'Enfermeria',
       ramaEnfermeria: enf.ramaEnfermeria || '',
+      rolJerarquicoEnfermeria: enf.rolJerarquicoEnfermeria || 'asistencial',
       bio: construirBioEnfermeria(enf.ramaEnfermeria),
       areaOrganigrama: asignacion?.areaOrganigrama || 'Enfermeria',
       sectorOrganigrama: asignacion?.sectorOrganigrama || enf.ramaEnfermeria || 'Enfermeria General',

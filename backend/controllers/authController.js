@@ -26,6 +26,12 @@ const serializeUser = (user) => ({
   contactoEmergencia: user.contactoEmergencia || '',
   areaSecretaria: user.areaSecretaria || '',
   turnoLaboral: user.turnoLaboral || '',
+  esSuperAdminPrincipal: Boolean(user.esSuperAdminPrincipal),
+  ramaEnfermeria: user.ramaEnfermeria || '',
+  rolJerarquicoEnfermeria: user.rolJerarquicoEnfermeria || '',
+  areaOrganigrama: user.areaOrganigrama || '',
+  sectorOrganigrama: user.sectorOrganigrama || '',
+  cargoOrganigrama: user.cargoOrganigrama || '',
 });
 
 exports.registerUser = async (req, res) => {
@@ -43,7 +49,11 @@ exports.registerUser = async (req, res) => {
     const user = new User({ nombre, email: normalizedEmail, telefono, password, rol: 'paciente' });
     await user.save();
 
-    const token = jwt.sign({ id: user._id, rol: user.rol }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: user._id, rol: user.rol, esSuperAdminPrincipal: Boolean(user.esSuperAdminPrincipal) },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '1d' },
+    );
     res.status(201).json({ token, user: serializeUser(user) });
   } catch (error) {
     res.status(500).json({ message: 'Error registrando usuario', error });
@@ -65,7 +75,11 @@ exports.loginUser = async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: 'Credenciales invalidas' });
 
-    const token = jwt.sign({ id: user._id, rol: user.rol }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: user._id, rol: user.rol, esSuperAdminPrincipal: Boolean(user.esSuperAdminPrincipal) },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '1d' },
+    );
     res.json({ token, user: serializeUser(user) });
   } catch (error) {
     res.status(500).json({ message: 'Error en login', error });

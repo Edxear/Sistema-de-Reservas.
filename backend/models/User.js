@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema({
   areaSecretaria: { type: String, default: '' },
   turnoLaboral: { type: String, default: '' },
   ramaEnfermeria: { type: String, default: '' },
+  rolJerarquicoEnfermeria: {
+    type: String,
+    enum: ['', 'jefatura', 'subjefatura', 'coordinacion', 'senior', 'asistencial'],
+    default: '',
+  },
   areaOrganigrama: { type: String, default: '' },
   sectorOrganigrama: { type: String, default: '' },
   cargoOrganigrama: { type: String, default: '' },

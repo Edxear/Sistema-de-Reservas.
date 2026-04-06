@@ -6,11 +6,13 @@ const {
   createIncident,
   createInitiative,
   getNursingCatalog,
+  getNursingConfig,
   getNursingDashboard,
   getNursingOrganigrama,
   listChecklists,
   listIncidents,
   listInitiatives,
+  updateNursingConfig,
   updateIncidentStatus,
   updateInitiative,
 } = require('../controllers/nursingController');
@@ -18,6 +20,8 @@ const {
 const router = express.Router();
 
 router.get('/catalog', auth, getNursingCatalog);
+router.get('/config', auth, getNursingConfig);
+router.put('/config', auth, updateNursingConfig);
 router.get('/dashboard', auth, getNursingDashboard);
 router.get('/organigrama', auth, getNursingOrganigrama);
 

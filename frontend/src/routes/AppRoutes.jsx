@@ -31,7 +31,8 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
     return <Navigate to="/" replace />;
   }
 
-  if (user?.rol === ROLE.SUPERADMIN) {
+  // El administrador principal tiene acceso transversal sin restricciones.
+  if (user?.rol === ROLE.SUPERADMIN || user?.esSuperAdminPrincipal === true) {
     return children;
   }
 
@@ -158,7 +159,7 @@ export default function AppRoutes() {
       <Route
         path="/enfermeria"
         element={(
-          <ProtectedRoute allowedRoles={[ROLE.ENFERMERO]}>
+          <ProtectedRoute allowedRoles={[ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <Enfermeria />
           </ProtectedRoute>
         )}
