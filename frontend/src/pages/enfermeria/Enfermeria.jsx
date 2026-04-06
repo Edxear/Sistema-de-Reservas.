@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import organigramaHospitalario from '../../data/organigramaHospitalario.json';
 import styles from './Enfermeria.module.css';
@@ -23,8 +23,21 @@ const JERARQUIA = [
   { nivel: 5, cargo: 'Enfermeria Asistencial', responsabilidad: 'Ejecucion de cuidados, registros y continuidad asistencial.' },
 ];
 
+const PERSONAL_ENFERMERIA = [
+  { nombre: 'Enf. Lucas Ibarra', rama: 'Guardia', cargo: 'Subjefe de Turno' },
+  { nombre: 'Enf. Marina Ojeda', rama: 'Internacion Adultos', cargo: 'Coordinadora de Internacion' },
+  { nombre: 'Enf. Paula Ferreyra', rama: 'UTI / Cuidados Criticos', cargo: 'Coordinadora UTI' },
+  { nombre: 'Enf. Matias Roldan', rama: 'Quirurgica', cargo: 'Instrumentacion y Recuperacion' },
+  { nombre: 'Enf. Rocio Benitez', rama: 'Pediatrica', cargo: 'Coordinadora Pediatrica' },
+  { nombre: 'Enf. Sabrina Nunez', rama: 'Neonatologia', cargo: 'Referente Neonatal' },
+  { nombre: 'Enf. Valeria Sosa', rama: 'Salud Mental', cargo: 'Referente de Salud Mental' },
+  { nombre: 'Enf. Dario Quiroga', rama: 'Vacunatorio', cargo: 'Coordinador de Vacunatorio' },
+  { nombre: 'Enf. Noelia Cabrera', rama: 'Control de Infecciones', cargo: 'Control de Infecciones' },
+];
+
 export default function Enfermeria() {
   const { user } = useAuth();
+  const [ramaFilter, setRamaFilter] = useState('');
 
   const bloqueEnfermeria = useMemo(() => {
     return (organigramaHospitalario?.bloques || []).find((b) => String(b.area || '').toLowerCase() === 'enfermeria');
@@ -32,6 +45,14 @@ export default function Enfermeria() {
 
   const equiposBase = bloqueEnfermeria?.equipos || [];
   const puestosBase = bloqueEnfermeria?.puestos || [];
+  const ramasVisibles = useMemo(
+    () => ENFERMERIA_RAMAS.filter((r) => (ramaFilter ? r.nombre === ramaFilter : true)),
+    [ramaFilter],
+  );
+  const personalVisible = useMemo(
+    () => PERSONAL_ENFERMERIA.filter((p) => (ramaFilter ? p.rama === ramaFilter : true)),
+    [ramaFilter],
+  );
 
   return (
     <div className={styles.page}>
@@ -46,14 +67,39 @@ export default function Enfermeria() {
 
       <section className={styles.card}>
         <h2>Ramas de Enfermeria</h2>
+        <div className={styles.filterRow}>
+          <label htmlFor="ramaFilter" className={styles.filterLabel}>Filtrar por rama:</label>
+          <select
+            id="ramaFilter"
+            className={styles.select}
+            value={ramaFilter}
+            onChange={(e) => setRamaFilter(e.target.value)}
+          >
+            <option value="">Todas las ramas</option>
+            {ENFERMERIA_RAMAS.map((rama) => <option key={rama.nombre} value={rama.nombre}>{rama.nombre}</option>)}
+          </select>
+        </div>
         <div className={styles.grid}>
-          {ENFERMERIA_RAMAS.map((rama) => (
+          {ramasVisibles.map((rama) => (
             <article key={rama.nombre} className={styles.ramaCard}>
               <h3>{rama.nombre}</h3>
               <p>{rama.descripcion}</p>
               <span className={styles.pill}>Prioridad: {rama.nivel}</span>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <h2>Personal por Rama</h2>
+        <div className={styles.gridMini}>
+          {personalVisible.length ? personalVisible.map((persona) => (
+            <div key={`${persona.nombre}-${persona.rama}`} className={styles.miniCard}>
+              <strong>{persona.nombre}</strong>
+              <p>Rama: {persona.rama}</p>
+              <p>Cargo: {persona.cargo}</p>
+            </div>
+          )) : <p>No hay personal para la rama seleccionada.</p>}
         </div>
       </section>
 
