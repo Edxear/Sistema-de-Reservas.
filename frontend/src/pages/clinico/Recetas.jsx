@@ -5,6 +5,9 @@ import API from '../../services/api';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useAuth } from '../../context/AuthContext';
+import { canAccessSupport } from '../../utils/roles';
+import { createSupportTicket, listSupportTickets } from '../../services/soporteService';
 import styles from './Recetas.module.css';
 
 const initialMed = { nombre: '', dosis: '', presentacion: '', indicaciones: '', cantidad: '1' };
@@ -18,6 +21,16 @@ const plantillas = [
   { value: 'swiss', label: 'Swiss Medical' },
   { value: 'generica', label: 'Genérica' },
 ];
+const CRITICIDAD = ['critico', 'alto', 'medio', 'bajo'];
+const ESTADOS = ['abierto', 'en_progreso', 'en_espera', 'resuelto', 'cerrado'];
+const initialCoberturaForm = {
+  obraSocial: '',
+  tipoSolicitud: 'autorizacion',
+  pacienteRef: '',
+  nroAfiliado: '',
+  descripcion: '',
+  criticidad: 'medio',
+};
 
 const plantillaDesdeObraSocial = (obraSocial = '') => {
   const n = obraSocial.toLowerCase();
@@ -28,6 +41,9 @@ const plantillaDesdeObraSocial = (obraSocial = '') => {
 };
 
 export default function Recetas() {
+  const { user } = useAuth();
+  const role = user?.rol;
+  const canManageCobertura = canAccessSupport(role);
   const location = useLocation();
   const [medicamentos, setMedicamentos] = useState([initialMed]);
   const [favoritas, setFavoritas] = useState([]);
@@ -38,6 +54,10 @@ export default function Recetas() {
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [plantilla, setPlantilla] = useState('pami');
   const [printOrientation, setPrintOrientation] = useState('landscape');
+  const [coberturaForm, setCoberturaForm] = useState(initialCoberturaForm);
+  const [coberturaFilter, setCoberturaFilter] = useState({ q: '', estado: '', desde: '', hasta: '' });
+  const [coberturaTickets, setCoberturaTickets] = useState([]);
+  const [loadingCobertura, setLoadingCobertura] = useState(false);
   const previewRef = useRef(null);
   const [formData, setFormData] = useState({
     obraSocial: '',
@@ -69,6 +89,24 @@ export default function Recetas() {
     loadData();
   }, []);
 
+  const loadCoberturaTickets = async () => {
+    if (!canManageCobertura) return;
+    setLoadingCobertura(true);
+    try {
+      const data = await listSupportTickets({ tipoGestion: 'obra_social' });
+      const parsed = Array.isArray(data) ? data : [];
+      setCoberturaTickets(parsed.filter((t) => t.tipoGestion === 'obra_social'));
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo cargar historial de cobertura');
+    } finally {
+      setLoadingCobertura(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCoberturaTickets();
+  }, [canManageCobertura]);
+
   const pacientes = useMemo(() => {
     const byId = new Map();
     for (const booking of bookings) {
@@ -83,6 +121,32 @@ export default function Recetas() {
     () => pacientes.find((p) => p._id === pacienteId) || null,
     [pacientes, pacienteId]
   );
+
+  const coberturaRequests = useMemo(() => {
+    const query = String(coberturaFilter.q || '').trim().toLowerCase();
+    const desdeTs = coberturaFilter.desde ? new Date(`${coberturaFilter.desde}T00:00:00`).getTime() : null;
+    const hastaTs = coberturaFilter.hasta ? new Date(`${coberturaFilter.hasta}T23:59:59`).getTime() : null;
+
+    return coberturaTickets
+      .filter((t) => (coberturaFilter.estado ? t.estado === coberturaFilter.estado : true))
+      .filter((t) => {
+        if (!query) return true;
+        const haystack = [
+          t.titulo,
+          t.descripcion,
+          t.codigo,
+          Array.isArray(t.tags) ? t.tags.join(' ') : '',
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      })
+      .filter((t) => {
+        const createdTs = new Date(t.createdAt).getTime();
+        if (desdeTs && createdTs < desdeTs) return false;
+        if (hastaTs && createdTs > hastaTs) return false;
+        return true;
+      })
+      .slice(0, 30);
+  }, [coberturaTickets, coberturaFilter]);
 
   const pacienteIdQuery = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -134,7 +198,7 @@ export default function Recetas() {
       .filter((m) => m.nombre)
       .map((m, idx) => `${idx + 1}. ${m.nombre} - ${m.dosis || 'sin dosis'}`)
       .join('\n');
-    return `Receta médica\nPaciente: ${pacienteSeleccionado?.nombre || 'No seleccionado'}\nObra social: ${formData.obraSocial || '-'}\nDiagnóstico principal: ${formData.diagnosticoPrincipal || '-'}\n\nMedicamentos:\n${meds}`;
+    return `Receta médica\nPaciente: ${pacienteSeleccionado?.nombre || 'No seleccionado'}\nCobertura: ${formData.obraSocial || '-'}\nDiagnóstico principal: ${formData.diagnosticoPrincipal || '-'}\n\nMedicamentos:\n${meds}`;
   }, [medicamentos, pacienteSeleccionado, formData]);
 
   const preview = () => {
@@ -283,6 +347,47 @@ export default function Recetas() {
     }
   };
 
+  const handleCreateCoberturaRequest = async (e) => {
+    e.preventDefault();
+    if (!canManageCobertura) {
+      toast.error('Solo administradores pueden registrar solicitudes con cobertura');
+      return;
+    }
+    if (!coberturaForm.obraSocial.trim() || !coberturaForm.descripcion.trim()) {
+      toast.error('Completa cobertura y descripcion para registrar la solicitud');
+      return;
+    }
+
+    try {
+      await createSupportTicket({
+        titulo: `Solicitud ${coberturaForm.tipoSolicitud} - ${coberturaForm.obraSocial.trim()}`,
+        descripcion: `${coberturaForm.descripcion.trim()}${coberturaForm.nroAfiliado?.trim() ? `\nAfiliado: ${coberturaForm.nroAfiliado.trim()}` : ''}`,
+        criticidad: coberturaForm.criticidad,
+        tipoGestion: 'obra_social',
+        soporteNivel: 'L2',
+        areaClinica: 'Gestion institucional',
+        modulo: 'Cobertura',
+        impactoClinico: coberturaForm.pacienteRef?.trim() ? `Paciente referencia: ${coberturaForm.pacienteRef.trim()}` : '',
+        solicitanteNombre: user?.nombre || '',
+        solicitanteRol: role || '',
+        solicitanteArea: 'Gestion',
+        requiresChangeValidation: false,
+        tags: [
+          'obra_social',
+          'interinstitucional',
+          coberturaForm.tipoSolicitud,
+          coberturaForm.obraSocial.trim().toLowerCase().replace(/\s+/g, '_'),
+        ],
+      });
+
+      setCoberturaForm(initialCoberturaForm);
+      toast.success('Solicitud de cobertura registrada');
+      await loadCoberturaTickets();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo registrar la solicitud con cobertura');
+    }
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -318,7 +423,7 @@ export default function Recetas() {
 
             <div className={styles.row2}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>Obra social</label>
+                <label className={styles.label}>Cobertura</label>
                 <input
                   className={styles.input}
                   value={formData.obraSocial}
@@ -509,6 +614,122 @@ export default function Recetas() {
               ))}
             </ul>
           )}
+
+          <h3 className={styles.sectionTitle} style={{ marginTop: 16 }}>Cobertura</h3>
+          {!canManageCobertura ? (
+            <p className={styles.coverageHint}>Disponible para roles de administración dentro del flujo unificado de Recetas.</p>
+          ) : (
+            <div className={styles.coverageBlock}>
+              <form onSubmit={handleCreateCoberturaRequest} className={styles.formGrid}>
+                <div className={styles.row2}>
+                  <input
+                    className={styles.input}
+                    placeholder="Cobertura"
+                    value={coberturaForm.obraSocial}
+                    onChange={(e) => setCoberturaForm((prev) => ({ ...prev, obraSocial: e.target.value }))}
+                    required
+                  />
+                  <select
+                    className={styles.select}
+                    value={coberturaForm.tipoSolicitud}
+                    onChange={(e) => setCoberturaForm((prev) => ({ ...prev, tipoSolicitud: e.target.value }))}
+                  >
+                    <option value="autorizacion">Autorizacion</option>
+                    <option value="rechazo">Reconsideracion de rechazo</option>
+                    <option value="auditoria">Auditoria / documentacion</option>
+                    <option value="facturacion">Ajuste de facturacion</option>
+                    <option value="prestacion">Alta o modificacion de prestacion</option>
+                  </select>
+                </div>
+
+                <div className={styles.row2}>
+                  <input
+                    className={styles.input}
+                    placeholder="Paciente referencia (opcional)"
+                    value={coberturaForm.pacienteRef}
+                    onChange={(e) => setCoberturaForm((prev) => ({ ...prev, pacienteRef: e.target.value }))}
+                  />
+                  <input
+                    className={styles.input}
+                    placeholder="Nro afiliado (opcional)"
+                    value={coberturaForm.nroAfiliado}
+                    onChange={(e) => setCoberturaForm((prev) => ({ ...prev, nroAfiliado: e.target.value }))}
+                  />
+                </div>
+
+                <div className={styles.row2}>
+                  <select
+                    className={styles.select}
+                    value={coberturaForm.criticidad}
+                    onChange={(e) => setCoberturaForm((prev) => ({ ...prev, criticidad: e.target.value }))}
+                  >
+                    {CRITICIDAD.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <div />
+                </div>
+
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Detalle de solicitud"
+                  value={coberturaForm.descripcion}
+                  onChange={(e) => setCoberturaForm((prev) => ({ ...prev, descripcion: e.target.value }))}
+                  required
+                />
+
+                <div className={styles.actions}>
+                  <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>Registrar solicitud</button>
+                </div>
+              </form>
+
+              <div className={styles.formGrid} style={{ marginTop: 10 }}>
+                <div className={styles.row2}>
+                  <input
+                    className={styles.input}
+                    placeholder="Buscar por texto/codigo"
+                    value={coberturaFilter.q}
+                    onChange={(e) => setCoberturaFilter((prev) => ({ ...prev, q: e.target.value }))}
+                  />
+                  <select
+                    className={styles.select}
+                    value={coberturaFilter.estado}
+                    onChange={(e) => setCoberturaFilter((prev) => ({ ...prev, estado: e.target.value }))}
+                  >
+                    <option value="">Todos los estados</option>
+                    {ESTADOS.map((estado) => <option key={estado} value={estado}>{estado}</option>)}
+                  </select>
+                </div>
+
+                <div className={styles.row2}>
+                  <input
+                    type="date"
+                    className={styles.input}
+                    value={coberturaFilter.desde}
+                    onChange={(e) => setCoberturaFilter((prev) => ({ ...prev, desde: e.target.value }))}
+                  />
+                  <input
+                    type="date"
+                    className={styles.input}
+                    value={coberturaFilter.hasta}
+                    onChange={(e) => setCoberturaFilter((prev) => ({ ...prev, hasta: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {loadingCobertura ? <p style={{ marginTop: 10 }}>Cargando historial...</p> : null}
+              {!loadingCobertura && coberturaRequests.length === 0 ? <p style={{ marginTop: 10 }}>No hay solicitudes para los filtros aplicados.</p> : null}
+              {!loadingCobertura && coberturaRequests.length > 0 ? (
+                <ul className={styles.favoriteList}>
+                  {coberturaRequests.map((req) => (
+                    <li key={req._id} className={styles.favoriteItem}>
+                      <strong>{req.titulo}</strong>
+                      <div className={styles.requestMeta}>Codigo: {req.codigo} | Estado: {req.estado} | Criticidad: {req.criticidad}</div>
+                      <div>{req.descripcion}</div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          )}
         </section>
 
         <section className={styles.previewWrap}>
@@ -532,7 +753,7 @@ export default function Recetas() {
                   <span className={styles.infoValue}>{formData.numeroAfiliado || '-'}</span>
                 </div>
                 <div className={styles.infoLine}>
-                  <span className={styles.infoLabel}>Obra social</span>
+                  <span className={styles.infoLabel}>Cobertura</span>
                   <span className={styles.infoValue}>{formData.obraSocial || '-'}</span>
                 </div>
               </div>

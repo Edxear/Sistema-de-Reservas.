@@ -968,19 +968,19 @@ function mostrarPrecios() {
   ).join('<br>');
   return `💰 <strong>Aranceles de servicios — IntegraSalud:</strong><br><br>
 ${lista}<br><br>
-💡 Los precios pueden variar según cobertura de obra social o convenios vigentes.<br>
-¿Querés información sobre obras sociales aceptadas?`;
+💡 Los precios pueden variar según cobertura médica o convenios vigentes.<br>
+¿Querés información sobre coberturas aceptadas?`;
 }
 
 function mostrarObraSocial() {
-  return `🏥 <strong>Obras sociales y cobertura — IntegraSalud:</strong><br><br>
+  return `🏥 <strong>Coberturas y prepagas — IntegraSalud:</strong><br><br>
 El sistema registra la cobertura de cada paciente incluída:<br>
-• Nombre de obra social / prepaga<br>
+• Nombre de cobertura / prepaga<br>
 • Número de afiliado<br><br>
 <strong>Entre las coberturas registradas en el sistema:</strong><br>
 • OSDE &nbsp;• Swiss Medical &nbsp;• IOMA &nbsp;• PAMI<br>
 • Galeno &nbsp;• Medifé &nbsp;• OSECAC<br><br>
-💡 Para actualizar tu cobertura, iniciá sesión y accedé a <strong>"Mi Perfil"</strong>. Allí podés modificar los datos de obra social y número de afiliado.<br>
+💡 Para actualizar tu cobertura, iniciá sesión y accedé a <strong>"Mi Perfil"</strong>. Allí podés modificar los datos de cobertura y número de afiliado.<br>
 ¿Necesitás ayuda con algo más?`;
 }
 
@@ -1182,7 +1182,7 @@ function mostrarAyuda({ mostrarModoTecnico = false } = {}) {
 <strong>👤 MI CUENTA:</strong><br>
 • "Login" — Cómo acceder al sistema<br>
 • "Roles" — Qué puede hacer cada usuario<br>
-• "Obra social" — Gestión de cobertura<br><br>
+• "Cobertura" — Gestión de cobertura<br><br>
 <strong>📋 GESTIÓN CLÍNICA:</strong><br>
 • "Historia clínica" — Acceso al historial<br>
 • "Recetas" — Recetas digitales<br>
@@ -1208,7 +1208,7 @@ function respuestaDefault() {
 Puedo ayudarte con:<br>
 • 📅 <strong>Turnos</strong> y horarios de atención<br>
 • 🏥 <strong>Especialidades</strong> y equipo médico<br>
-• 💰 <strong>Precios</strong> y obras sociales<br>
+• 💰 <strong>Precios</strong> y coberturas<br>
 • 📋 <strong>Historia clínica</strong> y recetas<br>
 • 💬 <strong>Chat</strong> y mensajería interna<br>
 • 🔐 <strong>Acceso</strong> y roles del sistema<br>
@@ -1232,7 +1232,7 @@ const MENSAJE_BIENVENIDA = {
 Puedo ayudarte con:<br>
 📅 <strong>Turnos médicos</strong> — Información y gestión<br>
 🏥 <strong>Especialidades y médicos</strong> — Quiénes te atienden<br>
-💰 <strong>Precios y obra social</strong> — Aranceles y cobertura<br>
+💰 <strong>Precios y cobertura</strong> — Aranceles y cobertura<br>
 📋 <strong>Historia clínica y recetas</strong> — Acceso al historial<br>
 💬 <strong>Chat</strong> — Mensajería con profesionales<br>
 🔐 <strong>Acceso al sistema</strong> — Login y roles<br>

@@ -168,7 +168,7 @@ export default function Perfil() {
 
           {roleFields.includes('obraSocial') && (
             <div className={styles.grid2}>
-              <div className={styles.field}><label>Obra social</label><input value={form.obraSocial} onChange={(e) => onChange('obraSocial', e.target.value)} /></div>
+              <div className={styles.field}><label>Cobertura</label><input value={form.obraSocial} onChange={(e) => onChange('obraSocial', e.target.value)} /></div>
               <div className={styles.field}><label>Numero de afiliado</label><input value={form.numeroAfiliado} onChange={(e) => onChange('numeroAfiliado', e.target.value)} /></div>
               <div className={styles.field}><label>Alergias</label><input value={form.alergias} onChange={(e) => onChange('alergias', e.target.value)} /></div>
             </div>

@@ -70,7 +70,6 @@ export default function Header() {
                   {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>}
                   {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>}
                   {canAccessSupport(role) && <Link to="/soporte" onClick={closeAllMenus}>Soporte</Link>}
-                  {canAccessSupport(role) && <Link to="/gestion/obra-social" onClick={closeAllMenus}>Solicitudes Obra Social</Link>}
                   {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>Enfermeria</Link>}
                   {canAccessPizarra(role) && <Link to="/pizarra" onClick={closeAllMenus}>🏥 Pizarra Camas</Link>}
                   {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" onClick={closeAllMenus}>📋 Órdenes Médicas</Link>}

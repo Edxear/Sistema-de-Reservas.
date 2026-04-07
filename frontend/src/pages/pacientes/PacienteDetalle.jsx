@@ -64,7 +64,7 @@ export default function PacienteDetalle() {
           ) : (
             <>
               <p className={styles.subtitle}>{paciente?.nombre || 'Paciente'} - {paciente?.email || 'Sin email'}</p>
-              <p className={styles.subtitle}>Obra social: {paciente?.obraSocial || '-'} | Afiliado: {paciente?.numeroAfiliado || '-'}</p>
+              <p className={styles.subtitle}>Cobertura: {paciente?.obraSocial || '-'} | Afiliado: {paciente?.numeroAfiliado || '-'}</p>
             </>
           )}
         </div>

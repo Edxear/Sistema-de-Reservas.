@@ -235,7 +235,7 @@ const GestionPacientes = () => {
               <input
                 type="text"
                 name="obraSocial"
-                placeholder="Obra Social"
+                placeholder="Cobertura"
                 value={formulario.obraSocial}
                 onChange={handleFormularioChange}
               />
@@ -289,7 +289,7 @@ const GestionPacientes = () => {
                 <th>DNI</th>
                 <th>Email</th>
                 <th>Teléfono</th>
-                <th>Obra Social</th>
+                <th>Cobertura</th>
                 <th>Alergias</th>
                 <th>Acciones</th>
               </tr>

@@ -520,11 +520,11 @@ export default function Soporte() {
   const handleCreateObraSocialRequest = async (e) => {
     e.preventDefault();
     if (!isAdminRole(role)) {
-      toast.error('Solo administradores pueden registrar solicitudes con obra social');
+      toast.error('Solo administradores pueden registrar solicitudes con cobertura');
       return;
     }
     if (!obraSocialForm.obraSocial.trim() || !obraSocialForm.descripcion.trim()) {
-      toast.error('Completa obra social y descripcion para registrar la solicitud');
+      toast.error('Completa cobertura y descripcion para registrar la solicitud');
       return;
     }
 
@@ -536,7 +536,7 @@ export default function Soporte() {
         tipoGestion: 'obra_social',
         soporteNivel: 'L2',
         areaClinica: 'Gestion institucional',
-        modulo: 'Obra Social',
+        modulo: 'Cobertura',
         impactoClinico: obraSocialForm.pacienteRef?.trim() ? `Paciente referencia: ${obraSocialForm.pacienteRef.trim()}` : '',
         solicitanteNombre: user?.nombre || '',
         solicitanteRol: role || '',
@@ -551,11 +551,11 @@ export default function Soporte() {
       });
 
       setObraSocialForm(initialObraSocialForm);
-      toast.success('Solicitud con obra social registrada');
+      toast.success('Solicitud de cobertura registrada');
       await loadTickets();
       await loadMetrics();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'No se pudo crear la solicitud con obra social');
+      toast.error(error.response?.data?.message || 'No se pudo crear la solicitud de cobertura');
     }
   };
 
@@ -716,13 +716,13 @@ export default function Soporte() {
       </section>
 
       <section className={styles.card}>
-        <h2>Solicitudes institucionales con obra social</h2>
+        <h2>Solicitudes institucionales de cobertura</h2>
         <p className={styles.note}>Apartado exclusivo para administracion: gestiona requerimientos entre la institucion y financiadores.</p>
 
         <form onSubmit={handleCreateObraSocialRequest} className={styles.gridForm}>
           <input
             className={styles.input}
-            placeholder="Obra social (ej: IAPOS, PAMI, OSDE)"
+            placeholder="Cobertura (ej: IAPOS, PAMI, OSDE)"
             value={obraSocialForm.obraSocial}
             onChange={(e) => setObraSocialForm((p) => ({ ...p, obraSocial: e.target.value }))}
             required
@@ -770,7 +770,7 @@ export default function Soporte() {
         <div className={styles.filtersRow}>
           <input
             className={styles.input}
-            placeholder="Filtrar por obra social / codigo / texto"
+            placeholder="Filtrar por cobertura / codigo / texto"
             value={obraSocialFilter.q}
             onChange={(e) => setObraSocialFilter((p) => ({ ...p, q: e.target.value }))}
           />
@@ -797,7 +797,7 @@ export default function Soporte() {
         </div>
 
         <div className={styles.listWrap}>
-          {obraSocialRequests.length === 0 ? <p>No hay solicitudes con obra social para los filtros aplicados.</p> : obraSocialRequests.map((req) => (
+          {obraSocialRequests.length === 0 ? <p>No hay solicitudes de cobertura para los filtros aplicados.</p> : obraSocialRequests.map((req) => (
             <div key={req._id} className={styles.item}>
               <div className={styles.itemTitle}>{req.titulo}</div>
               <div className={styles.metaMini}>Codigo: {req.codigo} | Estado: {req.estado} | Criticidad: {req.criticidad}</div>

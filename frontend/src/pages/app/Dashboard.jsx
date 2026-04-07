@@ -351,7 +351,7 @@ export default function Dashboard() {
       return;
     }
 
-    const header = ['Nombre', 'Email', 'Telefono', 'Obra Social', 'Afiliado', 'Alergias', 'Total Turnos', 'Proximos Turnos'];
+    const header = ['Nombre', 'Email', 'Telefono', 'Cobertura', 'Afiliado', 'Alergias', 'Total Turnos', 'Proximos Turnos'];
     const lines = patientSummaries.map((p) => [
       p.nombre,
       p.email,
@@ -812,7 +812,7 @@ export default function Dashboard() {
               type="text"
               value={patientSearch}
               onChange={(e) => setPatientSearch(e.target.value)}
-              placeholder="Buscar por nombre, email, obra social o afiliado"
+              placeholder="Buscar por nombre, email, cobertura o afiliado"
             />
 
             <div className={styles.patientList}>
@@ -820,7 +820,7 @@ export default function Dashboard() {
                 <article key={summary.pacienteId} className={styles.patientCard}>
                   <div className={styles.patientTitle}>{summary.nombre}</div>
                   <div className={styles.patientMeta}>{summary.email || 'Sin email'} | {summary.telefono || 'Sin telefono'}</div>
-                  <div className={styles.patientMeta}>Obra social: {summary.obraSocial || '-'} | Afiliado: {summary.numeroAfiliado || '-'}</div>
+                  <div className={styles.patientMeta}>Cobertura: {summary.obraSocial || '-'} | Afiliado: {summary.numeroAfiliado || '-'}</div>
                   <div className={styles.patientMeta}>Alergias: {summary.alergias || 'No registradas'}</div>
                   <div className={styles.patientMeta}>Turnos totales: {summary.totalTurnos} | Próximos: {summary.proximosTurnos}</div>
                   <div className={styles.patientMeta}>

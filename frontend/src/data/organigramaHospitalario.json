@@ -65,7 +65,7 @@
       "subjefe": "Carla Mendez",
       "orden": 5,
       "activo": true,
-      "equipos": ["Admision", "Facturacion", "Obras Sociales", "Atencion al Paciente"],
+      "equipos": ["Admision", "Facturacion", "Coberturas", "Atencion al Paciente"],
       "puestos": [
         { "nombre": "Jefe Administrativo", "personas": ["Lic. Martin Bianchetti"] },
         { "nombre": "Subjefe de Admision", "personas": ["Carla Mendez"] },

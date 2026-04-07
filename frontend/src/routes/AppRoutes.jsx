@@ -19,7 +19,6 @@ import OrdenesMedicas from '../pages/clinico/OrdenesMedicas';
 import Teleconsultas from '../pages/teleconsultas/Teleconsultas';
 import Organigrama from '../pages/organizacion/Organigrama';
 import Soporte from '../pages/soporte/Soporte';
-import GestionObraSocial from '../pages/gestion/GestionObraSocial';
 import Enfermeria from '../pages/enfermeria/Enfermeria';
 import PizarraDigital from '../pages/clinico/PizarraDigital';
 
@@ -154,9 +153,7 @@ export default function AppRoutes() {
       <Route
         path="/gestion/obra-social"
         element={(
-          <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <GestionObraSocial />
-          </ProtectedRoute>
+          <Navigate to="/recetas" replace />
         )}
       />
       <Route
