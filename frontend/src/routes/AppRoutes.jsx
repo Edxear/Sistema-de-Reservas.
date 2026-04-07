@@ -19,6 +19,7 @@ import Organigrama from '../pages/organizacion/Organigrama';
 import Soporte from '../pages/soporte/Soporte';
 import GestionObraSocial from '../pages/gestion/GestionObraSocial';
 import Enfermeria from '../pages/enfermeria/Enfermeria';
+import PizarraDigital from '../pages/clinico/PizarraDigital';
 
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -161,6 +162,14 @@ export default function AppRoutes() {
         element={(
           <ProtectedRoute allowedRoles={[ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <Enfermeria />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/pizarra"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
+            <PizarraDigital />
           </ProtectedRoute>
         )}
       />

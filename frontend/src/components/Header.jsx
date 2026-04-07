@@ -6,6 +6,7 @@ import NotificacionCenter from './NotificacionCenter';
 import {
   canAccessNursingArea,
   canAccessOrganigrama,
+  canAccessPizarra,
   canAccessRecetas,
   canAccessSupport,
   canManageDoctors,
@@ -69,6 +70,7 @@ export default function Header() {
                   {canAccessSupport(role) && <Link to="/soporte" onClick={closeAllMenus}>Soporte</Link>}
                   {canAccessSupport(role) && <Link to="/gestion/obra-social" onClick={closeAllMenus}>Solicitudes Obra Social</Link>}
                   {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>Enfermeria</Link>}
+                  {canAccessPizarra(role) && <Link to="/pizarra" onClick={closeAllMenus}>🏥 Pizarra Camas</Link>}
                   <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
                   {canAccessOrganigrama(role) && (
                     <Link to="/organigrama" onClick={closeAllMenus}>

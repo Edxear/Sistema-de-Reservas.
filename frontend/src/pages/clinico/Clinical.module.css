@@ -1,0 +1,219 @@
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+  display: grid;
+  gap: 16px;
+}
+
+.hero,
+.card {
+  border: 1px solid #d7e4f3;
+  border-radius: 14px;
+  background: #fff;
+  padding: 16px;
+}
+
+.hero {
+  background: linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%);
+}
+
+.hero h1,
+.card h2 {
+  margin: 0 0 8px;
+  color: #143f66;
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  color: #154870;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filterRow {
+  margin: 8px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.select {
+  border: 1px solid #c7d8ea;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  min-width: 180px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+  background: #fff;
+}
+
+.input {
+  border: 1px solid #c7d8ea;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gridMini {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.miniCard {
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 12px;
+}
+
+.miniCard p {
+  margin: 6px 0 0;
+  color: #4f6982;
+}
+
+.ramaCard {
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.ramaCard h3 {
+  margin: 0;
+  color: #154870;
+}
+
+.ramaCard p {
+  margin: 0;
+  color: #385a79;
+  font-size: 14px;
+}
+
+.pill {
+  border-radius: 8px;
+  border: 1px solid #bad3ec;
+  background: #edf5fd;
+  color: #14466f;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.badgeGreen {
+  background: #e8f8ee;
+  border-color: #89d9a8;
+  color: #1f7a3e;
+}
+
+.badgeYellow {
+  background: #fff8e2;
+  border-color: #f1cf76;
+  color: #8a6405;
+}
+
+.badgeRed {
+  background: #fdeaea;
+  border-color: #ef9c9c;
+  color: #9f2424;
+}
+
+.badgeBlue {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.badgePurple {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #4c1d95;
+}
+
+.badgeOrange {
+  background: #ffedd5;
+  border-color: #fed7aa;
+  color: #7c2d12;
+}
+
+.list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #385a79;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+}
+
+.metaRow {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #3b5d7c;
+  font-size: 13px;
+}
+
+.sectorHeader {
+  margin: 1rem 0 0.5rem;
+  padding: 6px 12px;
+  background: #e8f0fb;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #143f66;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .grid3,
+  .gridMini {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actionsRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid3,
+  .gridMini,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
