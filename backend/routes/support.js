@@ -6,6 +6,7 @@ const admin = require('../middleware/admin');
 const {
   getSupportBlueprint,
   createSupportTicket,
+  createCoberturaRequest,
   listSupportTickets,
   updateSupportTicket,
   submitTicketSurvey,
@@ -18,6 +19,7 @@ const {
 router.get('/blueprint', auth, admin, getSupportBlueprint);
 router.get('/tickets', auth, admin, listSupportTickets);
 router.post('/tickets', auth, admin, createSupportTicket);
+router.post('/cobertura', auth, admin, createCoberturaRequest);
 router.put('/tickets/:id', auth, admin, updateSupportTicket);
 router.post('/tickets/:id/survey', auth, admin, submitTicketSurvey);
 router.get('/metrics', auth, admin, getSupportMetrics);

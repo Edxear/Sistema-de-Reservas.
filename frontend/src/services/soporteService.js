@@ -71,7 +71,9 @@ export const listSupportTickets = async (params = {}) => {
 };
 
 export const createSupportTicket = async (payload) => {
-  const res = await API.post('/support/tickets', payload);
+  const isCobertura = String(payload?.tipoGestion || '').toLowerCase() === 'obra_social';
+  const endpoint = isCobertura ? '/support/cobertura' : '/support/tickets';
+  const res = await API.post(endpoint, payload);
   return res.data;
 };
 

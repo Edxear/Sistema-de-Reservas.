@@ -6,7 +6,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
-import { canAccessSupport } from '../../utils/roles';
+import { canAccessSupport, isSuperAdminPrincipal } from '../../utils/roles';
 import { createSupportTicket, listSupportTickets } from '../../services/soporteService';
 import styles from './Recetas.module.css';
 
@@ -43,7 +43,7 @@ const plantillaDesdeObraSocial = (obraSocial = '') => {
 export default function Recetas() {
   const { user } = useAuth();
   const role = user?.rol;
-  const canManageCobertura = canAccessSupport(role);
+  const canManageCobertura = canAccessSupport(role) || isSuperAdminPrincipal(user);
   const location = useLocation();
   const [medicamentos, setMedicamentos] = useState([initialMed]);
   const [favoritas, setFavoritas] = useState([]);

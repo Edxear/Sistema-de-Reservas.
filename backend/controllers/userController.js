@@ -36,6 +36,8 @@ exports.searchUsers = async (req, res) => {
 };
 
 exports.getUsers = async (req, res) => {
+  try {
+    const { rol, search } = req.query;
     const query = {};
 
     if (rol) {
@@ -57,9 +59,9 @@ exports.getUsers = async (req, res) => {
       .select('-password')
       .sort({ fechaRegistro: -1, nombre: 1 });
 
-    res.json(users);
+    return res.json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo usuarios', error });
+    return res.status(500).json({ message: 'Error obteniendo usuarios', error });
   }
 };
 

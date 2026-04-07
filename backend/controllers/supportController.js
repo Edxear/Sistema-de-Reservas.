@@ -3,6 +3,10 @@ const SupportKnowledgeArticle = require('../models/SupportKnowledgeArticle');
 const BedUnit = require('../models/BedUnit');
 const Teleconsulta = require('../models/Teleconsulta');
 const { logAuditEvent } = require('../utils/auditLogger');
+const {
+  CoberturaValidationError,
+  buildCoberturaTicketPayload,
+} = require('../services/coberturaRequestService');
 
 const SLA_BY_CRITICIDAD = {
   critico: { respuesta: 15, resolucion: 120 },
@@ -37,6 +41,40 @@ const inferRouting = ({ criticidad, tipoGestion, modulo }) => {
   }
 
   return { recommendedLevel: 'L1', confidence: 0.7, routingReason: 'Caso apto para mesa de ayuda inicial' };
+};
+
+const createTicketWithRouting = async ({ req, ticketInput, tipoGestionForKb }) => {
+  const routing = inferRouting({
+    criticidad: ticketInput.criticidad,
+    tipoGestion: ticketInput.tipoGestion,
+    modulo: ticketInput.modulo,
+  });
+  const sla = buildSla(ticketInput.criticidad);
+  const suggestedKb = `${String(tipoGestionForKb || ticketInput.tipoGestion || 'incidente').toLowerCase()}-${String(ticketInput.modulo || 'general').toLowerCase().replace(/\s+/g, '-')}`;
+
+  const ticket = await SupportTicket.create({
+    ...ticketInput,
+    kbArticleRef: suggestedKb,
+    routingReason: routing.routingReason,
+    autoRouting: {
+      recommendedLevel: routing.recommendedLevel,
+      confidence: routing.confidence,
+      routedAt: new Date(),
+    },
+    slaRespuestaMin: sla.respuesta,
+    slaResolucionMin: sla.resolucion,
+    responseDueAt: sla.responseDueAt,
+    resolutionDueAt: sla.resolutionDueAt,
+  });
+
+  await logAuditEvent(req, {
+    action: 'support-ticket.create',
+    resourceType: 'SupportTicket',
+    resourceId: ticket._id,
+    details: `autoRouting=${routing.recommendedLevel} confidence=${routing.confidence}`,
+  });
+
+  return ticket;
 };
 
 exports.getSupportBlueprint = async (_req, res) => {
@@ -96,11 +134,17 @@ exports.createSupportTicket = async (req, res) => {
       tags = [],
     } = req.body;
 
-    const sla = buildSla(criticidad);
-    const routing = inferRouting({ criticidad, tipoGestion, modulo });
-    const suggestedKb = `${String(tipoGestion || 'incidente').toLowerCase()}-${String(modulo || 'general').toLowerCase().replace(/\s+/g, '-')}`;
+    if (tipoGestion === 'obra_social') {
+      const ticketInput = buildCoberturaTicketPayload(req.body, {
+        actorId,
+        actorName: req.user?.nombre,
+        actorRole: req.user?.rol,
+      });
+      const ticket = await createTicketWithRouting({ req, ticketInput, tipoGestionForKb: 'obra_social' });
+      return res.status(201).json(ticket);
+    }
 
-    const ticket = await SupportTicket.create({
+    const ticketInput = {
       titulo,
       descripcion,
       criticidad,
@@ -119,29 +163,40 @@ exports.createSupportTicket = async (req, res) => {
       requiresChangeValidation,
       changeValidationStatus: requiresChangeValidation ? 'pendiente' : 'no_aplica',
       tags: Array.isArray(tags) ? tags : [],
-      kbArticleRef: suggestedKb,
-      routingReason: routing.routingReason,
-      autoRouting: {
-        recommendedLevel: routing.recommendedLevel,
-        confidence: routing.confidence,
-        routedAt: new Date(),
-      },
-      slaRespuestaMin: sla.respuesta,
-      slaResolucionMin: sla.resolucion,
-      responseDueAt: sla.responseDueAt,
-      resolutionDueAt: sla.resolutionDueAt,
-    });
+    };
 
-    await logAuditEvent(req, {
-      action: 'support-ticket.create',
-      resourceType: 'SupportTicket',
-      resourceId: ticket._id,
-      details: `autoRouting=${routing.recommendedLevel} confidence=${routing.confidence}`,
-    });
-
-    res.status(201).json(ticket);
+    const ticket = await createTicketWithRouting({ req, ticketInput, tipoGestionForKb: tipoGestion });
+    return res.status(201).json(ticket);
   } catch (error) {
-    res.status(500).json({ message: 'Error creando ticket de soporte', error });
+    if (error instanceof CoberturaValidationError) {
+      return res.status(error.statusCode).json({
+        message: 'Solicitud de cobertura invalida',
+        errors: error.errors,
+      });
+    }
+    return res.status(500).json({ message: 'Error creando ticket de soporte', error });
+  }
+};
+
+exports.createCoberturaRequest = async (req, res) => {
+  try {
+    const actorId = getUserId(req);
+    const ticketInput = buildCoberturaTicketPayload(req.body, {
+      actorId,
+      actorName: req.user?.nombre,
+      actorRole: req.user?.rol,
+    });
+
+    const ticket = await createTicketWithRouting({ req, ticketInput, tipoGestionForKb: 'obra_social' });
+    return res.status(201).json(ticket);
+  } catch (error) {
+    if (error instanceof CoberturaValidationError) {
+      return res.status(error.statusCode).json({
+        message: 'Solicitud de cobertura invalida',
+        errors: error.errors,
+      });
+    }
+    return res.status(500).json({ message: 'Error creando solicitud de cobertura', error });
   }
 };
 

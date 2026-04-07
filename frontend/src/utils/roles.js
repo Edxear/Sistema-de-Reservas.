@@ -11,6 +11,7 @@ export const normalizeRole = (role) => String(role || '').toLowerCase();
 
 export const isPatientRole = (role) => normalizeRole(role) === ROLE.PACIENTE;
 export const isSuperAdminRole = (role) => normalizeRole(role) === ROLE.SUPERADMIN;
+export const isSuperAdminPrincipal = (user) => user?.esSuperAdminPrincipal === true;
 export const isAdminRole = (role) => [ROLE.ADMIN, ROLE.SUPERADMIN].includes(normalizeRole(role));
 
 export const canManageDoctors = (role) => isAdminRole(role);
