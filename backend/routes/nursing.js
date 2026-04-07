@@ -7,11 +7,15 @@ const {
   createInitiative,
   getNursingCatalog,
   getNursingConfig,
+  listNursingContacts,
   getNursingDashboard,
   getNursingOrganigrama,
   listChecklists,
   listIncidents,
   listInitiatives,
+  listWoundPhotos,
+  createWoundPhoto,
+  updateWoundPhoto,
   updateNursingConfig,
   updateIncidentStatus,
   updateInitiative,
@@ -24,6 +28,7 @@ router.get('/config', auth, getNursingConfig);
 router.put('/config', auth, updateNursingConfig);
 router.get('/dashboard', auth, getNursingDashboard);
 router.get('/organigrama', auth, getNursingOrganigrama);
+router.get('/contacts', auth, listNursingContacts);
 
 router.get('/initiatives', auth, listInitiatives);
 router.post('/initiatives', auth, createInitiative);
@@ -35,5 +40,9 @@ router.post('/checklists', auth, createChecklist);
 router.get('/incidents', auth, listIncidents);
 router.post('/incidents', auth, createIncident);
 router.put('/incidents/:id/status', auth, updateIncidentStatus);
+
+router.get('/wound-photos', auth, listWoundPhotos);
+router.post('/wound-photos', auth, createWoundPhoto);
+router.put('/wound-photos/:id', auth, updateWoundPhoto);
 
 module.exports = router;

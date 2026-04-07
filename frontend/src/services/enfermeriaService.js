@@ -64,3 +64,23 @@ export const updateNursingIncidentStatus = async (id, payload) => {
   const res = await API.put(`/enfermeria/incidents/${id}/status`, payload);
   return res.data;
 };
+
+export const listNursingContacts = async (params = {}) => {
+  const res = await API.get('/enfermeria/contacts', { params });
+  return res.data;
+};
+
+export const listNursingWoundPhotos = async (params = {}) => {
+  const res = await API.get('/enfermeria/wound-photos', { params });
+  return res.data;
+};
+
+export const createNursingWoundPhoto = async (payload) => {
+  const res = await API.post('/enfermeria/wound-photos', payload);
+  return res.data;
+};
+
+export const updateNursingWoundPhoto = async (id, payload) => {
+  const res = await API.put(`/enfermeria/wound-photos/${id}`, payload);
+  return res.data;
+};

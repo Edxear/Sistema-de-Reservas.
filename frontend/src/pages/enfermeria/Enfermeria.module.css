@@ -58,15 +58,18 @@
 .select {
   border: 1px solid #c7d8ea;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-size: 14px;
   min-width: 220px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .ramaCard {
@@ -91,13 +94,14 @@
 
 .pill {
   justify-self: start;
-  border-radius: 999px;
+  border-radius: 8px;
   border: 1px solid #bad3ec;
   background: #edf5fd;
   color: #14466f;
-  padding: 4px 10px;
+  padding: 8px 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .badgeGreen {
@@ -170,24 +174,29 @@
 }
 
 .gridMini {
-  margin-top: 8px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .grid2 {
-  margin-top: 8px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
+}
+
+.gridMini > *,
+.grid2 > * {
+  margin: 2px 0;
 }
 
 .miniCard {
   border: 1px solid #dbe7f5;
   border-radius: 12px;
   background: #fbfdff;
-  padding: 10px;
+  padding: 12px;
 }
 
 .miniCard p {

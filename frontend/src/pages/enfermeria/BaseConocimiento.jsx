@@ -430,8 +430,10 @@ export default function BaseConocimiento() {
   const [categoriaActiva, setCategoriaActiva] = useState('todas');
   const [itemAbierto, setItemAbierto] = useState(null);
 
+  const contenidosData = CONTENIDOS;
+
   const resultados = useMemo(() => {
-    return CONTENIDOS.filter((item) => {
+    return contenidosData.filter((item) => {
       const coincideCategoria = categoriaActiva === 'todas' || item.categoria === categoriaActiva;
       const textoBusqueda = busqueda.trim().toLowerCase();
       const coincideBusqueda = !textoBusqueda
@@ -440,7 +442,7 @@ export default function BaseConocimiento() {
         || item.pasos.some((p) => p.toLowerCase().includes(textoBusqueda));
       return coincideCategoria && coincideBusqueda;
     });
-  }, [busqueda, categoriaActiva]);
+  }, [busqueda, categoriaActiva, contenidosData]);
 
   const toggleItem = (id) => setItemAbierto((prev) => (prev === id ? null : id));
 
@@ -455,7 +457,9 @@ export default function BaseConocimiento() {
               Procedimientos, escalas, protocolos de emergencia y guías de medicación. Siempre disponible, sin internet.
             </p>
           </div>
-          <InfoBtn texto={'Base de Conocimiento:\n\nAquí encontrarás guías paso a paso para los procedimientos y situaciones más frecuentes en enfermería.\n\n• Busca por palabras clave (ej: "catéter", "sepsis")\n• Filtra por categoría con los botones de colores\n• Haz clic en cualquier tarjeta para ver los pasos detallados\n\nEsta información es orientativa. Ante dudas, siempre consulta con tu supervisor o el médico tratante.'} />
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <InfoBtn texto={'Base de Conocimiento:\n\nAquí encontrarás guías paso a paso para los procedimientos y situaciones más frecuentes en enfermería.\n\n• Busca por palabras clave (ej: "catéter", "sepsis")\n• Filtra por categoría con los botones de colores\n• Haz clic en cualquier tarjeta para ver los pasos detallados\n\nEsta información es orientativa. Ante dudas, siempre consulta con tu supervisor o el médico tratante.'} />
+          </div>
         </div>
       </section>
 
@@ -476,10 +480,10 @@ export default function BaseConocimiento() {
             onClick={() => setCategoriaActiva('todas')}
             style={{ padding: '0.4rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', backgroundColor: categoriaActiva === 'todas' ? '#374151' : '#e5e7eb', color: categoriaActiva === 'todas' ? '#fff' : '#374151' }}
           >
-            Todos ({CONTENIDOS.length})
+            Todos ({contenidosData.length})
           </button>
           {Object.entries(CATEGORIAS).map(([clave, cat]) => {
-            const count = CONTENIDOS.filter((i) => i.categoria === clave).length;
+            const count = contenidosData.filter((i) => i.categoria === clave).length;
             return (
               <button
                 key={clave}
@@ -569,7 +573,7 @@ export default function BaseConocimiento() {
       {/* RESUMEN ESTADÍSTICAS */}
       <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
         {Object.entries(CATEGORIAS).map(([clave, cat]) => {
-          const count = CONTENIDOS.filter((i) => i.categoria === clave).length;
+          const count = contenidosData.filter((i) => i.categoria === clave).length;
           return (
             <div
               key={clave}

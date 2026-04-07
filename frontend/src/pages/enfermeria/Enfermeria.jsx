@@ -23,6 +23,8 @@ import PlanCuidados from './PlanCuidados';
 import CalculadoraClinica from './CalculadoraClinica';
 import BaseConocimiento from './BaseConocimiento';
 import AlertasSeguridad from './AlertasSeguridad';
+import FotosHeridas from './FotosHeridas';
+import MensajeriaSegura from './MensajeriaSegura';
 
 const TRANSVERSAL_ITEMS = [
   'Pase de guardia seguro',
@@ -402,6 +404,8 @@ export default function Enfermeria() {
           <button onClick={() => setActiveTab('calculadora')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'calculadora' ? '#8b5cf6' : '#e5e7eb', color: activeTab === 'calculadora' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🔢 Calculadora</button>
           <button onClick={() => setActiveTab('alertas')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'alertas' ? '#ef4444' : '#e5e7eb', color: activeTab === 'alertas' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚠️ Alertas</button>
           <button onClick={() => setActiveTab('conocimiento')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'conocimiento' ? '#f59e0b' : '#e5e7eb', color: activeTab === 'conocimiento' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📚 Conocimiento</button>
+          <button onClick={() => setActiveTab('heridas')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'heridas' ? '#0284c7' : '#e5e7eb', color: activeTab === 'heridas' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📷 Heridas</button>
+          <button onClick={() => setActiveTab('mensajeria')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'mensajeria' ? '#0f766e' : '#e5e7eb', color: activeTab === 'mensajeria' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>💬 Mensajeria</button>
           <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'dashboard' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'dashboard' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📊 Dashboard</button>
           <button onClick={() => setActiveTab('config')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'config' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'config' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚙️ Config</button>
         </div>
@@ -416,10 +420,11 @@ export default function Enfermeria() {
       {activeTab === 'miTurno' && <MiTurno branches={branches} checklists={checklists} initiatives={initiatives} user={user} />}
       {activeTab === 'planCuidados' && <PlanCuidados />}
       {activeTab === 'calculadora' && <CalculadoraClinica />}
-  {activeTab === 'alertas' && <AlertasSeguridad />}
-  {activeTab === 'conocimiento' && <BaseConocimiento />}
-
-  {(activeTab === 'dashboard' || activeTab === 'config') && (<>
+      {activeTab === 'alertas' && <AlertasSeguridad />}
+      {activeTab === 'conocimiento' && <BaseConocimiento />}
+      {activeTab === 'heridas' && <FotosHeridas branches={branches} scope={dashboard?.scope || {}} permissions={permissions} />}
+      {activeTab === 'mensajeria' && <MensajeriaSegura />}
+        {(activeTab === 'dashboard' || activeTab === 'config') && (<>
       <section className={styles.card}>
         <div className={styles.actionsRow}>
           <h2>KPIs Prioritarios</h2>

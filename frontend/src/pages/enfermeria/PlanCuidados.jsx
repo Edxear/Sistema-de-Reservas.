@@ -120,15 +120,17 @@ export default function PlanCuidados() {
   const [tareasExtra, setTareasExtra] = useState([]);
   const [filtroCategoria, setFiltroCategoria] = useState('todas');
 
+  const protocolosData = PROTOCOLOS;
+
   // Buscar diagnósticos que coinciden con la búsqueda
   const resultados = busqueda.trim().length >= 2
-    ? Object.entries(PROTOCOLOS).filter(([, p]) =>
+    ? Object.entries(protocolosData).filter(([, p]) =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase())
       )
-    : Object.entries(PROTOCOLOS);
+    : Object.entries(protocolosData);
 
   const seleccionarDiagnostico = (clave) => {
-    const protocolo = PROTOCOLOS[clave];
+    const protocolo = protocolosData[clave];
     setDiagnosticoSeleccionado({ clave, ...protocolo });
     // Preseleccionar todas las obligatorias
     const selecciones = {};
@@ -171,7 +173,9 @@ export default function PlanCuidados() {
               Busca un diagnóstico y el sistema te sugiere automáticamente el plan de cuidados recomendado.
             </p>
           </div>
-          <InfoBtn texto={'Plan de Cuidados Inteligente:\n\n1. Busca un diagnóstico (ej. "neumonía")\n2. El sistema muestra los cuidados recomendados\n3. Marca los que aplican a tu paciente\n4. Agrega cuidados personalizados si necesitas\n\nLos cuidados con 🔴 son OBLIGATORIOS por protocolo.\nLos con ⚪ son recomendados pero opcionales.\n\n¿Dudas sobre algún cuidado? Consulta con tu supervisor.'} />
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <InfoBtn texto={'Plan de Cuidados Inteligente:\n\n1. Busca un diagnóstico (ej. "neumonía")\n2. El sistema muestra los cuidados recomendados\n3. Marca los que aplican a tu paciente\n4. Agrega cuidados personalizados si necesitas\n\nLos cuidados con 🔴 son OBLIGATORIOS por protocolo.\nLos con ⚪ son recomendados pero opcionales.\n\n¿Dudas sobre algún cuidado? Consulta con tu supervisor.'} />
+          </div>
         </div>
       </section>
 

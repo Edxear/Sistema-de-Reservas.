@@ -1,7 +1,10 @@
+const mongoose = require('mongoose');
 const NursingInitiative = require('../models/NursingInitiative');
 const NursingChecklist = require('../models/NursingChecklist');
 const NursingIncident = require('../models/NursingIncident');
 const NursingConfig = require('../models/NursingConfig');
+const NursingWoundPhoto = require('../models/NursingWoundPhoto');
+const Mensaje = require('../models/Mensaje');
 const User = require('../models/User');
 const { logAuditEvent } = require('../utils/auditLogger');
 
@@ -182,26 +185,19 @@ const mergeThresholds = (input = {}) => ({
 
 const getActorContext = async (req) => {
   const userId = getAuthUserId(req);
-  console.log('[NURSING] getActorContext - userId:', userId, 'req.user:', req.user ? 'exists' : 'null');
-  
+
   if (!userId) {
     throw new Error('Usuario no autenticado o ID invalido');
   }
-  
+
   const actor = await User.findById(userId).select(
     'rol esSuperAdminPrincipal ramaEnfermeria rolJerarquicoEnfermeria cargoOrganigrama areaOrganigrama sectorOrganigrama nombre',
   );
-  
+
   if (!actor) {
     throw new Error('Usuario no encontrado en BD');
   }
-  
-  console.log('[NURSING] actor loaded:', { 
-    email: actor.email, 
-    rol: actor.rol, 
-    esSuperAdminPrincipal: actor.esSuperAdminPrincipal 
-  });
-  
+
   const permissions = buildPermissions(actor);
   const scope = buildScope(actor);
   return { actor, permissions, scope };
@@ -219,9 +215,207 @@ exports.getNursingConfig = async (req, res) => {
     if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver configuracion de enfermeria')) return;
 
     const config = await ensureConfig();
-    return res.json({ thresholds: config.thresholds || DEFAULT_THRESHOLDS, permissions, scope });
+    return res.json({
+      thresholds: config.thresholds || DEFAULT_THRESHOLDS,
+      permissions,
+      scope,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Error obteniendo configuracion de enfermeria', error });
+  }
+};
+
+exports.listNursingContacts = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver contactos de mensajeria')) return;
+
+    const actorId = getAuthUserId(req);
+    const search = String(req.query?.search || '').trim();
+    const roleFilter = String(req.query?.role || '').trim().toLowerCase();
+
+    const allowedRoles = ['medico', 'enfermero', 'admin', 'superadmin', 'secretaria'];
+    const query = {
+      rol: { $in: allowedRoles },
+      _id: { $ne: actorId },
+    };
+
+    if (!scope.global && scope.rama) {
+      query.$or = [
+        { rol: { $in: ['medico', 'admin', 'superadmin'] } },
+        { ramaEnfermeria: scope.rama },
+      ];
+    }
+
+    if (roleFilter && allowedRoles.includes(roleFilter)) {
+      query.rol = roleFilter;
+    }
+
+    if (search) {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { nombre: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { especialidad: { $regex: search, $options: 'i' } },
+          { ramaEnfermeria: { $regex: search, $options: 'i' } },
+          { cargoOrganigrama: { $regex: search, $options: 'i' } },
+        ],
+      });
+    }
+
+    let contacts = await User.find(query)
+      .select('_id nombre email rol especialidad ramaEnfermeria cargoOrganigrama')
+      .sort({ nombre: 1 })
+      .limit(120);
+
+    // Fallback defensivo: si no hay resultados por filtros del modulo,
+    // devolvemos contactos sanitarios generales para no dejar la mensajeria vacia.
+    if (!contacts.length) {
+      contacts = await User.find({
+        rol: { $in: ['medico', 'enfermero', 'admin', 'superadmin'] },
+        _id: { $ne: actorId },
+      })
+        .select('_id nombre email rol especialidad ramaEnfermeria cargoOrganigrama')
+        .sort({ nombre: 1 })
+        .limit(120);
+    }
+
+    const unreadByContact = {};
+    const actorObjectId = mongoose.Types.ObjectId.isValid(String(actorId))
+      ? new mongoose.Types.ObjectId(String(actorId))
+      : null;
+    const unreadRows = actorObjectId
+      ? await Mensaje.aggregate([
+          { $match: { para: actorObjectId, leido: false } },
+          { $group: { _id: '$de', total: { $sum: 1 } } },
+        ])
+      : [];
+    unreadRows.forEach((row) => {
+      unreadByContact[String(row._id)] = Number(row.total || 0);
+    });
+
+    return res.json({
+      items: contacts.map((c) => ({
+        ...c.toObject(),
+        unread: unreadByContact[String(c._id)] || 0,
+      })),
+      permissions,
+      scope,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error listando contactos de mensajeria', error });
+  }
+};
+
+exports.listWoundPhotos = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver fotos de heridas')) return;
+
+    const { rama, pacienteRef, tipoHerida } = req.query;
+    const filter = { activo: true };
+
+    if (rama) filter.rama = String(rama).trim();
+    if (pacienteRef) filter.pacienteRef = { $regex: String(pacienteRef).trim(), $options: 'i' };
+    if (tipoHerida) filter.tipoHerida = { $regex: String(tipoHerida).trim(), $options: 'i' };
+
+    if (!scope.global && scope.rama) filter.rama = scope.rama;
+
+    const items = await NursingWoundPhoto.find(filter)
+      .sort({ tomadaEn: -1, createdAt: -1 })
+      .limit(120)
+      .populate('createdBy', 'nombre rol')
+      .populate('updatedBy', 'nombre rol');
+
+    return res.json({ items, permissions, scope });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error listando fotos de heridas', error });
+  }
+};
+
+exports.createWoundPhoto = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canCreateChecklist', 'No autorizado para registrar fotos de heridas')) return;
+
+    const ramaTarget = String(req.body?.rama || '').trim();
+    if (!ramaTarget) return res.status(400).json({ message: 'rama es obligatoria' });
+    if (!scope.global && !canOperateBranch(scope, ramaTarget)) {
+      return res.status(403).json({ message: 'Solo puedes registrar fotos en tu rama de enfermeria' });
+    }
+
+    const imageDataUrl = String(req.body?.imageDataUrl || '');
+    if (!imageDataUrl.startsWith('data:image/')) {
+      return res.status(400).json({ message: 'Formato de imagen invalido. Debe enviarse en data URL.' });
+    }
+
+    const payload = {
+      rama: ramaTarget,
+      pacienteRef: String(req.body?.pacienteRef || '').trim(),
+      tipoHerida: String(req.body?.tipoHerida || '').trim(),
+      zonaCorporal: String(req.body?.zonaCorporal || '').trim(),
+      estadio: String(req.body?.estadio || '').trim(),
+      observaciones: String(req.body?.observaciones || '').trim(),
+      imageDataUrl,
+      tomadaEn: req.body?.tomadaEn ? new Date(req.body.tomadaEn) : new Date(),
+      createdBy: getAuthUserId(req),
+      updatedBy: getAuthUserId(req),
+    };
+
+    if (!payload.tipoHerida) {
+      return res.status(400).json({ message: 'tipoHerida es obligatorio' });
+    }
+
+    const created = await NursingWoundPhoto.create(payload);
+
+    await logAuditEvent(req, {
+      action: 'nursing.woundPhoto.create',
+      resourceType: 'NursingWoundPhoto',
+      resourceId: created._id,
+      details: `rama=${payload.rama} pacienteRef=${payload.pacienteRef || 'sin_ref'}`,
+    });
+
+    return res.status(201).json(created);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error registrando foto de herida', error });
+  }
+};
+
+exports.updateWoundPhoto = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canManageIncidentStatus', 'No autorizado para actualizar fotos de heridas')) return;
+
+    const current = await NursingWoundPhoto.findById(req.params.id);
+    if (!current) return res.status(404).json({ message: 'Foto no encontrada' });
+
+    if (!scope.global && !canOperateBranch(scope, current.rama)) {
+      return res.status(403).json({ message: 'Solo puedes actualizar fotos de tu rama de enfermeria' });
+    }
+
+    const patch = {};
+    ['pacienteRef', 'tipoHerida', 'zonaCorporal', 'estadio', 'observaciones', 'activo'].forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(req.body || {}, key)) patch[key] = req.body[key];
+    });
+    if (req.body?.tomadaEn) patch.tomadaEn = new Date(req.body.tomadaEn);
+    if (typeof req.body?.imageDataUrl === 'string' && req.body.imageDataUrl.startsWith('data:image/')) {
+      patch.imageDataUrl = req.body.imageDataUrl;
+    }
+    patch.updatedBy = getAuthUserId(req);
+
+    const updated = await NursingWoundPhoto.findByIdAndUpdate(req.params.id, patch, { new: true });
+
+    await logAuditEvent(req, {
+      action: 'nursing.woundPhoto.update',
+      resourceType: 'NursingWoundPhoto',
+      resourceId: updated._id,
+      details: `activo=${updated.activo}`,
+    });
+
+    return res.json(updated);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error actualizando foto de herida', error });
   }
 };
 

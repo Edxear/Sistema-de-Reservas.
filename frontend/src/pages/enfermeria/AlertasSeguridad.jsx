@@ -154,16 +154,19 @@ export default function AlertasSeguridad() {
   const [alertasConfirmadas, setAlertasConfirmadas] = useState({});
   const [recordatoriosVistos, setRecordatoriosVistos] = useState({});
 
+  const alertasData = ALERTAS_PERMANENTES;
+  const recordatoriosData = RECORDATORIOS_TURNO;
+
   const alertasFiltradas = useMemo(() => {
-    return ALERTAS_PERMANENTES.filter((a) =>
+    return alertasData.filter((a) =>
       categoriaFiltro === 'todas' || a.categoria === categoriaFiltro
     ).sort((a, b) => {
       const orden = { critica: 0, alta: 1, media: 2 };
       return (orden[a.severidad] ?? 3) - (orden[b.severidad] ?? 3);
     });
-  }, [categoriaFiltro]);
+  }, [categoriaFiltro, alertasData]);
 
-  const recordatoriosTurno = RECORDATORIOS_TURNO[turnoActivo] || [];
+  const recordatoriosTurno = recordatoriosData[turnoActivo] || [];
 
   const confirmarAlerta = (id) => {
     setAlertasConfirmadas((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -174,7 +177,7 @@ export default function AlertasSeguridad() {
   };
 
   const totalConfirmadas = Object.values(alertasConfirmadas).filter(Boolean).length;
-  const totalAlertas = ALERTAS_PERMANENTES.length;
+  const totalAlertas = alertasData.length;
 
   return (
     <div>
@@ -187,7 +190,9 @@ export default function AlertasSeguridad() {
               Recordatorios activos de seguridad para tu turno. Márcalos como revisados a medida que los verificas.
             </p>
           </div>
-          <InfoBtn texto={'Alertas de Seguridad:\n\nEsta sección muestra los puntos de seguridad más importantes que debes tener presentes en cada turno.\n\n• Las alertas CRÍTICAS son prioritarias y no deben ignorarse\n• Marca cada alerta cuando la hayas verificado/aplicado\n• La barra de progreso muestra cuántos puntos de seguridad has revisado\n\nEstas alertas NO reemplazan los protocolos del servicio ni las indicaciones médicas. Son recordatorios de buenas prácticas.'} />
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <InfoBtn texto={'Alertas de Seguridad:\n\nEsta sección muestra los puntos de seguridad más importantes que debes tener presentes en cada turno.\n\n• Las alertas CRÍTICAS son prioritarias y no deben ignorarse\n• Marca cada alerta cuando la hayas verificado/aplicado\n• La barra de progreso muestra cuántos puntos de seguridad has revisado\n\nEstas alertas NO reemplazan los protocolos del servicio ni las indicaciones médicas. Son recordatorios de buenas prácticas.'} />
+          </div>
         </div>
 
         {/* PROGRESO */}
@@ -336,7 +341,7 @@ export default function AlertasSeguridad() {
         <h3 style={{ marginBottom: '1rem' }}>📊 Resumen por área de seguridad</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
           {Object.entries(CATEGORIAS_ALERTA).map(([clave, cat]) => {
-            const alertasCat = ALERTAS_PERMANENTES.filter((a) => a.categoria === clave);
+            const alertasCat = alertasData.filter((a) => a.categoria === clave);
             const confirmadas = alertasCat.filter((a) => alertasConfirmadas[a.id]).length;
             const pct = alertasCat.length > 0 ? Math.round((confirmadas / alertasCat.length) * 100) : 0;
             return (
