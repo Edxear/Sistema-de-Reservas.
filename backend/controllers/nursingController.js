@@ -728,6 +728,128 @@ exports.updateIncidentStatus = async (req, res) => {
   }
 };
 
+exports.getNursingWorkload = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver carga de trabajo')) return;
+
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const staffFilter = {
+      rol: { $in: ['enfermero', 'admin', 'superadmin'] },
+      areaOrganigrama: { $regex: /^enfermeria$/i },
+    };
+    if (!scope.global && scope.rama) staffFilter.ramaEnfermeria = scope.rama;
+
+    const [staff, recentChecklists, openIncidents] = await Promise.all([
+      User.find(staffFilter).select('_id nombre rol ramaEnfermeria rolJerarquicoEnfermeria cargoOrganigrama sectorOrganigrama'),
+      NursingChecklist.find({ fecha: { $gte: yesterday } }).sort({ fecha: -1 }).limit(300),
+      NursingIncident.find({ estado: { $in: ['abierto', 'en_investigacion'] } }).sort({ createdAt: -1 }).limit(500),
+    ]);
+
+    const branchesToShow = scope.global ? BRANCHES : BRANCHES.filter((b) => canOperateBranch(scope, b));
+
+    const workload = branchesToShow.map((rama) => {
+      const branchStaff = staff.filter((u) =>
+        normalizeNoAccents(u.ramaEnfermeria || u.sectorOrganigrama || '') === normalizeNoAccents(rama),
+      );
+      const branchChecklists = recentChecklists.filter((c) => normalizeNoAccents(c.rama) === normalizeNoAccents(rama));
+      const branchIncidentsOpen = openIncidents.filter((i) => normalizeNoAccents(i.rama) === normalizeNoAccents(rama));
+
+      const latest = branchChecklists[0] || null;
+      const pacientes = latest ? Number(latest.pacientesAtendidos || 0) : 0;
+      const dotacionPlanificada = latest ? Number(latest.dotacionPlanificada || 0) : branchStaff.length;
+      const dotacionPresente = latest ? Number(latest.dotacionPresente || 0) : branchStaff.length;
+      const cumplimiento = latest ? Number(latest.cumplimientoProtocolos || 0) : null;
+      const alertasCriticas = latest ? Number(latest.alertasCriticas || 0) : 0;
+      const pacientesPorEnfermera = dotacionPresente > 0
+        ? Number((pacientes / dotacionPresente).toFixed(1))
+        : 0;
+
+      const estadoCarga = pacientesPorEnfermera > 8 ? 'red'
+        : pacientesPorEnfermera > 5 ? 'yellow'
+        : 'green';
+
+      return {
+        rama,
+        staff: branchStaff.length,
+        dotacionPlanificada,
+        dotacionPresente,
+        pacientes,
+        pacientesPorEnfermera,
+        incidentesAbiertos: branchIncidentsOpen.length,
+        alertasCriticas,
+        cumplimientoProtocolos: cumplimiento,
+        estadoCarga,
+        personal: branchStaff.map((u) => ({
+          _id: u._id,
+          nombre: u.nombre,
+          cargo: u.cargoOrganigrama || u.rolJerarquicoEnfermeria || 'Enfermero/a',
+        })),
+      };
+    });
+
+    return res.json({ workload, permissions, scope });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error obteniendo carga de trabajo de enfermeria', error });
+  }
+};
+
+exports.createAyudaRapida = async (req, res) => {
+  try {
+    const { actor, permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para enviar solicitud de ayuda')) return;
+
+    const destino = String(req.body?.destino || 'supervisor').toLowerCase().trim();
+    const rama = String(req.body?.rama || scope.rama || '').trim();
+    const mensajeTexto = String(req.body?.mensaje || '').trim()
+      || `Solicitud de ayuda urgente desde ${rama || 'modulo de enfermeria'}`;
+
+    const actorId = getAuthUserId(req);
+
+    const DESTINO_QUERY = {
+      supervisor: {
+        $or: [
+          { rol: { $in: ['admin', 'superadmin'] } },
+          { rol: 'enfermero', rolJerarquicoEnfermeria: { $in: ['jefatura', 'subjefatura', 'coordinacion'] } },
+        ],
+      },
+      medico: { rol: 'medico' },
+      equipo: { rol: { $in: ['medico', 'enfermero', 'admin', 'superadmin'] } },
+    };
+
+    const targetQuery = DESTINO_QUERY[destino] || DESTINO_QUERY.supervisor;
+    const targets = await User.find({ ...targetQuery, _id: { $ne: actorId } })
+      .select('_id')
+      .limit(destino === 'equipo' ? 20 : 10);
+
+    const contenido = `[AYUDA RAPIDA - ${destino.toUpperCase()} - ${rama}] ${mensajeTexto} (Enviado por: ${actor.nombre || 'Enfermero/a'})`;
+
+    const mensajes = targets.map((t) => ({
+      de: actorId,
+      para: t._id,
+      room: [String(actorId), String(t._id)].sort().join('_'),
+      contenido,
+      leido: false,
+    }));
+
+    if (mensajes.length > 0) {
+      await Mensaje.insertMany(mensajes);
+    }
+
+    await logAuditEvent(req, {
+      action: 'nursing.ayudaRapida.create',
+      resourceType: 'Mensaje',
+      resourceId: actorId,
+      details: `destino=${destino} rama=${rama} receptores=${targets.length}`,
+    });
+
+    return res.json({ ok: true, receptores: targets.length, destino, rama });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error enviando solicitud de ayuda rapida', error });
+  }
+};
+
 exports.getNursingOrganigrama = async (req, res) => {
   try {
     const { permissions, scope } = await getActorContext(req);

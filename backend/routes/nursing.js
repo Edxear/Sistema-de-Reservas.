@@ -10,6 +10,8 @@ const {
   listNursingContacts,
   getNursingDashboard,
   getNursingOrganigrama,
+  getNursingWorkload,
+  createAyudaRapida,
   listChecklists,
   listIncidents,
   listInitiatives,
@@ -28,6 +30,8 @@ router.get('/config', auth, getNursingConfig);
 router.put('/config', auth, updateNursingConfig);
 router.get('/dashboard', auth, getNursingDashboard);
 router.get('/organigrama', auth, getNursingOrganigrama);
+router.get('/workload', auth, getNursingWorkload);
+router.post('/ayuda-rapida', auth, createAyudaRapida);
 router.get('/contacts', auth, listNursingContacts);
 
 router.get('/initiatives', auth, listInitiatives);

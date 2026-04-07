@@ -16,6 +16,8 @@ import {
   updateNursingConfig,
   updateNursingIncidentStatus,
   updateNursingInitiative,
+  getNursingWorkload,
+  createAyudaRapida,
 } from '../../services/enfermeriaService';
 import styles from './Enfermeria.module.css';
 import MiTurno from './MiTurno';
@@ -25,6 +27,8 @@ import BaseConocimiento from './BaseConocimiento';
 import AlertasSeguridad from './AlertasSeguridad';
 import FotosHeridas from './FotosHeridas';
 import MensajeriaSegura from './MensajeriaSegura';
+import CargaTrabajo from './CargaTrabajo';
+import AyudaRapida from './AyudaRapida';
 
 const TRANSVERSAL_ITEMS = [
   'Pase de guardia seguro',
@@ -406,6 +410,7 @@ export default function Enfermeria() {
           <button onClick={() => setActiveTab('conocimiento')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'conocimiento' ? '#f59e0b' : '#e5e7eb', color: activeTab === 'conocimiento' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📚 Conocimiento</button>
           <button onClick={() => setActiveTab('heridas')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'heridas' ? '#0284c7' : '#e5e7eb', color: activeTab === 'heridas' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📷 Heridas</button>
           <button onClick={() => setActiveTab('mensajeria')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'mensajeria' ? '#0f766e' : '#e5e7eb', color: activeTab === 'mensajeria' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>💬 Mensajeria</button>
+          <button onClick={() => setActiveTab('carga')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'carga' ? '#6366f1' : '#e5e7eb', color: activeTab === 'carga' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>👥 Carga</button>
           <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'dashboard' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'dashboard' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📊 Dashboard</button>
           <button onClick={() => setActiveTab('config')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'config' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'config' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚙️ Config</button>
         </div>
@@ -417,7 +422,13 @@ export default function Enfermeria() {
         </div>
       </section>
 
-      {activeTab === 'miTurno' && <MiTurno branches={branches} checklists={checklists} initiatives={initiatives} user={user} />}
+      {activeTab === 'miTurno' && (
+        <>
+          <AyudaRapida branches={branches} userRama={dashboard?.scope?.rama || ''} />
+          <MiTurno branches={branches} checklists={checklists} initiatives={initiatives} user={user} />
+        </>
+      )}
+      {activeTab === 'carga' && <CargaTrabajo />}
       {activeTab === 'planCuidados' && <PlanCuidados />}
       {activeTab === 'calculadora' && <CalculadoraClinica />}
       {activeTab === 'alertas' && <AlertasSeguridad />}

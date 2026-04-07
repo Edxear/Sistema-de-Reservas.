@@ -15,6 +15,16 @@ export const getNursingOrganigrama = async () => {
   return res.data;
 };
 
+export const getNursingWorkload = async () => {
+  const res = await API.get('/enfermeria/workload');
+  return res.data;
+};
+
+export const createAyudaRapida = async (payload) => {
+  const res = await API.post('/enfermeria/ayuda-rapida', payload);
+  return res.data;
+};
+
 export const getNursingConfig = async () => {
   const res = await API.get('/enfermeria/config');
   return res.data;
