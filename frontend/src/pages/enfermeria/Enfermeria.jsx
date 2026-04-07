@@ -18,6 +18,9 @@ import {
   updateNursingInitiative,
 } from '../../services/enfermeriaService';
 import styles from './Enfermeria.module.css';
+import MiTurno from './MiTurno';
+import PlanCuidados from './PlanCuidados';
+import CalculadoraClinica from './CalculadoraClinica';
 
 const TRANSVERSAL_ITEMS = [
   'Pase de guardia seguro',
@@ -100,7 +103,7 @@ export default function Enfermeria() {
   const [thresholds, setThresholds] = useState(defaultThresholds);
   const [permissions, setPermissions] = useState(defaultPermissions);
   const [loading, setLoading] = useState(false);
-
+  const [activeTab, setActiveTab] = useState('miTurno');
   const [ramaFilter, setRamaFilter] = useState('');
   const [initiativeForm, setInitiativeForm] = useState(initialInitiative);
   const [checklistForm, setChecklistForm] = useState(initialChecklist);
@@ -391,6 +394,14 @@ export default function Enfermeria() {
       <section className={styles.hero}>
         <h1>Area de Enfermeria</h1>
         <p>Modulo integral: mejoras transversales, mejoras por rama, organigrama y gestion, digitalizacion y KPIs.</p>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button onClick={() => setActiveTab('miTurno')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'miTurno' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'miTurno' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📋 Mi Turno</button>
+          <button onClick={() => setActiveTab('planCuidados')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'planCuidados' ? '#10b981' : '#e5e7eb', color: activeTab === 'planCuidados' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🏥 Plan de Cuidados</button>
+          <button onClick={() => setActiveTab('calculadora')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'calculadora' ? '#8b5cf6' : '#e5e7eb', color: activeTab === 'calculadora' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🔢 Calculadora</button>
+          <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'dashboard' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'dashboard' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📊 Dashboard</button>
+          <button onClick={() => setActiveTab('config')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'config' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'config' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚙️ Config</button>
+        </div>
+
         <div className={styles.metaRow}>
           <span>Usuario activo: {user?.nombre || 'Sin sesion'}</span>
           <span>Rol: {user?.rol || '-'}</span>
@@ -398,6 +409,11 @@ export default function Enfermeria() {
         </div>
       </section>
 
+      {activeTab === 'miTurno' && <MiTurno branches={branches} checklists={checklists} initiatives={initiatives} user={user} />}
+      {activeTab === 'planCuidados' && <PlanCuidados />}
+      {activeTab === 'calculadora' && <CalculadoraClinica />}
+
+      {(activeTab === 'dashboard' || activeTab === 'config') && (<>
       <section className={styles.card}>
         <div className={styles.actionsRow}>
           <h2>KPIs Prioritarios</h2>
@@ -668,6 +684,7 @@ export default function Enfermeria() {
       </section>
 
       {loading ? <section className={styles.card}><p>Cargando datos de enfermeria...</p></section> : null}
+      </>)}
     </div>
   );
 }

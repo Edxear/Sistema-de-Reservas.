@@ -181,9 +181,27 @@ const mergeThresholds = (input = {}) => ({
 });
 
 const getActorContext = async (req) => {
-  const actor = await User.findById(getAuthUserId(req)).select(
+  const userId = getAuthUserId(req);
+  console.log('[NURSING] getActorContext - userId:', userId, 'req.user:', req.user ? 'exists' : 'null');
+  
+  if (!userId) {
+    throw new Error('Usuario no autenticado o ID invalido');
+  }
+  
+  const actor = await User.findById(userId).select(
     'rol esSuperAdminPrincipal ramaEnfermeria rolJerarquicoEnfermeria cargoOrganigrama areaOrganigrama sectorOrganigrama nombre',
   );
+  
+  if (!actor) {
+    throw new Error('Usuario no encontrado en BD');
+  }
+  
+  console.log('[NURSING] actor loaded:', { 
+    email: actor.email, 
+    rol: actor.rol, 
+    esSuperAdminPrincipal: actor.esSuperAdminPrincipal 
+  });
+  
   const permissions = buildPermissions(actor);
   const scope = buildScope(actor);
   return { actor, permissions, scope };
