@@ -16,6 +16,7 @@ import PacienteDetalle from '../pages/pacientes/PacienteDetalle';
 import HistoriaClinica from '../pages/clinico/HistoriaClinica';
 import Recetas from '../pages/clinico/Recetas';
 import OrdenesMedicas from '../pages/clinico/OrdenesMedicas';
+import Teleconsultas from '../pages/teleconsultas/Teleconsultas';
 import Organigrama from '../pages/organizacion/Organigrama';
 import Soporte from '../pages/soporte/Soporte';
 import GestionObraSocial from '../pages/gestion/GestionObraSocial';
@@ -179,6 +180,14 @@ export default function AppRoutes() {
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <OrdenesMedicas />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/teleconsultas"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.PACIENTE, ROLE.ENFERMERO, ROLE.SECRETARIA]}>
+            <Teleconsultas />
           </ProtectedRoute>
         )}
       />

@@ -8,6 +8,7 @@ import {
   canAccessOrganigrama,
   canAccessPizarra,
   canAccessOrdenesMedicas,
+  canAccessTeleconsultas,
   canAccessRecetas,
   canAccessSupport,
   canManageDoctors,
@@ -73,6 +74,7 @@ export default function Header() {
                   {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>Enfermeria</Link>}
                   {canAccessPizarra(role) && <Link to="/pizarra" onClick={closeAllMenus}>🏥 Pizarra Camas</Link>}
                   {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" onClick={closeAllMenus}>📋 Órdenes Médicas</Link>}
+                  {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>📞 Teleconsultas</Link>}
                   <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
                   {canAccessOrganigrama(role) && (
                     <Link to="/organigrama" onClick={closeAllMenus}>

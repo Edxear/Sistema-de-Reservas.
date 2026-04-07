@@ -14,3 +14,8 @@ export const updateTeleconsultaStatus = async (id, payload) => {
   const res = await API.put(`/teleconsultas/${id}/estado`, payload);
   return res.data;
 };
+
+export const buscarUsuarios = async (params = {}) => {
+  const res = await API.get('/users/buscar', { params });
+  return res.data;
+};
