@@ -19,52 +19,6 @@ const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'
 
 const normalizarTexto = (valor = '') => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-const formatDia = (fecha) => {
-  const date = new Date(`${fecha}T00:00:00`);
-  return new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date);
-};
-
-const horaAMinutos = (hora) => {
-  const [hours, minutes] = hora.split(':').map(Number);
-  return (hours * 60) + minutes;
-};
-
-const minutosAHora = (minutos) => {
-  const hours = String(Math.floor(minutos / 60)).padStart(2, '0');
-  const mins = String(minutos % 60).padStart(2, '0');
-  return `${hours}:${mins}`;
-};
-
-const buildAvailableSlots = ({ doctor, fecha, duration, reservedBookings, excludeBookingId = '' }) => {
-  if (!doctor || !fecha || !duration) return [];
-
-  const dia = normalizarTexto(formatDia(fecha));
-  const bloques = (doctor.horariosAtencion || []).filter((bloque) => normalizarTexto(bloque.dia) === dia);
-  if (bloques.length === 0) return [];
-
-  const bookedTimes = new Set(
-    reservedBookings
-      .filter((booking) => String(booking._id) !== String(excludeBookingId))
-      .filter((booking) => ['pendiente', 'confirmada', 'reprogramada'].includes(booking.estado))
-      .map((booking) => booking.hora)
-  );
-
-  const slots = [];
-  for (const bloque of bloques) {
-    const inicio = horaAMinutos(bloque.horaInicio);
-    const fin = horaAMinutos(bloque.horaFin);
-
-    for (let current = inicio; current + duration <= fin; current += duration) {
-      const slot = minutosAHora(current);
-      if (!bookedTimes.has(slot)) {
-        slots.push(slot);
-      }
-    }
-  }
-
-  return slots;
-};
-
 const getScheduleByDay = (horarios = []) => {
   const map = new Map();
   for (const day of WEEK_DAYS) map.set(normalizarTexto(day), []);
@@ -124,6 +78,8 @@ export default function Dashboard() {
   const [metricsPeriod, setMetricsPeriod] = useState('7d');
   const [patientSummaries, setPatientSummaries] = useState([]);
   const [patientSearch, setPatientSearch] = useState('');
+  const [patientPage, setPatientPage] = useState(1);
+  const patientPageSize = 8;
   const [modalLoading, setModalLoading] = useState(false);
   const [rescheduleModal, setRescheduleModal] = useState({
     open: false,
@@ -175,9 +131,7 @@ export default function Dashboard() {
 
   const handlePagar = async (bookingId) => {
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const res = await crearPreferencia(bookingId, config);
+      const res = await crearPreferencia(bookingId);
       window.location.href = res.data.init_point;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al iniciar el pago');
@@ -319,6 +273,19 @@ export default function Dashboard() {
     return [summary.nombre, summary.email, summary.obraSocial, summary.numeroAfiliado]
       .some((value) => (value || '').toLowerCase().includes(search));
   });
+  const totalPatientPages = Math.max(1, Math.ceil(filteredSummaries.length / patientPageSize));
+  const safePatientPage = Math.min(patientPage, totalPatientPages);
+  const pagedSummaries = filteredSummaries.slice((safePatientPage - 1) * patientPageSize, safePatientPage * patientPageSize);
+
+  useEffect(() => {
+    setPatientPage(1);
+  }, [patientSearch]);
+
+  useEffect(() => {
+    if (patientPage > totalPatientPages) {
+      setPatientPage(totalPatientPages);
+    }
+  }, [patientPage, totalPatientPages]);
 
   const statusChartRows = [
     { key: 'pendiente', label: 'Pendientes', value: adminMetrics?.byEstado?.pendiente ?? 0 },
@@ -816,7 +783,7 @@ export default function Dashboard() {
             />
 
             <div className={styles.patientList}>
-              {filteredSummaries.slice(0, 8).map((summary) => (
+              {pagedSummaries.map((summary) => (
                 <article key={summary.pacienteId} className={styles.patientCard}>
                   <div className={styles.patientTitle}>{summary.nombre}</div>
                   <div className={styles.patientMeta}>{summary.email || 'Sin email'} | {summary.telefono || 'Sin telefono'}</div>
@@ -839,6 +806,23 @@ export default function Dashboard() {
                   </div>
                 </article>
               ))}
+            </div>
+            <div className={styles.filtersRow}>
+              <button
+                className={styles.smallBtn}
+                onClick={() => setPatientPage((prev) => Math.max(1, prev - 1))}
+                disabled={safePatientPage <= 1}
+              >
+                Anterior
+              </button>
+              <span>Pagina {safePatientPage} de {totalPatientPages}</span>
+              <button
+                className={styles.smallBtn}
+                onClick={() => setPatientPage((prev) => Math.min(totalPatientPages, prev + 1))}
+                disabled={safePatientPage >= totalPatientPages}
+              >
+                Siguiente
+              </button>
             </div>
           </div>
         </section>

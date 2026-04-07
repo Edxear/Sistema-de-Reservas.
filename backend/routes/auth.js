@@ -1,13 +1,15 @@
 const express = require('express');
 const { check } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const { authLimiter } = require('../middleware/rateLimiter');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
-const { registerUser, loginUser, getMyProfile, updateMyProfile } = require('../controllers/authController');
+const { registerUser, loginUser, getMyProfile, updateMyProfile, logoutUser } = require('../controllers/authController');
 
 
 router.post(
   '/register',
+  authLimiter,
   [
     check('nombre', 'El nombre es obligatorio').notEmpty(),
     check('email', 'Email válido es obligatorio').isEmail(),
@@ -20,6 +22,7 @@ router.post(
 
 router.post(
   '/login',
+  authLimiter,
   [
     check('email', 'Email válido es obligatorio').isEmail(),
     check('password', 'La contraseña es obligatoria').exists()
@@ -30,5 +33,6 @@ router.post(
 
 router.get('/me', authMiddleware, getMyProfile);
 router.put('/me', authMiddleware, updateMyProfile);
+router.post('/logout', logoutUser);
 
 module.exports = router;

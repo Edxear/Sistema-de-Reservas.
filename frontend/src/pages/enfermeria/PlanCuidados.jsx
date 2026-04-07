@@ -159,7 +159,7 @@ export default function PlanCuidados() {
     ? (filtroCategoria === 'todas'
         ? diagnosticoSeleccionado.cuidados
         : diagnosticoSeleccionado.cuidados.filter((c) => c.categoria === filtroCategoria)
-      ).map((c, i) => ({ ...c, indexOriginal: diagnosticoSeleccionado.cuidados.indexOf(c) }))
+      ).map((c) => ({ ...c, indexOriginal: diagnosticoSeleccionado.cuidados.indexOf(c) }))
     : [];
 
   return (

@@ -623,17 +623,6 @@ export default function Soporte() {
     }));
   };
 
-  const handleDeleteRating = async (ratingId) => {
-    try {
-      await deleteColleagueRating(ratingId);
-      toast.success('Valoracion eliminada');
-      await loadRatingSummary();
-      await loadFormalFeedbackRecords();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'No se pudo eliminar valoracion');
-    }
-  };
-
   const handleDeleteRatingGroup = async (groupRatings) => {
     if (!isAdminRole(role)) {
       toast.error('Solo administradores pueden eliminar valoraciones');

@@ -13,11 +13,6 @@ const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'
 
 const normalizarTexto = (valor = '') => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-const formatDia = (fecha) => {
-  const date = new Date(`${fecha}T00:00:00`);
-  return new Intl.DateTimeFormat('es-AR', { weekday: 'long' }).format(date);
-};
-
 export default function Turnos() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -166,9 +161,7 @@ export default function Turnos() {
 
   const handlePagar = async (bookingId) => {
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const res = await crearPreferencia(bookingId, config);
+      const res = await crearPreferencia(bookingId);
       window.location.href = res.data.init_point;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Error al iniciar el pago');

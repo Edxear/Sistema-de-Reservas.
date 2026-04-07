@@ -16,8 +16,6 @@ import {
   updateNursingConfig,
   updateNursingIncidentStatus,
   updateNursingInitiative,
-  getNursingWorkload,
-  createAyudaRapida,
 } from '../../services/enfermeriaService';
 import styles from './Enfermeria.module.css';
 import MiTurno from './MiTurno';

@@ -23,13 +23,11 @@ export default function HistoriaClinica() {
   const loadHistory = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const res = await API.get(`/historia-clinica/paciente/${pacienteId}/longitudinal`, {
         params: {
           tipo: filters.tipo || undefined,
           q: filters.q || undefined,
-        },
-        headers: { Authorization: `Bearer ${token}` }
+        }
       });
       setEntries(res.data?.records || []);
       setSummary(res.data?.summary || null);
@@ -54,7 +52,6 @@ export default function HistoriaClinica() {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem('token');
       await API.post('/historia-clinica', {
         paciente: pacienteId,
         tipo: 'evolucion',
@@ -71,8 +68,6 @@ export default function HistoriaClinica() {
         metadata: {
           sourceModule: 'historia_clinica_front',
         },
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       setForm({

@@ -19,6 +19,7 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "lint": "eslint src --ext .js,.jsx",
     "eject": "react-scripts eject"
   },
   "browserslist": {
@@ -37,6 +38,8 @@
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "crypto-browserify": "^3.12.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.37.5",
     "https-browserify": "^1.0.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

@@ -5,6 +5,13 @@ const { Server } = require('socket.io');
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET', 'FRONTEND_URL'];
+const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+  console.error(`[startup] Variables de entorno requeridas faltantes: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
 const app = require('./server');
 const connectDB = require('./config/db');
 const { iniciarChat } = require('./socket/chat');

@@ -101,16 +101,6 @@ export default function PizarraDigital() {
     }
   };
 
-  const quickChange = async (bed, nuevoEstado) => {
-    try {
-      await updateBed(bed._id, { estado: nuevoEstado });
-      toast.success(`${bed.codigo}: ${ESTADO_CFG[nuevoEstado]?.label}`);
-      cargar();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Error actualizando estado');
-    }
-  };
-
   const BedCard = ({ bed }) => {
     const cfg = ESTADO_CFG[bed.estado] || ESTADO_CFG.libre;
     const isEditing = editingId === bed._id;

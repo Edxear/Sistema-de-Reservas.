@@ -1,7 +1,5 @@
 import api from './api';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
 /**
  * Obtiene slots disponibles para una fecha específica y duración
  * @param {string} medicoId - ID del médico

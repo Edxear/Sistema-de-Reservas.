@@ -1,24 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import api from '../services/api';
+import { useAuth } from './AuthContext';
 
 const NotificacionContext = createContext();
 
 export function NotificacionProvider({ children }) {
+  const { user } = useAuth();
   const [notificaciones, setNotificaciones] = useState([]);
   const [noLeidas, setNoLeidas] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [socket, setSocket] = useState(null);
-
-  // Obtener token del localStorage
-  const token = localStorage.getItem('token');
 
   // Inicializar socket.io
   useEffect(() => {
-    if (!token) return;
+    if (!user?._id && !user?.id) return;
 
     const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
-      auth: { token },
+      withCredentials: true,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -38,16 +36,14 @@ export function NotificacionProvider({ children }) {
       console.error('[NotificacionContext] Error socket:', error);
     });
 
-    setSocket(newSocket);
-
     return () => {
       newSocket.disconnect();
     };
-  }, [token]);
+  }, [user?.id, user?._id]);
 
   // Obtener notificaciones del servidor
   const fetchNotificaciones = async () => {
-    if (!token) return;
+    if (!user?._id && !user?.id) return;
 
     try {
       setLoading(true);
@@ -95,10 +91,10 @@ export function NotificacionProvider({ children }) {
 
   // Obtener notificaciones al montar
   useEffect(() => {
-    if (token) {
+    if (user?._id || user?.id) {
       fetchNotificaciones();
     }
-  }, [token]);
+  }, [user?._id, user?.id]);
 
   const value = {
     notificaciones,

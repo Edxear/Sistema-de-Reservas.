@@ -3,6 +3,7 @@ import { BrowserRouter as Router, useLocation, useNavigationType } from 'react-r
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import ErrorBoundary from './components/ErrorBoundary';
 // Importar los Providers
 import { AuthProvider } from './context/AuthContext';
 import { NotificacionProvider } from './context/NotificacionContext';
@@ -57,18 +58,19 @@ function ScrollRestorationManager() {
 
 function App() {
   return (
-    <Router>
-      {/* AuthProvider y NotificacionProvider envuelven toda la app */}
-      <AuthProvider>
-        <NotificacionProvider>
-          <ScrollRestorationManager />
-          <Header />
-          <ToastContainer position="top-right" autoClose={3000} />
-          <AppRoutes />
-          <Chatbot />
-        </NotificacionProvider>
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <NotificacionProvider>
+            <ScrollRestorationManager />
+            <Header />
+            <ToastContainer position="top-right" autoClose={3000} />
+            <AppRoutes />
+            <Chatbot />
+          </NotificacionProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

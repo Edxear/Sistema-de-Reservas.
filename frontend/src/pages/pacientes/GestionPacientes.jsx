@@ -16,6 +16,8 @@ const GestionPacientes = () => {
   const [pacientes, setPacientes] = useState([]);
   const [filtrados, setFiltrados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [paginaActual, setPaginaActual] = useState(1);
+  const pacientesPorPagina = 10;
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -52,6 +54,7 @@ const GestionPacientes = () => {
   const handleBusqueda = (e) => {
     const termino = e.target.value.toLowerCase();
     setBusqueda(termino);
+    setPaginaActual(1);
     
     const resultado = pacientes.filter(p =>
       p.nombre.toLowerCase().includes(termino) ||
@@ -60,6 +63,16 @@ const GestionPacientes = () => {
     );
     setFiltrados(resultado);
   };
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / pacientesPorPagina));
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const pacientesPaginados = filtrados.slice((paginaSegura - 1) * pacientesPorPagina, paginaSegura * pacientesPorPagina);
+
+  useEffect(() => {
+    if (paginaActual > totalPaginas) {
+      setPaginaActual(totalPaginas);
+    }
+  }, [paginaActual, totalPaginas]);
 
   const handleFormularioChange = (e) => {
     const { name, value } = e.target;
@@ -295,7 +308,7 @@ const GestionPacientes = () => {
               </tr>
             </thead>
             <tbody>
-              {filtrados.map(paciente => (
+              {pacientesPaginados.map(paciente => (
                 <tr key={paciente._id}>
                   <td className={styles.nombre}>{paciente.nombre}</td>
                   <td>{paciente.documento || '-'}</td>
@@ -326,6 +339,24 @@ const GestionPacientes = () => {
         ) : (
           <p className={styles.sinResultados}>No hay pacientes que coincidan con la búsqueda.</p>
         )}
+      </div>
+
+      <div className={styles.paginacion}>
+        <button
+          className={styles.botonPagina}
+          onClick={() => setPaginaActual((prev) => Math.max(1, prev - 1))}
+          disabled={paginaSegura <= 1}
+        >
+          Anterior
+        </button>
+        <span>Pagina {paginaSegura} de {totalPaginas}</span>
+        <button
+          className={styles.botonPagina}
+          onClick={() => setPaginaActual((prev) => Math.min(totalPaginas, prev + 1))}
+          disabled={paginaSegura >= totalPaginas}
+        >
+          Siguiente
+        </button>
       </div>
     </div>
   );

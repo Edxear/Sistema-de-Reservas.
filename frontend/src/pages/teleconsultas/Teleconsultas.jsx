@@ -7,7 +7,6 @@ import {
   updateTeleconsultaStatus,
   buscarUsuarios,
 } from '../../services/teleconsultaService';
-import styles from './Teleconsultas.module.css';
 
 const ESTADOS = ['programada', 'en_curso', 'finalizada', 'cancelada'];
 const ESTADO_ICONO = {
@@ -40,7 +39,6 @@ const initialForm = {
 export default function Teleconsultas() {
   const { user } = useAuth();
   const role = user?.rol;
-  const userId = user?.id;
 
   const [teleconsultas, setTeleconsultas] = useState([]);
   const [loading, setLoading] = useState(false);

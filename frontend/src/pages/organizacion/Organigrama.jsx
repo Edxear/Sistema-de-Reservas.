@@ -80,8 +80,6 @@ export default function Organigrama() {
     equiposText: '',
     puestosText: '',
   });
-
-  const hasData = rows.length > 0;
   const canReorder = isAdmin && !usingLocalFallback && !debouncedQuery.trim() && statusFilter === 'todos' && currentPage === 1 && pageSize >= 100;
 
   const payloadFromForm = useMemo(

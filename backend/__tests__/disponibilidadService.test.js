@@ -113,4 +113,80 @@ describe('disponibilidadService', () => {
     ]);
     expect(schedule.viernes).toEqual([]);
   });
+
+  it('retorna vacío cuando hay excepción de día completo', async () => {
+    const medicoId = '507f1f77bcf86cd799439011';
+    const fecha = getFechaFuturaConDia(1);
+
+    User.findById.mockResolvedValue({ _id: medicoId, rol: 'medico' });
+    AgendaMedica.find.mockResolvedValue([
+      { dia: 1, horaInicio: '09:00', horaFin: '11:00', disponible: true }
+    ]);
+    AgendaExcepcion.find.mockResolvedValue([
+      { horaInicio: null, horaFin: null }
+    ]);
+    Booking.find.mockResolvedValue([]);
+
+    const slots = await disponibilidadService.getSlotsByDate(medicoId, fecha, 30);
+    expect(slots).toEqual([]);
+  });
+
+  it('pasa excludeBookingId al query de bookings', async () => {
+    const medicoId = '507f1f77bcf86cd799439011';
+    const fecha = getFechaFuturaConDia(1);
+    const excludeBookingId = 'booking-abc-123';
+
+    User.findById.mockResolvedValue({ _id: medicoId, rol: 'medico' });
+    AgendaMedica.find.mockResolvedValue([
+      { dia: 1, horaInicio: '09:00', horaFin: '10:00', disponible: true }
+    ]);
+    AgendaExcepcion.find.mockResolvedValue([]);
+    Booking.find.mockResolvedValue([]);
+
+    await disponibilidadService.getSlotsByDate(medicoId, fecha, 30, excludeBookingId);
+
+    expect(Booking.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _id: { $ne: excludeBookingId }
+      })
+    );
+  });
+
+  it('usa fallback legacy de horariosAtencion cuando no hay agenda fija', async () => {
+    const medicoId = '507f1f77bcf86cd799439011';
+    const fecha = getFechaFuturaConDia(1);
+
+    User.findById
+      .mockResolvedValueOnce({ _id: medicoId, rol: 'medico' })
+      .mockReturnValueOnce({
+        select: jest.fn().mockResolvedValue({
+          horariosAtencion: [{ dia: 'Lunes', horaInicio: '08:00', horaFin: '09:00' }]
+        })
+      });
+
+    AgendaMedica.find.mockResolvedValue([]);
+    AgendaExcepcion.find.mockResolvedValue([]);
+    Booking.find.mockResolvedValue([]);
+
+    const slots = await disponibilidadService.getSlotsByDate(medicoId, fecha, 30);
+    expect(slots).toEqual(['08:00', '08:30']);
+  });
+
+  it('isSlotAvailable devuelve true/false según disponibilidad', async () => {
+    const medicoId = '507f1f77bcf86cd799439011';
+    const fecha = getFechaFuturaConDia(1);
+
+    User.findById.mockResolvedValue({ _id: medicoId, rol: 'medico' });
+    AgendaMedica.find.mockResolvedValue([
+      { dia: 1, horaInicio: '09:00', horaFin: '10:00', disponible: true }
+    ]);
+    AgendaExcepcion.find.mockResolvedValue([]);
+    Booking.find.mockResolvedValue([{ hora: '09:30' }]);
+
+    const libre = await disponibilidadService.isSlotAvailable(medicoId, fecha, '09:00', 30);
+    const ocupado = await disponibilidadService.isSlotAvailable(medicoId, fecha, '09:30', 30);
+
+    expect(libre).toBe(true);
+    expect(ocupado).toBe(false);
+  });
 });

@@ -2,6 +2,18 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const buildAuthCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/',
+});
+
+const setAuthCookie = (res, token) => {
+  res.cookie('auth_token', token, buildAuthCookieOptions());
+};
+
 const serializeUser = (user) => ({
   id: user._id,
   nombre: user.nombre,
@@ -54,6 +66,7 @@ exports.registerUser = async (req, res) => {
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '1d' },
     );
+    setAuthCookie(res, token);
     res.status(201).json({ token, user: serializeUser(user) });
   } catch (error) {
     res.status(500).json({ message: 'Error registrando usuario', error });
@@ -80,6 +93,7 @@ exports.loginUser = async (req, res) => {
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '1d' },
     );
+    setAuthCookie(res, token);
     res.json({ token, user: serializeUser(user) });
   } catch (error) {
     res.status(500).json({ message: 'Error en login', error });
@@ -127,4 +141,14 @@ exports.updateMyProfile = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error actualizando perfil', error });
   }
+};
+
+exports.logoutUser = async (_req, res) => {
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+  return res.status(200).json({ message: 'Sesion cerrada' });
 };

@@ -69,13 +69,11 @@ export default function Recetas() {
     unidadOperativa: 'Rosario'
   });
 
-  const token = localStorage.getItem('token');
-
   const loadData = async () => {
     try {
       const [favRes, bookingsRes] = await Promise.all([
-        API.get('/recetas/favoritas', { headers: { Authorization: `Bearer ${token}` } }),
-        API.get('/bookings', { params: { page: 1, limit: 200 }, headers: { Authorization: `Bearer ${token}` } }),
+        API.get('/recetas/favoritas'),
+        API.get('/bookings', { params: { page: 1, limit: 200 } }),
       ]);
 
       setFavoritas(favRes.data || []);
@@ -327,8 +325,7 @@ export default function Recetas() {
           diagnosticoPrincipal: formData.diagnosticoPrincipal,
           diagnosticoSecundario: formData.diagnosticoSecundario,
           observaciones: formData.observaciones,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       toast.success('Receta creada');
 

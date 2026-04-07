@@ -3,6 +3,7 @@ const router = express.Router();
 
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const { createLimiter } = require('../middleware/rateLimiter');
 const {
   getSupportBlueprint,
   createSupportTicket,
@@ -18,8 +19,8 @@ const {
 
 router.get('/blueprint', auth, admin, getSupportBlueprint);
 router.get('/tickets', auth, admin, listSupportTickets);
-router.post('/tickets', auth, admin, createSupportTicket);
-router.post('/cobertura', auth, admin, createCoberturaRequest);
+router.post('/tickets', auth, admin, createLimiter, createSupportTicket);
+router.post('/cobertura', auth, admin, createLimiter, createCoberturaRequest);
 router.put('/tickets/:id', auth, admin, updateSupportTicket);
 router.post('/tickets/:id/survey', auth, admin, submitTicketSurvey);
 router.get('/metrics', auth, admin, getSupportMetrics);

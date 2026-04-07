@@ -1,6 +1,18 @@
 const jwt = require('jsonwebtoken');
 const Mensaje = require('../models/Mensaje');
 
+function parseCookies(cookieHeader = '') {
+  return cookieHeader
+    .split(';')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((acc, part) => {
+      const [key, ...rest] = part.split('=');
+      acc[key] = decodeURIComponent(rest.join('='));
+      return acc;
+    }, {});
+}
+
 function getRoomId(id1, id2) {
   return [id1, id2].sort().join('_');
 }
@@ -8,7 +20,10 @@ function getRoomId(id1, id2) {
 function iniciarChat(io) {
   // Autenticación via JWT en la conexión
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
+    const authToken = socket.handshake.auth?.token;
+    const cookies = parseCookies(socket.handshake.headers?.cookie || '');
+    const cookieToken = cookies.auth_token;
+    const token = cookieToken || authToken;
     if (!token) return next(new Error('No autorizado'));
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
