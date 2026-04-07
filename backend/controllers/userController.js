@@ -3,9 +3,39 @@ const { logAuditEvent } = require('../utils/auditLogger');
 
 const ALLOWED_ROLES = ['medico', 'paciente', 'admin', 'secretaria', 'enfermero', 'superadmin'];
 
-exports.getUsers = async (req, res) => {
+// Light user search for clinical staff — returns limited fields, no admin middleware needed
+exports.searchUsers = async (req, res) => {
   try {
     const { rol, search } = req.query;
+    const query = {};
+
+    if (rol && ALLOWED_ROLES.includes(String(rol).toLowerCase())) {
+      query.rol = String(rol).toLowerCase();
+    }
+
+    if (search) {
+      const term = String(search).trim();
+      if (term.length >= 2) {
+        query.$or = [
+          { nombre: { $regex: term, $options: 'i' } },
+          { documento: { $regex: term, $options: 'i' } },
+          { email: { $regex: term, $options: 'i' } },
+        ];
+      }
+    }
+
+    const users = await User.find(query)
+      .select('_id nombre email documento rol especialidad')
+      .sort({ nombre: 1 })
+      .limit(30);
+
+    return res.json(users);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error buscando usuarios', error });
+  }
+};
+
+exports.getUsers = async (req, res) => {
     const query = {};
 
     if (rol) {

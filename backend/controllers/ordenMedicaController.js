@@ -100,3 +100,29 @@ exports.actualizarEstado = async (req, res) => {
     return res.status(400).json({ message: 'Error actualizando orden medica', error });
   }
 };
+
+exports.listOrdenes = async (req, res) => {
+  try {
+    const actorRole = req.user?.rol;
+    const actorId = req.user?.id;
+    const { estado, tipo, prioridad, paciente } = req.query;
+    const limit = Math.min(Number(req.query?.limit) || 200, 500);
+
+    const query = {};
+    if (actorRole === 'medico') query.medico = actorId;
+    if (estado) query.estado = estado;
+    if (tipo) query.tipo = tipo;
+    if (prioridad) query.prioridad = prioridad;
+    if (paciente) query.paciente = paciente;
+
+    const ordenes = await OrdenMedica.find(query)
+      .populate('paciente', 'nombre documento email')
+      .populate('medico', 'nombre especialidad')
+      .sort({ fechaOrden: -1 })
+      .limit(limit);
+
+    return res.json(ordenes);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error listando ordenes medicas', error });
+  }
+};
