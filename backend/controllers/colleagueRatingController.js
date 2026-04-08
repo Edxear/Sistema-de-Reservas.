@@ -38,7 +38,7 @@ exports.getStaffDirectory = async (req, res) => {
 
     return res.json(staff);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo directorio de colegas', error });
+    return res.status(500).json({ message: 'Error obteniendo directorio de colegas' });
   }
 };
 
@@ -219,7 +219,7 @@ exports.rateColleague = async (req, res) => {
     return res.json(updated);
   } catch (error) {
     console.error('❌ [rateColleague] Error:', error.message, error.stack);
-    return res.status(500).json({ message: 'Error guardando valoracion: ' + error.message });
+    return res.status(500).json({ message: 'Error guardando valoracion' });
   }
 };
 
@@ -266,7 +266,7 @@ exports.getColleagueRatingSummary = async (req, res) => {
 
     return res.json(response);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo resumen de valoraciones', error });
+    return res.status(500).json({ message: 'Error obteniendo resumen de valoraciones' });
   }
 };
 
@@ -289,7 +289,7 @@ exports.listFormalFeedback = async (req, res) => {
 
     return res.json(records);
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando valoraciones', error });
+    return res.status(500).json({ message: 'Error listando valoraciones' });
   }
 };
 
@@ -316,7 +316,7 @@ exports.deleteColleagueRating = async (req, res) => {
     });
     return res.json({ message: 'Valoracion eliminada' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error eliminando valoracion', error });
+    return res.status(500).json({ message: 'Error eliminando valoracion' });
   }
 };
 

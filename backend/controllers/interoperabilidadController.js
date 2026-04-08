@@ -33,7 +33,7 @@ exports.getFhirPatient = async (req, res) => {
 
     return res.json(toFhirPatient(paciente));
   } catch (error) {
-    return res.status(500).json({ message: 'Error generando recurso FHIR Patient', error });
+    return res.status(500).json({ message: 'Error generando recurso FHIR Patient' });
   }
 };
 
@@ -81,7 +81,7 @@ exports.getFhirClinicalBundle = async (req, res) => {
 
     return res.json(bundle);
   } catch (error) {
-    return res.status(500).json({ message: 'Error generando bundle clinico FHIR', error });
+    return res.status(500).json({ message: 'Error generando bundle clinico FHIR' });
   }
 };
 
@@ -106,6 +106,6 @@ exports.getHL7AdtA04 = async (req, res) => {
 
     return res.type('text/plain').send(message);
   } catch (error) {
-    return res.status(500).json({ message: 'Error generando mensaje HL7 ADT', error });
+    return res.status(500).json({ message: 'Error generando mensaje HL7 ADT' });
   }
 };

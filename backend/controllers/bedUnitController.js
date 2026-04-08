@@ -22,7 +22,7 @@ exports.listBeds = async (req, res) => {
 
     return res.json({ metrics, beds });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo censo de camas', error });
+    return res.status(500).json({ message: 'Error obteniendo censo de camas' });
   }
 };
 
@@ -51,7 +51,7 @@ exports.createBed = async (req, res) => {
 
     return res.status(201).json(bed);
   } catch (error) {
-    return res.status(400).json({ message: 'Error creando cama', error });
+    return res.status(400).json({ message: 'Error creando cama' });
   }
 };
 
@@ -86,6 +86,6 @@ exports.updateBed = async (req, res) => {
 
     return res.json(populated);
   } catch (error) {
-    return res.status(400).json({ message: 'Error actualizando cama', error });
+    return res.status(400).json({ message: 'Error actualizando cama' });
   }
 };

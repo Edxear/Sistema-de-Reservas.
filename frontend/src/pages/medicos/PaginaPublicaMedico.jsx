@@ -2,6 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 
+const GOOGLE_MAPS_EMBED_PREFIX = 'https://www.google.com/maps/embed';
+
+function getSafeMapEmbedUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  let candidate = raw;
+  const iframeMatch = raw.match(/<iframe[^>]*\ssrc=["']([^"']+)["'][^>]*>/i);
+  if (iframeMatch?.[1]) {
+    candidate = iframeMatch[1].trim();
+  }
+
+  return candidate.startsWith(GOOGLE_MAPS_EMBED_PREFIX) ? candidate : '';
+}
+
 export default function PaginaPublicaMedico() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,6 +51,8 @@ export default function PaginaPublicaMedico() {
     );
   }
 
+  const safeMapEmbedUrl = getSafeMapEmbedUrl(medico.mapaEmbed);
+
   return (
     <div style={{ padding: 20, maxWidth: 800, margin: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -69,8 +86,17 @@ export default function PaginaPublicaMedico() {
       <section style={{ marginTop: 24 }}>
         <h2>Consultorio</h2>
         <p>{medico.direccionConsultorio || 'Sin dirección disponible'}</p>
-        {medico.mapaEmbed ? (
-          <div dangerouslySetInnerHTML={{ __html: medico.mapaEmbed }} />
+        {safeMapEmbedUrl ? (
+          <iframe
+            src={safeMapEmbedUrl}
+            width="100%"
+            height="320"
+            style={{ border: 0, borderRadius: 8 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title={`Mapa de ${medico.nombre}`}
+            allowFullScreen
+          />
         ) : (
           <p>No hay mapa disponible.</p>
         )}

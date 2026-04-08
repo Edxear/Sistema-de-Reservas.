@@ -27,7 +27,7 @@ exports.createTeleconsulta = async (req, res) => {
 
     return res.status(201).json(teleconsulta);
   } catch (error) {
-    return res.status(400).json({ message: 'Error creando teleconsulta', error });
+    return res.status(400).json({ message: 'Error creando teleconsulta' });
   }
 };
 
@@ -51,7 +51,7 @@ exports.listMyTeleconsultas = async (req, res) => {
 
     return res.json(teleconsultas);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo teleconsultas', error });
+    return res.status(500).json({ message: 'Error obteniendo teleconsultas' });
   }
 };
 
@@ -78,6 +78,6 @@ exports.updateTeleconsultaStatus = async (req, res) => {
 
     return res.json(teleconsulta);
   } catch (error) {
-    return res.status(400).json({ message: 'Error actualizando teleconsulta', error });
+    return res.status(400).json({ message: 'Error actualizando teleconsulta' });
   }
 };

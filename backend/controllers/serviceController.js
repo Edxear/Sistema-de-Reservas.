@@ -5,7 +5,7 @@ exports.getServices = async (req, res) => {
     const services = await Service.find();
     res.json(services);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo servicios', error });
+    res.status(500).json({ message: 'Error obteniendo servicios' });
   }
 };
 
@@ -15,7 +15,7 @@ exports.createService = async (req, res) => {
     await service.save();
     res.status(201).json(service);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando servicio', error });
+    res.status(400).json({ message: 'Error creando servicio' });
   }
 };
 
@@ -25,7 +25,7 @@ exports.updateService = async (req, res) => {
     if (!service) return res.status(404).json({ message: 'Servicio no encontrado' });
     res.json(service);
   } catch (error) {
-    res.status(400).json({ message: 'Error actualizando servicio', error });
+    res.status(400).json({ message: 'Error actualizando servicio' });
   }
 };
 
@@ -35,6 +35,6 @@ exports.deleteService = async (req, res) => {
     if (!service) return res.status(404).json({ message: 'Servicio no encontrado' });
     res.json({ message: 'Servicio eliminado' });
   } catch (error) {
-    res.status(500).json({ message: 'Error eliminando servicio', error });
+    res.status(500).json({ message: 'Error eliminando servicio' });
   }
 };

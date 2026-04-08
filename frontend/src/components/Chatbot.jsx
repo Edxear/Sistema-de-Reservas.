@@ -1725,11 +1725,14 @@ export default function Chatbot() {
               key={msg.id}
               className={`${styles.message} ${msg.isBot ? styles.bot : styles.user}`}
             >
-              <div
-                className={styles.bubble}
-                // Bot messages are static trusted strings; user messages are HTML-escaped.
-                dangerouslySetInnerHTML={{ __html: msg.text }}
-              />
+              {msg.isBot ? (
+                <div
+                  className={styles.bubble}
+                  dangerouslySetInnerHTML={{ __html: msg.text }}
+                />
+              ) : (
+                <div className={styles.bubble}>{msg.text}</div>
+              )}
             </div>
           ))}
 

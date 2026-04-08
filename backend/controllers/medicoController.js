@@ -11,6 +11,6 @@ exports.getPerfilPublico = async (req, res) => {
 
     res.json(medico);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo perfil público', error });
+    res.status(500).json({ message: 'Error obteniendo perfil público' });
   }
 };

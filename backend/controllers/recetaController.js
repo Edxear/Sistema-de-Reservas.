@@ -141,7 +141,7 @@ exports.crearReceta = async (req, res) => {
 
     res.status(201).json({ receta, safetyAlerts });
   } catch (error) {
-    res.status(400).json({ message: 'Error creando la receta', error });
+    res.status(400).json({ message: 'Error creando la receta' });
   }
 };
 
@@ -150,7 +150,7 @@ exports.getRecetasPaciente = async (req, res) => {
     const recetas = await Receta.find({ paciente: req.params.pacienteId }).sort({ fechaEmision: -1 });
     res.json(recetas);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo recetas', error });
+    res.status(500).json({ message: 'Error obteniendo recetas' });
   }
 };
 
@@ -159,7 +159,7 @@ exports.getRecetasFavoritas = async (req, res) => {
     const recetas = await Receta.find({ medico: req.user.id, esFavorita: true }).sort({ fechaEmision: -1 });
     res.json(recetas);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo recetas favoritas', error });
+    res.status(500).json({ message: 'Error obteniendo recetas favoritas' });
   }
 };
 
@@ -170,6 +170,6 @@ exports.getMisRecetas = async (req, res) => {
       .sort({ fechaEmision: -1 });
     res.json(recetas);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo recetas del paciente', error });
+    res.status(500).json({ message: 'Error obteniendo recetas del paciente' });
   }
 };

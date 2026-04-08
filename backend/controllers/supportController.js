@@ -174,7 +174,7 @@ exports.createSupportTicket = async (req, res) => {
         errors: error.errors,
       });
     }
-    return res.status(500).json({ message: 'Error creando ticket de soporte', error });
+    return res.status(500).json({ message: 'Error creando ticket de soporte' });
   }
 };
 
@@ -196,7 +196,7 @@ exports.createCoberturaRequest = async (req, res) => {
         errors: error.errors,
       });
     }
-    return res.status(500).json({ message: 'Error creando solicitud de cobertura', error });
+    return res.status(500).json({ message: 'Error creando solicitud de cobertura' });
   }
 };
 
@@ -221,7 +221,7 @@ exports.listKnowledgeArticles = async (req, res) => {
 
     return res.json(items);
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando base de conocimiento', error });
+    return res.status(500).json({ message: 'Error listando base de conocimiento' });
   }
 };
 
@@ -276,7 +276,7 @@ exports.createKnowledgeArticle = async (req, res) => {
 
     return res.json(existing);
   } catch (error) {
-    return res.status(400).json({ message: 'Error creando/actualizando articulo KB', error });
+    return res.status(400).json({ message: 'Error creando/actualizando articulo KB' });
   }
 };
 
@@ -305,7 +305,7 @@ exports.listSupportTickets = async (req, res) => {
 
     res.json(tickets);
   } catch (error) {
-    res.status(500).json({ message: 'Error listando tickets', error });
+    res.status(500).json({ message: 'Error listando tickets' });
   }
 };
 
@@ -358,7 +358,7 @@ exports.updateSupportTicket = async (req, res) => {
 
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Error actualizando ticket', error });
+    res.status(500).json({ message: 'Error actualizando ticket' });
   }
 };
 
@@ -382,7 +382,7 @@ exports.submitTicketSurvey = async (req, res) => {
 
     res.json({ message: 'Encuesta guardada', ticket });
   } catch (error) {
-    res.status(500).json({ message: 'Error guardando encuesta', error });
+    res.status(500).json({ message: 'Error guardando encuesta' });
   }
 };
 
@@ -451,7 +451,7 @@ exports.getSupportMetrics = async (_req, res) => {
       ],
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo metricas de soporte', error });
+    res.status(500).json({ message: 'Error obteniendo metricas de soporte' });
   }
 };
 
@@ -535,6 +535,6 @@ exports.getAdvancedOperationalAnalytics = async (_req, res) => {
       alerts,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo analitica avanzada', error });
+    return res.status(500).json({ message: 'Error obteniendo analitica avanzada' });
   }
 };

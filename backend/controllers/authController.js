@@ -2,6 +2,25 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const GOOGLE_MAPS_EMBED_PREFIX = 'https://www.google.com/maps/embed';
+
+function sanitizeMapEmbed(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  let candidate = raw;
+  const iframeMatch = raw.match(/<iframe[^>]*\ssrc=["']([^"']+)["'][^>]*>/i);
+  if (iframeMatch?.[1]) {
+    candidate = iframeMatch[1].trim();
+  }
+
+  if (!candidate.startsWith(GOOGLE_MAPS_EMBED_PREFIX)) {
+    return null;
+  }
+
+  return candidate;
+}
+
 const buildAuthCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -63,13 +82,13 @@ exports.registerUser = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, rol: user.rol, esSuperAdminPrincipal: Boolean(user.esSuperAdminPrincipal) },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1d' },
     );
     setAuthCookie(res, token);
     res.status(201).json({ token, user: serializeUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Error registrando usuario', error });
+    res.status(500).json({ message: 'Error registrando usuario' });
   }
 };
 
@@ -90,13 +109,13 @@ exports.loginUser = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, rol: user.rol, esSuperAdminPrincipal: Boolean(user.esSuperAdminPrincipal) },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1d' },
     );
     setAuthCookie(res, token);
     res.json({ token, user: serializeUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Error en login', error });
+    res.status(500).json({ message: 'Error en login' });
   }
 };
 
@@ -106,7 +125,7 @@ exports.getMyProfile = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
     res.json({ user: serializeUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo perfil', error });
+    res.status(500).json({ message: 'Error obteniendo perfil' });
   }
 };
 
@@ -132,6 +151,14 @@ exports.updateMyProfile = async (req, res) => {
     const allowed = new Set([...(baseFields), ...((roleFields[user.rol]) || [])]);
     for (const key of Object.keys(req.body)) {
       if (allowed.has(key)) {
+        if (key === 'mapaEmbed') {
+          const sanitizedMap = sanitizeMapEmbed(req.body[key]);
+          if (sanitizedMap === null) {
+            return res.status(400).json({ message: 'mapaEmbed invalido. Solo se permite Google Maps embed.' });
+          }
+          user[key] = sanitizedMap;
+          continue;
+        }
         user[key] = req.body[key];
       }
     }
@@ -139,7 +166,7 @@ exports.updateMyProfile = async (req, res) => {
     await user.save();
     res.json({ message: 'Perfil actualizado', user: serializeUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Error actualizando perfil', error });
+    res.status(500).json({ message: 'Error actualizando perfil' });
   }
 };
 

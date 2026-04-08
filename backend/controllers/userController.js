@@ -31,7 +31,7 @@ exports.searchUsers = async (req, res) => {
 
     return res.json(users);
   } catch (error) {
-    return res.status(500).json({ message: 'Error buscando usuarios', error });
+    return res.status(500).json({ message: 'Error buscando usuarios' });
   }
 };
 
@@ -61,7 +61,7 @@ exports.getUsers = async (req, res) => {
 
     return res.json(users);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo usuarios', error });
+    return res.status(500).json({ message: 'Error obteniendo usuarios' });
   }
 };
 
@@ -92,7 +92,7 @@ exports.deleteUser = async (req, res) => {
     });
     return res.json({ message: 'Usuario eliminado correctamente' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error eliminando usuario', error });
+    return res.status(500).json({ message: 'Error eliminando usuario' });
   }
 };
 
@@ -158,6 +158,6 @@ exports.updateUser = async (req, res) => {
 
     return res.json({ message: 'Usuario actualizado correctamente', user: safe });
   } catch (error) {
-    return res.status(500).json({ message: 'Error actualizando usuario', error });
+    return res.status(500).json({ message: 'Error actualizando usuario' });
   }
 };

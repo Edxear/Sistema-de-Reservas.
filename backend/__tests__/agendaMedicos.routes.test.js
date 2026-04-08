@@ -2,6 +2,7 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
 process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 jest.mock('../config/db', () => jest.fn(async () => {}));
 
 jest.mock('../controllers/agendaMedicaController', () => ({
@@ -19,7 +20,7 @@ const controller = require('../controllers/agendaMedicaController');
 const app = require('../server');
 
 function generarToken(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET || 'secret');
+  return jwt.sign(payload, process.env.JWT_SECRET);
 }
 
 describe('Rutas agendaMedicos', () => {

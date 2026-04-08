@@ -67,7 +67,7 @@ exports.getPorPaciente = async (req, res) => {
 
     res.json(registros);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo historia clínica', error });
+    res.status(500).json({ message: 'Error obteniendo historia clínica' });
   }
 };
 
@@ -97,7 +97,7 @@ exports.getLongitudinalPorPaciente = async (req, res) => {
       records: registros,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo vista longitudinal', error });
+    return res.status(500).json({ message: 'Error obteniendo vista longitudinal' });
   }
 };
 
@@ -131,6 +131,6 @@ exports.crearRegistro = async (req, res) => {
 
     res.status(201).json(registro);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando registro', error });
+    res.status(400).json({ message: 'Error creando registro' });
   }
 };

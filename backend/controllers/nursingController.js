@@ -221,7 +221,7 @@ exports.getNursingConfig = async (req, res) => {
       scope,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo configuracion de enfermeria', error });
+    return res.status(500).json({ message: 'Error obteniendo configuracion de enfermeria' });
   }
 };
 
@@ -304,7 +304,7 @@ exports.listNursingContacts = async (req, res) => {
       scope,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando contactos de mensajeria', error });
+    return res.status(500).json({ message: 'Error listando contactos de mensajeria' });
   }
 };
 
@@ -330,7 +330,7 @@ exports.listWoundPhotos = async (req, res) => {
 
     return res.json({ items, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando fotos de heridas', error });
+    return res.status(500).json({ message: 'Error listando fotos de heridas' });
   }
 };
 
@@ -378,7 +378,7 @@ exports.createWoundPhoto = async (req, res) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    return res.status(500).json({ message: 'Error registrando foto de herida', error });
+    return res.status(500).json({ message: 'Error registrando foto de herida' });
   }
 };
 
@@ -415,7 +415,7 @@ exports.updateWoundPhoto = async (req, res) => {
 
     return res.json(updated);
   } catch (error) {
-    return res.status(500).json({ message: 'Error actualizando foto de herida', error });
+    return res.status(500).json({ message: 'Error actualizando foto de herida' });
   }
 };
 
@@ -440,7 +440,7 @@ exports.updateNursingConfig = async (req, res) => {
 
     return res.json({ thresholds: updated.thresholds, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error actualizando configuracion de enfermeria', error });
+    return res.status(500).json({ message: 'Error actualizando configuracion de enfermeria' });
   }
 };
 
@@ -463,7 +463,7 @@ exports.listInitiatives = async (req, res) => {
 
     return res.json({ items, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando iniciativas de enfermeria', error });
+    return res.status(500).json({ message: 'Error listando iniciativas de enfermeria' });
   }
 };
 
@@ -505,7 +505,7 @@ exports.createInitiative = async (req, res) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    return res.status(500).json({ message: 'Error creando iniciativa de enfermeria', error });
+    return res.status(500).json({ message: 'Error creando iniciativa de enfermeria' });
   }
 };
 
@@ -544,7 +544,7 @@ exports.updateInitiative = async (req, res) => {
 
     return res.json(updated);
   } catch (error) {
-    return res.status(500).json({ message: 'Error actualizando iniciativa de enfermeria', error });
+    return res.status(500).json({ message: 'Error actualizando iniciativa de enfermeria' });
   }
 };
 
@@ -573,7 +573,7 @@ exports.listChecklists = async (req, res) => {
 
     return res.json({ items, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando checklists de enfermeria', error });
+    return res.status(500).json({ message: 'Error listando checklists de enfermeria' });
   }
 };
 
@@ -617,7 +617,7 @@ exports.createChecklist = async (req, res) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    return res.status(500).json({ message: 'Error creando checklist de enfermeria', error });
+    return res.status(500).json({ message: 'Error creando checklist de enfermeria' });
   }
 };
 
@@ -644,7 +644,7 @@ exports.listIncidents = async (req, res) => {
 
     return res.json({ items, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando incidentes de enfermeria', error });
+    return res.status(500).json({ message: 'Error listando incidentes de enfermeria' });
   }
 };
 
@@ -684,7 +684,7 @@ exports.createIncident = async (req, res) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    return res.status(500).json({ message: 'Error creando incidente de enfermeria', error });
+    return res.status(500).json({ message: 'Error creando incidente de enfermeria' });
   }
 };
 
@@ -724,7 +724,7 @@ exports.updateIncidentStatus = async (req, res) => {
 
     return res.json(updated);
   } catch (error) {
-    return res.status(500).json({ message: 'Error actualizando incidente de enfermeria', error });
+    return res.status(500).json({ message: 'Error actualizando incidente de enfermeria' });
   }
 };
 
@@ -791,7 +791,7 @@ exports.getNursingWorkload = async (req, res) => {
 
     return res.json({ workload, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo carga de trabajo de enfermeria', error });
+    return res.status(500).json({ message: 'Error obteniendo carga de trabajo de enfermeria' });
   }
 };
 
@@ -846,7 +846,7 @@ exports.createAyudaRapida = async (req, res) => {
 
     return res.json({ ok: true, receptores: targets.length, destino, rama });
   } catch (error) {
-    return res.status(500).json({ message: 'Error enviando solicitud de ayuda rapida', error });
+    return res.status(500).json({ message: 'Error enviando solicitud de ayuda rapida' });
   }
 };
 
@@ -876,7 +876,7 @@ exports.getNursingOrganigrama = async (req, res) => {
 
     return res.json({ hierarchy: HIERARCHY, branches: branchesToShow, byBranch, total: staff.length, permissions, scope });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo organigrama de enfermeria', error });
+    return res.status(500).json({ message: 'Error obteniendo organigrama de enfermeria' });
   }
 };
 
@@ -1002,6 +1002,6 @@ exports.getNursingDashboard = async (req, res) => {
       recentChecklists: checklists.slice(0, 10),
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo dashboard de enfermeria', error });
+    return res.status(500).json({ message: 'Error obteniendo dashboard de enfermeria' });
   }
 };

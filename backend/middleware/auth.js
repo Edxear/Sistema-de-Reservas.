@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
   if (!token) return res.status(401).json({ message: 'No token' });
 
   try {
-    const data = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const data = jwt.verify(token, process.env.JWT_SECRET);
     const normalizedId = data.id || data._id;
     req.user = { ...data, id: normalizedId, _id: normalizedId };
     next();

@@ -23,7 +23,7 @@ exports.getRatingsPorMedico = async (req, res) => {
       ratings
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo ratings', error });
+    res.status(500).json({ message: 'Error obteniendo ratings' });
   }
 };
 
@@ -66,7 +66,7 @@ exports.crearOActualizarRating = async (req, res) => {
 
     res.status(201).json(rating);
   } catch (error) {
-    res.status(400).json({ message: 'Error guardando rating', error });
+    res.status(400).json({ message: 'Error guardando rating' });
   }
 };
 
@@ -89,7 +89,7 @@ exports.miRatingPorMedico = async (req, res) => {
 
     res.json(rating);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo rating', error });
+    res.status(500).json({ message: 'Error obteniendo rating' });
   }
 };
 
@@ -113,6 +113,6 @@ exports.eliminarRating = async (req, res) => {
     await Rating.deleteOne({ _id: ratingId });
     res.json({ message: 'Rating eliminado' });
   } catch (error) {
-    res.status(500).json({ message: 'Error eliminando rating', error });
+    res.status(500).json({ message: 'Error eliminando rating' });
   }
 };

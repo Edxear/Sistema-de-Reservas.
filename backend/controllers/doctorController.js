@@ -3,6 +3,25 @@ const User = require('../models/User');
 const AgendaMedica = require('../models/AgendaMedica');
 const Rating = require('../models/Rating');
 
+const GOOGLE_MAPS_EMBED_PREFIX = 'https://www.google.com/maps/embed';
+
+function sanitizeMapEmbed(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  let candidate = raw;
+  const iframeMatch = raw.match(/<iframe[^>]*\ssrc=["']([^"']+)["'][^>]*>/i);
+  if (iframeMatch?.[1]) {
+    candidate = iframeMatch[1].trim();
+  }
+
+  if (!candidate.startsWith(GOOGLE_MAPS_EMBED_PREFIX)) {
+    return null;
+  }
+
+  return candidate;
+}
+
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
 exports.getDoctors = async (req, res) => {
@@ -128,7 +147,7 @@ exports.getDoctors = async (req, res) => {
 
     res.json(doctors);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo doctores', error });
+    res.status(500).json({ message: 'Error obteniendo doctores' });
   }
 };
 
@@ -162,7 +181,7 @@ exports.getDoctorById = async (req, res) => {
       }))
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo doctor', error });
+    res.status(500).json({ message: 'Error obteniendo doctor' });
   }
 };
 
@@ -214,7 +233,7 @@ exports.createDoctor = async (req, res) => {
     delete safeDoctor.password;
     res.status(201).json(safeDoctor);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando doctor', error });
+    res.status(400).json({ message: 'Error creando doctor' });
   }
 };
 
@@ -246,6 +265,12 @@ exports.updateDoctor = async (req, res) => {
             return res.status(400).json({ message: 'Rol no permitido' });
           }
           updates.rol = nextRol;
+        } else if (field === 'mapaEmbed') {
+          const sanitizedMap = sanitizeMapEmbed(req.body[field]);
+          if (sanitizedMap === null) {
+            return res.status(400).json({ message: 'mapaEmbed invalido. Solo se permite Google Maps embed.' });
+          }
+          updates[field] = sanitizedMap;
         } else {
           updates[field] = req.body[field];
         }
@@ -264,7 +289,7 @@ exports.updateDoctor = async (req, res) => {
 
     res.json(doctor);
   } catch (error) {
-    res.status(400).json({ message: 'Error actualizando doctor', error });
+    res.status(400).json({ message: 'Error actualizando doctor' });
   }
 };
 
@@ -292,7 +317,7 @@ exports.deleteDoctor = async (req, res) => {
 
     res.json({ message: 'Doctor eliminado correctamente' });
   } catch (error) {
-    res.status(400).json({ message: 'Error eliminando doctor', error });
+    res.status(400).json({ message: 'Error eliminando doctor' });
   }
 };
 

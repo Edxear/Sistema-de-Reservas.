@@ -50,7 +50,7 @@ exports.crearOrden = async (req, res) => {
 
     return res.status(201).json(orden);
   } catch (error) {
-    return res.status(400).json({ message: 'Error creando orden medica', error });
+    return res.status(400).json({ message: 'Error creando orden medica' });
   }
 };
 
@@ -70,7 +70,7 @@ exports.getPorPaciente = async (req, res) => {
 
     return res.json(ordenes);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo ordenes medicas', error });
+    return res.status(500).json({ message: 'Error obteniendo ordenes medicas' });
   }
 };
 
@@ -97,7 +97,7 @@ exports.actualizarEstado = async (req, res) => {
 
     return res.json(orden);
   } catch (error) {
-    return res.status(400).json({ message: 'Error actualizando orden medica', error });
+    return res.status(400).json({ message: 'Error actualizando orden medica' });
   }
 };
 
@@ -123,6 +123,6 @@ exports.listOrdenes = async (req, res) => {
 
     return res.json(ordenes);
   } catch (error) {
-    return res.status(500).json({ message: 'Error listando ordenes medicas', error });
+    return res.status(500).json({ message: 'Error listando ordenes medicas' });
   }
 };

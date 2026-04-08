@@ -130,7 +130,7 @@ exports.getOrganigrama = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo organigrama', error: error.message });
+    res.status(500).json({ message: 'Error obteniendo organigrama' });
   }
 };
 
@@ -156,7 +156,7 @@ exports.createOrganigrama = async (req, res) => {
     });
     res.status(201).json(created);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando bloque de organigrama', error: error.message });
+    res.status(400).json({ message: 'Error creando bloque de organigrama' });
   }
 };
 
@@ -194,7 +194,7 @@ exports.updateOrganigrama = async (req, res) => {
 
     res.json(updated);
   } catch (error) {
-    res.status(400).json({ message: 'Error actualizando bloque de organigrama', error: error.message });
+    res.status(400).json({ message: 'Error actualizando bloque de organigrama' });
   }
 };
 
@@ -214,7 +214,7 @@ exports.deleteOrganigrama = async (req, res) => {
 
     res.json({ message: 'Bloque eliminado' });
   } catch (error) {
-    res.status(500).json({ message: 'Error eliminando bloque de organigrama', error: error.message });
+    res.status(500).json({ message: 'Error eliminando bloque de organigrama' });
   }
 };
 
@@ -249,7 +249,7 @@ exports.reorderOrganigrama = async (req, res) => {
     const rows = await Organigrama.find().sort({ orden: 1, area: 1 });
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ message: 'Error reordenando organigrama', error: error.message });
+    res.status(500).json({ message: 'Error reordenando organigrama' });
   }
 };
 
@@ -283,6 +283,6 @@ exports.getOrganigramaAudit = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo auditoría de organigrama', error: error.message });
+    res.status(500).json({ message: 'Error obteniendo auditoría de organigrama' });
   }
 };

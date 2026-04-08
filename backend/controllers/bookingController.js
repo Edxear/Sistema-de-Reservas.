@@ -240,7 +240,7 @@ exports.getBookingMetrics = async (req, res) => {
 
     res.json({ total, todayTotal, byEstado, period, trend });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo metricas de turnos', error });
+    res.status(500).json({ message: 'Error obteniendo metricas de turnos' });
   }
 };
 
@@ -314,7 +314,7 @@ exports.getPatientSummaries = async (req, res) => {
     const items = Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
     res.json(items);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo resumen de pacientes', error });
+    res.status(500).json({ message: 'Error obteniendo resumen de pacientes' });
   }
 };
 
@@ -386,7 +386,7 @@ exports.getBookings = async (req, res) => {
 
     res.json({ total, page: parseInt(page, 10), limit: parseInt(limit, 10), bookings: bookingsConHistorial });
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo reservas', error });
+    res.status(500).json({ message: 'Error obteniendo reservas' });
   }
 };
 
@@ -503,7 +503,7 @@ exports.createBooking = async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ message: 'Reserva duplicada para el profesional en la fecha y hora seleccionadas' });
     }
-    res.status(400).json({ message: 'Error creando reserva', error });
+    res.status(400).json({ message: 'Error creando reserva' });
   }
 };
 
@@ -793,7 +793,7 @@ exports.updateBooking = async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ message: 'El profesional ya tiene una consulta asignada en ese horario' });
     }
-    res.status(400).json({ message: 'Error actualizando reserva', error });
+    res.status(400).json({ message: 'Error actualizando reserva' });
   }
 };
 
@@ -803,6 +803,6 @@ exports.deleteBooking = async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Reserva no encontrada' });
     res.json({ message: 'Reserva eliminada' });
   } catch (error) {
-    res.status(500).json({ message: 'Error eliminando reserva', error });
+    res.status(500).json({ message: 'Error eliminando reserva' });
   }
 };

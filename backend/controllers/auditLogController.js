@@ -19,6 +19,6 @@ exports.listAuditLogs = async (req, res) => {
 
     return res.json(logs);
   } catch (error) {
-    return res.status(500).json({ message: 'Error obteniendo auditoria', error });
+    return res.status(500).json({ message: 'Error obteniendo auditoria' });
   }
 };

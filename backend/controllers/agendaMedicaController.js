@@ -28,7 +28,7 @@ exports.getDisponibilidad = async (req, res) => {
     res.json({ slots });
   } catch (error) {
     console.error('Error en getDisponibilidad:', error.message);
-    res.status(500).json({ message: 'Error al consultar disponibilidad', error: error.message });
+    res.status(500).json({ message: 'Error al consultar disponibilidad' });
   }
 };
 
@@ -48,7 +48,7 @@ exports.getProximasFechas = async (req, res) => {
     res.json({ fechas });
   } catch (error) {
     console.error('Error en getProximasFechas:', error.message);
-    res.status(500).json({ message: 'Error al consultar próximas fechas', error: error.message });
+    res.status(500).json({ message: 'Error al consultar próximas fechas' });
   }
 };
 
@@ -128,7 +128,7 @@ exports.createOrUpdateAgenda = async (req, res) => {
     res.json({ message: 'Agenda actualizada correctamente', horarios: savedHorarios });
   } catch (error) {
     console.error('Error en createOrUpdateAgenda:', error.message);
-    res.status(500).json({ message: 'Error al actualizar agenda', error: error.message });
+    res.status(500).json({ message: 'Error al actualizar agenda' });
   }
 };
 
@@ -160,7 +160,7 @@ exports.deleteAgendaDia = async (req, res) => {
     res.json({ message: 'Día eliminado de la agenda' });
   } catch (error) {
     console.error('Error en deleteAgendaDia:', error.message);
-    res.status(500).json({ message: 'Error al eliminar agenda', error: error.message });
+    res.status(500).json({ message: 'Error al eliminar agenda' });
   }
 };
 
@@ -196,7 +196,7 @@ exports.createExcepcion = async (req, res) => {
     res.status(201).json({ message: 'Excepción creada correctamente', excepcion });
   } catch (error) {
     console.error('Error en createExcepcion:', error.message);
-    res.status(500).json({ message: 'Error al crear excepción', error: error.message });
+    res.status(500).json({ message: 'Error al crear excepción' });
   }
 };
 
@@ -231,7 +231,7 @@ exports.getExcepciones = async (req, res) => {
     res.json({ excepciones, total: excepciones.length });
   } catch (error) {
     console.error('Error en getExcepciones:', error.message);
-    res.status(500).json({ message: 'Error al obtener excepciones', error: error.message });
+    res.status(500).json({ message: 'Error al obtener excepciones' });
   }
 };
 
@@ -257,7 +257,7 @@ exports.deleteExcepcion = async (req, res) => {
     res.json({ message: 'Excepción eliminada correctamente' });
   } catch (error) {
     console.error('Error en deleteExcepcion:', error.message);
-    res.status(500).json({ message: 'Error al eliminar excepción', error: error.message });
+    res.status(500).json({ message: 'Error al eliminar excepción' });
   }
 };
 
@@ -273,6 +273,6 @@ exports.getAgendaSemanal = async (req, res) => {
     res.json({ schedule });
   } catch (error) {
     console.error('Error en getAgendaSemanal:', error.message);
-    res.status(500).json({ message: 'Error al obtener agenda semanal', error: error.message });
+    res.status(500).json({ message: 'Error al obtener agenda semanal' });
   }
 };

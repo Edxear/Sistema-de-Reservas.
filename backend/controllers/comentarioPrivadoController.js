@@ -21,7 +21,7 @@ exports.getComentariosPorMedico = async (req, res) => {
 
     res.json(comentarios);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo comentarios', error });
+    res.status(500).json({ message: 'Error obteniendo comentarios' });
   }
 };
 
@@ -47,7 +47,7 @@ exports.getComentariosResumen = async (req, res) => {
 
     res.json(comentarios);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo resumen de comentarios', error });
+    res.status(500).json({ message: 'Error obteniendo resumen de comentarios' });
   }
 };
 
@@ -84,7 +84,7 @@ exports.crearComentario = async (req, res) => {
 
     res.status(201).json(comentario);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando comentario', error });
+    res.status(400).json({ message: 'Error creando comentario' });
   }
 };
 
@@ -118,7 +118,7 @@ exports.actualizarComentario = async (req, res) => {
 
     res.json(comentario);
   } catch (error) {
-    res.status(400).json({ message: 'Error actualizando comentario', error });
+    res.status(400).json({ message: 'Error actualizando comentario' });
   }
 };
 
@@ -143,6 +143,6 @@ exports.eliminarComentario = async (req, res) => {
     await ComentarioPrivado.deleteOne({ _id: comentarioId });
     res.json({ message: 'Comentario eliminado' });
   } catch (error) {
-    res.status(500).json({ message: 'Error eliminando comentario', error });
+    res.status(500).json({ message: 'Error eliminando comentario' });
   }
 };

@@ -29,7 +29,7 @@ exports.getPatients = async (req, res) => {
 
     res.json(patients);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo pacientes', error });
+    res.status(500).json({ message: 'Error obteniendo pacientes' });
   }
 };
 
@@ -47,7 +47,7 @@ exports.getPatientById = async (req, res) => {
 
     res.json(patient);
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo paciente', error });
+    res.status(500).json({ message: 'Error obteniendo paciente' });
   }
 };
 
@@ -87,7 +87,7 @@ exports.createPatient = async (req, res) => {
     delete safePatient.password;
     res.status(201).json(safePatient);
   } catch (error) {
-    res.status(400).json({ message: 'Error creando paciente', error });
+    res.status(400).json({ message: 'Error creando paciente' });
   }
 };
 
@@ -116,7 +116,7 @@ exports.updatePatient = async (req, res) => {
 
     res.json(patient);
   } catch (error) {
-    res.status(400).json({ message: 'Error actualizando paciente', error });
+    res.status(400).json({ message: 'Error actualizando paciente' });
   }
 };
 
@@ -134,6 +134,6 @@ exports.deletePatient = async (req, res) => {
 
     res.json({ message: 'Paciente eliminado correctamente' });
   } catch (error) {
-    res.status(400).json({ message: 'Error eliminando paciente', error });
+    res.status(400).json({ message: 'Error eliminando paciente' });
   }
 };
