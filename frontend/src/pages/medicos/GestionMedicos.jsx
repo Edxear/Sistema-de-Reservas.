@@ -10,6 +10,7 @@ import {
   eliminarMedico
 } from '../../services/medicoService';
 import { canManageDoctors } from '../../utils/roles';
+import { exportArrayToExcel } from '../../utils/excelExport';
 
 const GestionMedicos = () => {
   const { user } = useContext(AuthContext);
@@ -159,6 +160,21 @@ const GestionMedicos = () => {
     }
   };
 
+  const handleExportExcel = () => {
+    const rows = filtrados.map((m) => ({
+      Nombre: m.nombre || '',
+      Email: m.email || '',
+      Telefono: m.telefono || '',
+      Rol: m.rol || '',
+      Especialidad: m.especialidad || '',
+      Matricula: m.matriculaProfesional || '',
+      Consultorio: m.direccionConsultorio || '',
+      Area: m.areaSecretaria || '',
+      Turno: m.turnoLaboral || '',
+    }));
+    exportArrayToExcel({ rows, sheetName: 'Medicos', fileName: 'personal_medico.xlsx' });
+  };
+
   // Verificar permiso
   if (!canManageDoctors(user?.rol)) {
     return (
@@ -199,6 +215,7 @@ const GestionMedicos = () => {
         >
           {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Personal'}
         </button>
+        <button className={styles.botonAgregar} onClick={handleExportExcel} style={{ background: '#16a34a' }}>Exportar Excel</button>
       </div>
 
       {mostrarFormulario && (

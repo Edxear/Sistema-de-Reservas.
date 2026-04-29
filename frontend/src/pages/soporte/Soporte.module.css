@@ -34,6 +34,7 @@
   border: 1px solid #d7e4f3;
   border-radius: 14px;
   padding: 16px;
+  min-width: 0;
 }
 
 .metricsGrid {
@@ -70,7 +71,7 @@
 
 .gridForm {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 10px;
 }
 
@@ -123,11 +124,15 @@
 }
 
 .tableWrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
+  min-width: 760px;
   border-collapse: collapse;
 }
 
@@ -381,7 +386,7 @@
 
 .filtersRow {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
 }
 

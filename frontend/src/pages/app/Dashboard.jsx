@@ -13,6 +13,7 @@ import { getDisponibilidad } from '../../services/disponibilidadService';
 import Chat from '../../components/Chat';
 import { crearPreferencia } from '../../services/pagoService';
 import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics } from '../../utils/roles';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import styles from './Dashboard.module.css';
 
 const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
@@ -368,6 +369,51 @@ export default function Dashboard() {
     pdf.save(`reporte_consultas_${metricsPeriod}.pdf`);
   };
 
+  const exportMetricsExcel = () => {
+    if (!adminMetrics) {
+      toast.info('No hay metricas para exportar');
+      return;
+    }
+
+    const rows = statusChartRows.map((row) => ({
+      Periodo: metricsPeriod,
+      Estado: row.label,
+      Cantidad: row.value,
+      Total: adminMetrics.total,
+      TurnosHoy: adminMetrics.todayTotal,
+    }));
+
+    exportArrayToExcel({
+      rows,
+      sheetName: 'Metricas',
+      fileName: `reporte_consultas_${metricsPeriod}.xlsx`,
+    });
+  };
+
+  const exportPatientsExcel = () => {
+    if (!patientSummaries.length) {
+      toast.info('No hay pacientes para exportar');
+      return;
+    }
+
+    const rows = patientSummaries.map((p) => ({
+      Nombre: p.nombre || p.paciente?.nombre || '',
+      Email: p.email || p.paciente?.email || '',
+      Telefono: p.telefono || p.paciente?.telefono || '',
+      Cobertura: p.obraSocial || p.paciente?.obraSocial || '',
+      Afiliado: p.numeroAfiliado || p.paciente?.numeroAfiliado || '',
+      Alergias: p.alergias || p.paciente?.alergias || '',
+      TotalTurnos: p.totalTurnos || 0,
+      ProximosTurnos: p.proximosTurnos || p.pendientes || 0,
+    }));
+
+    exportArrayToExcel({
+      rows,
+      sheetName: 'Pacientes',
+      fileName: 'reporte_pacientes.xlsx',
+    });
+  };
+
   // Función para cargar todos los datos (doctores, servicios, reservas)
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -378,7 +424,10 @@ export default function Dashboard() {
       setServices(srv);
 
       // Cargamos las reservas con los filtros
-      const bookingsRes = await getBookings(filters);
+      const bookingsFilters = role === 'paciente'
+        ? { ...filters, usuario: user?.id }
+        : filters;
+      const bookingsRes = await getBookings(bookingsFilters);
 
       setBookings(bookingsRes.data.bookings || []);
 
@@ -400,7 +449,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filters, logout, navigate, role, metricsPeriod]); // Dependencias: filters, logout, navigate
+  }, [filters, logout, navigate, role, metricsPeriod, user?.id]); // Dependencias: filters, logout, navigate
 
   // Efecto para cargar datos al montar el componente o cuando cambian los filtros
   useEffect(() => {
@@ -737,7 +786,9 @@ export default function Dashboard() {
             </div>
             <div className={styles.actions}>
               <button className={styles.secondaryBtn} onClick={exportMetricsPDF}>Exportar metricas PDF</button>
+              <button className={styles.secondaryBtn} onClick={exportMetricsExcel}>Exportar metricas Excel</button>
               <button className={styles.secondaryBtn} onClick={exportPatientCSV}>Exportar pacientes CSV</button>
+              <button className={styles.secondaryBtn} onClick={exportPatientsExcel}>Exportar pacientes Excel</button>
             </div>
           </div>
 

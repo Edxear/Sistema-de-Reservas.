@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "dashboard": "Painel principal",
+    "appointments": "Consultas",
+    "doctors": "Médicos",
+    "patients": "Pacientes",
+    "prescriptions": "Receitas",
+    "support": "Suporte",
+    "nursing": "Enfermagem",
+    "bedBoard": "Painel de Leitos",
+    "medicalOrders": "Ordens Médicas",
+    "teleconsultations": "Teleconsultas",
+    "profile": "Meu perfil",
+    "organigram": "Organograma",
+    "management": "Gestão",
+    "logout": "Sair",
+    "login": "Entrar"
+  },
+  "common": {
+    "exportExcel": "Exportar Excel",
+    "exportPDF": "Exportar PDF",
+    "exportCSV": "Exportar CSV",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "add": "Adicionar",
+    "search": "Buscar",
+    "loading": "Carregando...",
+    "refresh": "Atualizar",
+    "back": "Voltar",
+    "yes": "Sim",
+    "no": "Não",
+    "apply": "Aplicar",
+    "noResults": "Sem resultados",
+    "noPermission": "Você não tem permissão para acessar esta seção.",
+    "demoMode": "Modo Demo",
+    "language": "Idioma"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Senha",
+    "login": "Entrar",
+    "register": "Registrar",
+    "loginTitle": "Entrar",
+    "demoAccess": "Acesso demo"
+  },
+  "dashboard": {
+    "title": "Painel de controle",
+    "welcome": "Bem-vindo",
+    "metrics": "Métricas",
+    "exportMetrics": "Exportar métricas Excel",
+    "exportPatients": "Exportar pacientes Excel"
+  },
+  "doctors": {
+    "title": "Equipe Médica e Administrativa",
+    "addStaff": "Adicionar Funcionário",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "role": "Função",
+    "specialty": "Especialidade",
+    "license": "Registro",
+    "office": "Consultório",
+    "area": "Área",
+    "shift": "Turno"
+  },
+  "patients": {
+    "title": "Pacientes",
+    "addPatient": "Adicionar Paciente",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "document": "Documento",
+    "healthInsurance": "Plano de Saúde",
+    "affiliateNumber": "N° Afiliado",
+    "allergies": "Alergias",
+    "address": "Endereço"
+  },
+  "bedBoard": {
+    "title": "Painel Digital — Censo de Leitos",
+    "subtitle": "Status em tempo real de todos os leitos por setor.",
+    "totalBeds": "Total de leitos",
+    "free": "Livre",
+    "occupied": "Ocupado",
+    "reserved": "Reservado",
+    "cleaning": "Limpeza",
+    "maintenance": "Manutenção",
+    "isolation": "Isolamento"
+  },
+  "teleconsultations": {
+    "title": "Teleconsultas",
+    "newAppointment": "Nova consulta",
+    "patient": "Paciente",
+    "doctor": "Médico",
+    "date": "Data",
+    "status": "Status",
+    "notes": "Observações"
+  },
+  "support": {
+    "title": "Área de Suporte",
+    "tickets": "Tickets/SLA",
+    "users": "Usuários",
+    "colleagues": "Colegas",
+    "ratings": "Avaliações",
+    "operation": "Operação",
+    "createTicket": "Criar ticket",
+    "exportTickets": "Exportar Excel"
+  },
+  "nursing": {
+    "title": "Enfermagem",
+    "exportExcel": "Exportar Excel"
+  },
+  "history": {
+    "title": "Histórico Clínico Longitudinal",
+    "date": "Data",
+    "type": "Tipo",
+    "description": "Descrição",
+    "diagnosis": "Diagnóstico",
+    "plan": "Plano",
+    "critical": "Crítico",
+    "followUp": "Requer acompanhamento",
+    "newEntry": "Nova evolução",
+    "saveEntry": "Salvar evolução"
+  },
+  "roles": {
+    "admin": "Administrativo",
+    "paciente": "Paciente",
+    "medico": "Médico",
+    "enfermero": "Enfermeiro",
+    "superadmin": "Superadmin"
+  }
+}

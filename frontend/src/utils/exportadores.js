@@ -2,6 +2,8 @@
  * Utilidades para exportar comentarios privados
  */
 
+import { exportArrayToExcel } from './excelExport';
+
 /**
  * Exporta comentarios a formato CSV
  */
@@ -40,6 +42,27 @@ export const exportarComentariosCSV = (comentarios, nombreMedico) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+export const exportarComentariosExcel = (comentarios, nombreMedico) => {
+  if (!comentarios || comentarios.length === 0) {
+    alert('No hay comentarios para exportar');
+    return;
+  }
+
+  const rows = comentarios.map((c) => ({
+    Fecha: new Date(c.fechaCreacion).toLocaleDateString(),
+    Hora: new Date(c.fechaCreacion).toLocaleTimeString(),
+    Autor: c.autor?.nombre || 'N/A',
+    Rol: c.tipoAutor || 'N/A',
+    Contenido: c.contenido || '',
+  }));
+
+  exportArrayToExcel({
+    rows,
+    sheetName: 'Comentarios',
+    fileName: `comentarios_${nombreMedico}_${new Date().toISOString().split('T')[0]}.xlsx`,
+  });
 };
 
 /**

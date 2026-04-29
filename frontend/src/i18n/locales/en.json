@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "appointments": "Appointments",
+    "doctors": "Doctors",
+    "patients": "Patients",
+    "prescriptions": "Prescriptions",
+    "support": "Support",
+    "nursing": "Nursing",
+    "bedBoard": "Bed Board",
+    "medicalOrders": "Medical Orders",
+    "teleconsultations": "Teleconsultations",
+    "profile": "My Profile",
+    "organigram": "Org Chart",
+    "management": "Management",
+    "logout": "Log out",
+    "login": "Log in"
+  },
+  "common": {
+    "exportExcel": "Export Excel",
+    "exportPDF": "Export PDF",
+    "exportCSV": "Export CSV",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading...",
+    "refresh": "Refresh",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No",
+    "apply": "Apply",
+    "noResults": "No results",
+    "noPermission": "You do not have permission to access this section.",
+    "demoMode": "Demo Mode",
+    "language": "Language"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in",
+    "register": "Register",
+    "loginTitle": "Sign In",
+    "demoAccess": "Demo access"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "metrics": "Metrics",
+    "exportMetrics": "Export Metrics Excel",
+    "exportPatients": "Export Patients Excel"
+  },
+  "doctors": {
+    "title": "Medical & Administrative Staff",
+    "addStaff": "Add Staff",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "specialty": "Specialty",
+    "license": "License",
+    "office": "Office",
+    "area": "Area",
+    "shift": "Shift"
+  },
+  "patients": {
+    "title": "Patients",
+    "addPatient": "Add Patient",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "document": "Document",
+    "healthInsurance": "Health Insurance",
+    "affiliateNumber": "Affiliate #",
+    "allergies": "Allergies",
+    "address": "Address"
+  },
+  "bedBoard": {
+    "title": "Bed Board — Census",
+    "subtitle": "Real-time status of all beds by sector.",
+    "totalBeds": "Total beds",
+    "free": "Free",
+    "occupied": "Occupied",
+    "reserved": "Reserved",
+    "cleaning": "Cleaning",
+    "maintenance": "Maintenance",
+    "isolation": "Isolation"
+  },
+  "teleconsultations": {
+    "title": "Teleconsultations",
+    "newAppointment": "New appointment",
+    "patient": "Patient",
+    "doctor": "Doctor",
+    "date": "Date",
+    "status": "Status",
+    "notes": "Notes"
+  },
+  "support": {
+    "title": "Support Area",
+    "tickets": "Tickets/SLA",
+    "users": "Users",
+    "colleagues": "Colleagues",
+    "ratings": "Ratings",
+    "operation": "Operation",
+    "createTicket": "Create ticket",
+    "exportTickets": "Export Excel"
+  },
+  "nursing": {
+    "title": "Nursing",
+    "exportExcel": "Export Excel"
+  },
+  "history": {
+    "title": "Longitudinal Medical Record",
+    "date": "Date",
+    "type": "Type",
+    "description": "Description",
+    "diagnosis": "Diagnosis",
+    "plan": "Plan",
+    "critical": "Critical",
+    "followUp": "Requires follow-up",
+    "newEntry": "New evolution",
+    "saveEntry": "Save evolution"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "paciente": "Patient",
+    "medico": "Doctor",
+    "enfermero": "Nurse",
+    "superadmin": "Superadmin"
+  }
+}

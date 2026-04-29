@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import api from '../services/api';
 import { useAuth } from './AuthContext';
+import { isDemoModeEnabled } from '../services/demoApi';
 
 const NotificacionContext = createContext();
 
@@ -13,6 +14,7 @@ export function NotificacionProvider({ children }) {
 
   // Inicializar socket.io
   useEffect(() => {
+    if (isDemoModeEnabled()) return;
     if (!user?._id && !user?.id) return;
 
     const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {

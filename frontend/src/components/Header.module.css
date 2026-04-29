@@ -65,6 +65,29 @@
   background-color: #f0f5fa;
 }
 
+.demoToggle {
+  border: 1px solid #dbe4ee;
+  background: #f8fbff;
+  color: #1a3b5d;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.demoToggle:hover {
+  background-color: #e8f2ff;
+}
+
+.demoSelect {
+  border: 1px solid #dbe4ee;
+  background: #ffffff;
+  color: #1a3b5d;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 600;
+}
+
 .dropdown {
   position: relative;
 }
@@ -130,6 +153,8 @@
   }
 
   .nav a,
+  .demoToggle,
+  .demoSelect,
   .dropdownTrigger {
     width: 100%;
     justify-content: space-between;

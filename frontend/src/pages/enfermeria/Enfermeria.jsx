@@ -17,6 +17,7 @@ import {
   updateNursingIncidentStatus,
   updateNursingInitiative,
 } from '../../services/enfermeriaService';
+import { exportGroupedSheetsToExcel } from '../../utils/excelExport';
 import styles from './Enfermeria.module.css';
 import MiTurno from './MiTurno';
 import PlanCuidados from './PlanCuidados';
@@ -256,6 +257,50 @@ export default function Enfermeria() {
     }
   };
 
+  const handleExportExcel = () => {
+    const kpisRows = [
+      {
+        EventosPor1000: dashboard.kpis?.eventosAdversosPor1000PacientesDia || 0,
+        RespuestaAlertasMin: dashboard.kpis?.tiempoRespuestaAlertasMin || 0,
+        CumplimientoChecklistPct: dashboard.kpis?.cumplimientoChecklistPct || 0,
+        AusentismoPct: dashboard.kpis?.ausentismoPct || 0,
+        AdherenciaCapacitacionPct: dashboard.kpis?.adherenciaCapacitacionPct || 0,
+      },
+    ];
+
+    const branchRows = branchSummaryVisible.map((row) => ({
+      Rama: row.rama,
+      Incidentes: row.incidentes,
+      CumplimientoProtocolosPct: row.cumplimientoProtocolos,
+      EventosPor1000: row.eventosPor1000,
+      Semaforo: row.semaforo || 'green',
+    }));
+
+    const incidentRows = incidentsVisible.map((item) => ({
+      Rama: item.rama,
+      Tipo: item.tipo,
+      Severidad: item.severidad,
+      Estado: item.estado,
+      PacienteRef: item.pacienteRef || '',
+      Descripcion: item.descripcion || '',
+    }));
+
+    const exported = exportGroupedSheetsToExcel({
+      fileName: `enfermeria-reporte-${new Date().toISOString().slice(0, 10)}.xlsx`,
+      sheets: [
+        { name: 'KPIs', rows: kpisRows },
+        { name: 'Ramas', rows: branchRows },
+        { name: 'Incidentes', rows: incidentRows },
+      ],
+    });
+
+    if (!exported) {
+      toast.info('No hay datos para exportar a Excel');
+      return;
+    }
+    toast.success('Reporte Excel generado');
+  };
+
   const handleCreateInitiative = async (e) => {
     e.preventDefault();
     if (!permissions.canManageInitiatives) {
@@ -440,6 +485,7 @@ export default function Enfermeria() {
           <div className={styles.actionsRow}>
             <button className={styles.pill} type="button" onClick={handleExportCsv}>Exportar CSV</button>
             <button className={styles.pill} type="button" onClick={handleExportPdf}>Exportar PDF</button>
+            <button className={styles.pill} type="button" onClick={handleExportExcel}>Exportar Excel</button>
           </div>
         </div>
         <div className={styles.grid}>

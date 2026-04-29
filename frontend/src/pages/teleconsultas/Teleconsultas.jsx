@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import {
   getMyTeleconsultas,
   createTeleconsulta,
@@ -183,6 +184,17 @@ export default function Teleconsultas() {
     }
   };
 
+  const handleExportExcel = () => {
+    const rows = teleconsultas.map((tc) => ({
+      Paciente: tc.pacienteNombre || tc.paciente?.nombre || '',
+      Medico: tc.medicoNombre || tc.medico?.nombre || '',
+      Fecha: tc.fechaProgramada ? new Date(tc.fechaProgramada).toLocaleString('es-AR') : '',
+      Estado: tc.estado || '',
+      Notas: tc.notas || '',
+    }));
+    exportArrayToExcel({ rows, sheetName: 'Teleconsultas', fileName: 'teleconsultas.xlsx' });
+  };
+
   const ahora = new Date();
   const pasadas = teleconsultas.filter((tc) => new Date(tc.fechaProgramada) < ahora);
   const proximas = teleconsultas.filter((tc) => new Date(tc.fechaProgramada) >= ahora);
@@ -251,6 +263,22 @@ export default function Teleconsultas() {
                 {showForm ? '— Cancelar' : '+ Nueva cita'}
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              style={{
+                padding: '10px 16px',
+                backgroundColor: '#16a34a',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.9rem',
+              }}
+            >
+              Exportar Excel
+            </button>
           </div>
         </div>
 

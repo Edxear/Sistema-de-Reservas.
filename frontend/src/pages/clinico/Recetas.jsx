@@ -8,6 +8,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessSupport, isSuperAdminPrincipal } from '../../utils/roles';
 import { createSupportTicket, listSupportTickets } from '../../services/soporteService';
+import { exportGroupedSheetsToExcel } from '../../utils/excelExport';
 import styles from './Recetas.module.css';
 
 const initialMed = { nombre: '', dosis: '', presentacion: '', indicaciones: '', cantidad: '1' };
@@ -284,6 +285,43 @@ export default function Recetas() {
     pdf.save(`receta-${pacienteSeleccionado?.nombre || 'paciente'}.pdf`);
   };
 
+  const exportExcel = () => {
+    const meds = medicamentos
+      .filter((m) => m.nombre.trim())
+      .map((m, idx) => ({
+        Item: idx + 1,
+        Medicamento: m.nombre,
+        Dosis: m.dosis,
+        Presentacion: m.presentacion,
+        Indicaciones: m.indicaciones,
+        Cantidad: m.cantidad,
+      }));
+
+    if (!meds.length) {
+      toast.info('Agrega al menos un medicamento para exportar');
+      return;
+    }
+
+    const resumen = [{
+      Paciente: pacienteSeleccionado?.nombre || '',
+      Email: pacienteSeleccionado?.email || '',
+      Cobertura: formData.obraSocial || '',
+      Afiliado: formData.numeroAfiliado || '',
+      DiagnosticoPrincipal: formData.diagnosticoPrincipal || '',
+      DiagnosticoSecundario: formData.diagnosticoSecundario || '',
+      Plantilla: plantilla,
+      FechaEmision: new Date().toLocaleString('es-AR'),
+    }];
+
+    exportGroupedSheetsToExcel({
+      fileName: `receta-${pacienteSeleccionado?.nombre || 'paciente'}.xlsx`,
+      sheets: [
+        { name: 'Resumen', rows: resumen },
+        { name: 'Medicamentos', rows: meds },
+      ],
+    });
+  };
+
   const qrValue = useMemo(() => {
     const payload = {
       paciente: pacienteSeleccionado?.nombre || '',
@@ -393,6 +431,7 @@ export default function Recetas() {
           <button type="button" className={styles.btn} onClick={preview}>Ver</button>
           <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={printReceta}>Imprimir</button>
           <button type="button" className={styles.btn} onClick={exportPdf}>Exportar PDF</button>
+          <button type="button" className={styles.btn} onClick={exportExcel}>Exportar Excel</button>
           <button type="button" className={`${styles.btn} ${styles.btnAccent}`} onClick={shareNative}>Compartir</button>
         </div>
       </div>

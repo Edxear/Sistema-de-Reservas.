@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { login as apiLogin, register as apiRegister, getMe as apiGetMe, updateMe as apiUpdateMe, logout as apiLogout } from '../services/authService';
 import { toast } from 'react-toastify';
+import { ROLE } from '../utils/roles';
 
 export const AuthContext = createContext(null);
 
@@ -13,13 +14,61 @@ export const useAuth = () => {
   return context;
 };
 
+const DEMO_MODE = process.env.REACT_APP_DEMO_MODE !== 'false';
+const DEMO_PROFILES = {
+  admin: {
+    id: 'demo-user',
+    nombre: 'Administrativo Demo',
+    email: 'admin.demo@demo.local',
+    rol: ROLE.ADMIN,
+    esSuperAdminPrincipal: false,
+  },
+  paciente: {
+    id: 'pat-1',
+    nombre: 'Paciente Demo',
+    email: 'carlos.benitez@demo.local',
+    rol: ROLE.PACIENTE,
+    esSuperAdminPrincipal: false,
+    obraSocial: 'Swiss Medical',
+    numeroAfiliado: 'SM-245677',
+  },
+};
+
+const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.admin;
+
+const readDemoModePreference = () => {
+  if (typeof window === 'undefined') return DEMO_MODE;
+
+  const storedValue = window.localStorage.getItem('demoModeOverride');
+  if (storedValue === 'true') return true;
+  if (storedValue === 'false') return false;
+  return DEMO_MODE;
+};
+
+const readDemoRolePreference = () => {
+  if (typeof window === 'undefined') return 'admin';
+  const storedValue = window.localStorage.getItem('demoRoleOverride');
+  return storedValue === 'paciente' ? 'paciente' : 'admin';
+};
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
+  const [demoMode, setDemoMode] = useState(readDemoModePreference);
+  const [demoRole, setDemoRole] = useState(readDemoRolePreference);
 
   // Restaura sesión desde cookie httpOnly (el token no es accesible desde JS)
   useEffect(() => {
+    if (demoMode) {
+      const demoUser = getDemoUser(demoRole);
+      setUser(demoUser);
+      setToken('demo-session');
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      setLoading(false);
+      return;
+    }
+
     const storedUser = localStorage.getItem('user');
 
     if (storedUser) {
@@ -44,10 +93,19 @@ export function AuthProvider({ children }) {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [demoMode, demoRole]);
 
   // Función para iniciar sesión
   const login = async (credentials) => {
+    if (demoMode) {
+      const demoUser = getDemoUser(demoRole);
+      setToken('demo-session');
+      setUser(demoUser);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      toast.success('Modo demo activo: acceso completo habilitado.');
+      return { success: true };
+    }
+
     try {
       const response = await apiLogin(credentials);
       const { user } = response.data;
@@ -68,6 +126,15 @@ export function AuthProvider({ children }) {
 
   // Función para registrarse
   const register = async (userData) => {
+    if (demoMode) {
+      const demoUser = getDemoUser(demoRole);
+      setToken('demo-session');
+      setUser(demoUser);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      toast.success('Modo demo activo: registro simulado con éxito.');
+      return { success: true };
+    }
+
     try {
       const response = await apiRegister(userData);
       const { user } = response.data;
@@ -88,6 +155,11 @@ export function AuthProvider({ children }) {
 
   // Función para cerrar sesión
   const logout = async () => {
+    if (demoMode) {
+      toast.info('En modo demo no se requiere sesión.');
+      return;
+    }
+
     try {
       await apiLogout();
     } catch {
@@ -100,6 +172,10 @@ export function AuthProvider({ children }) {
   };
 
   const refreshProfile = async () => {
+    if (demoMode) {
+      return { success: true, user: getDemoUser(demoRole) };
+    }
+
     if (!user) return { success: false, error: 'No autenticado' };
     try {
       const res = await apiGetMe();
@@ -112,6 +188,13 @@ export function AuthProvider({ children }) {
   };
 
   const updateProfile = async (data) => {
+    if (demoMode) {
+      const mergedUser = { ...getDemoUser(demoRole), ...data };
+      setUser(mergedUser);
+      localStorage.setItem('user', JSON.stringify(mergedUser));
+      return { success: true, user: mergedUser };
+    }
+
     if (!user) return { success: false, error: 'No autenticado' };
     try {
       const res = await apiUpdateMe(data);
@@ -120,6 +203,38 @@ export function AuthProvider({ children }) {
       return { success: true, user: res.data.user };
     } catch (error) {
       return { success: false, error: error.response?.data?.message || 'Error actualizando perfil' };
+    }
+  };
+
+  const setDemoModeEnabled = (enabled) => {
+    const nextValue = Boolean(enabled);
+    setLoading(true);
+    setDemoMode(nextValue);
+    localStorage.setItem('demoModeOverride', String(nextValue));
+
+    if (!nextValue) {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('user');
+    } else {
+      const demoUser = getDemoUser(demoRole);
+      setToken('demo-session');
+      setUser(demoUser);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+    }
+
+    toast.info(nextValue ? 'Modo demo activado.' : 'Modo demo desactivado.');
+  };
+
+  const setDemoRoleEnabled = (role) => {
+    const nextRole = role === 'paciente' ? 'paciente' : 'admin';
+    setDemoRole(nextRole);
+    localStorage.setItem('demoRoleOverride', nextRole);
+    if (demoMode) {
+      const demoUser = getDemoUser(nextRole);
+      setUser(demoUser);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      toast.info(`Vista demo actual: ${nextRole === 'paciente' ? 'Paciente' : 'Administrativo'}.`);
     }
   };
 
@@ -133,6 +248,11 @@ export function AuthProvider({ children }) {
     logout,
     refreshProfile,
     updateProfile,
+    demoMode,
+    demoRole,
+    isGuestSession: demoMode,
+    setDemoMode: setDemoModeEnabled,
+    setDemoRole: setDemoRoleEnabled,
     isAuthenticated: !!user,
   };
 

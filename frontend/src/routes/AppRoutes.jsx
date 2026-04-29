@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // El administrador principal tiene acceso transversal sin restricciones.
@@ -46,13 +46,13 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
 };
 
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, isGuestSession } = useAuth();
 
   if (loading) {
     return <div style={{ padding: 24 }}>Cargando sesion...</div>;
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isGuestSession) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -64,6 +64,10 @@ export default function AppRoutes() {
     <Routes>
       <Route
         path="/"
+        element={<Navigate to="/dashboard" replace />}
+      />
+      <Route
+        path="/login"
         element={(
           <PublicRoute>
             <LoginRegister />

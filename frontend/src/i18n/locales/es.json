@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "dashboard": "Panel principal",
+    "appointments": "Turnos",
+    "doctors": "Médicos",
+    "patients": "Pacientes",
+    "prescriptions": "Recetas",
+    "support": "Soporte",
+    "nursing": "Enfermería",
+    "bedBoard": "Pizarra Camas",
+    "medicalOrders": "Órdenes Médicas",
+    "teleconsultations": "Teleconsultas",
+    "profile": "Mi perfil",
+    "organigram": "Organigrama",
+    "management": "Gestión",
+    "logout": "Cerrar sesión",
+    "login": "Ingresar"
+  },
+  "common": {
+    "exportExcel": "Exportar Excel",
+    "exportPDF": "Exportar PDF",
+    "exportCSV": "Exportar CSV",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Agregar",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "refresh": "Actualizar",
+    "back": "Volver",
+    "yes": "Sí",
+    "no": "No",
+    "apply": "Aplicar",
+    "noResults": "Sin resultados",
+    "noPermission": "No tienes permiso para acceder a esta sección.",
+    "demoMode": "Modo Demo",
+    "language": "Idioma"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Contraseña",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "loginTitle": "Iniciar Sesión",
+    "demoAccess": "Acceso demo"
+  },
+  "dashboard": {
+    "title": "Panel de control",
+    "welcome": "Bienvenido",
+    "metrics": "Métricas",
+    "exportMetrics": "Exportar métricas Excel",
+    "exportPatients": "Exportar pacientes Excel"
+  },
+  "doctors": {
+    "title": "Personal Médico y Administrativo",
+    "addStaff": "Agregar Personal",
+    "name": "Nombre",
+    "email": "Email",
+    "phone": "Teléfono",
+    "role": "Rol",
+    "specialty": "Especialidad",
+    "license": "Matrícula",
+    "office": "Consultorio",
+    "area": "Área",
+    "shift": "Turno"
+  },
+  "patients": {
+    "title": "Pacientes",
+    "addPatient": "Agregar Paciente",
+    "name": "Nombre",
+    "email": "Email",
+    "phone": "Teléfono",
+    "document": "Documento",
+    "healthInsurance": "Obra Social",
+    "affiliateNumber": "N° Afiliado",
+    "allergies": "Alergias",
+    "address": "Dirección"
+  },
+  "bedBoard": {
+    "title": "Pizarra Digital — Censo de Camas",
+    "subtitle": "Estado en tiempo real de todas las camas por sector.",
+    "totalBeds": "Total camas",
+    "free": "Libre",
+    "occupied": "Ocupada",
+    "reserved": "Reservada",
+    "cleaning": "Limpieza",
+    "maintenance": "Mantenimiento",
+    "isolation": "Aislamiento"
+  },
+  "teleconsultations": {
+    "title": "Teleconsultas",
+    "newAppointment": "Nueva cita",
+    "patient": "Paciente",
+    "doctor": "Médico",
+    "date": "Fecha",
+    "status": "Estado",
+    "notes": "Notas"
+  },
+  "support": {
+    "title": "Área de Soporte",
+    "tickets": "Tickets/SLA",
+    "users": "Usuarios",
+    "colleagues": "Colegas",
+    "ratings": "Valoraciones",
+    "operation": "Operación",
+    "createTicket": "Crear ticket",
+    "exportTickets": "Exportar Excel"
+  },
+  "nursing": {
+    "title": "Enfermería",
+    "exportExcel": "Exportar Excel"
+  },
+  "history": {
+    "title": "Historia Clínica Longitudinal",
+    "date": "Fecha",
+    "type": "Tipo",
+    "description": "Descripción",
+    "diagnosis": "Diagnóstico",
+    "plan": "Plan",
+    "critical": "Crítico",
+    "followUp": "Requiere seguimiento",
+    "newEntry": "Nueva evolución",
+    "saveEntry": "Guardar evolución"
+  },
+  "roles": {
+    "admin": "Administrativo",
+    "paciente": "Paciente",
+    "medico": "Médico",
+    "enfermero": "Enfermero",
+    "superadmin": "Superadmin"
+  }
+}

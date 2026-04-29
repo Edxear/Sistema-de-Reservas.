@@ -10,6 +10,7 @@ import {
   eliminarPaciente
 } from '../../services/patientService';
 import { canManagePatients } from '../../utils/roles';
+import { exportArrayToExcel } from '../../utils/excelExport';
 
 const GestionPacientes = () => {
   const { user } = useContext(AuthContext);
@@ -178,6 +179,20 @@ const GestionPacientes = () => {
     );
   }
 
+  const handleExportExcel = () => {
+    const rows = filtrados.map((p) => ({
+      Nombre: p.nombre || '',
+      Email: p.email || '',
+      Telefono: p.telefono || '',
+      Documento: p.documento || '',
+      'Obra Social': p.obraSocial || '',
+      'Número Afiliado': p.numeroAfiliado || '',
+      Alergias: p.alergias || '',
+      Direccion: p.direccion || '',
+    }));
+    exportArrayToExcel({ rows, sheetName: 'Pacientes', fileName: 'pacientes.xlsx' });
+  };
+
   if (cargando) {
     return <div className={styles.container}><p>Cargando pacientes...</p></div>;
   }
@@ -207,6 +222,7 @@ const GestionPacientes = () => {
         >
           {mostrarFormulario ? '❌ Cancelar' : '➕ Agregar Paciente'}
         </button>
+        <button className={styles.botonAgregar} onClick={handleExportExcel} style={{ background: '#16a34a' }}>Exportar Excel</button>
       </div>
 
       {mostrarFormulario && (

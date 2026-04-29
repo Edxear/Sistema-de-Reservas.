@@ -1,16 +1,74 @@
 import React from 'react';
 import { BrowserRouter as Router, useLocation, useNavigationType } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import ErrorBoundary from './components/ErrorBoundary';
 // Importar los Providers
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificacionProvider } from './context/NotificacionContext';
 
 import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
 import Chatbot from './components/Chatbot';
+
+const DEMO_SUPPRESSED_TOAST_PATTERNS = [
+  'no se pudo cargar',
+  'no se pudieron cargar',
+  'error al cargar',
+  'error cargando',
+  'no se encontro',
+  'no se encontró',
+  'failed to fetch',
+  'network error',
+  'se muestra el ejemplo local',
+];
+
+const normalizeToastMessage = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
+function DemoToastFilter() {
+  const { demoMode } = useAuth();
+
+  React.useEffect(() => {
+    const originalError = toast.error;
+    const originalWarn = toast.warn;
+    const shouldSuppressToast = (content) => {
+      if (!demoMode) return false;
+
+      const message = normalizeToastMessage(
+        typeof content === 'string' ? content : content?.props?.children,
+      );
+
+      return DEMO_SUPPRESSED_TOAST_PATTERNS.some((pattern) => message.includes(pattern));
+    };
+
+    toast.error = (content, options) => {
+      if (shouldSuppressToast(content)) {
+        return null;
+      }
+
+      return originalError(content, options);
+    };
+
+    toast.warn = (content, options) => {
+      if (shouldSuppressToast(content)) {
+        return null;
+      }
+
+      return originalWarn(content, options);
+    };
+
+    return () => {
+      toast.error = originalError;
+      toast.warn = originalWarn;
+    };
+  }, [demoMode]);
+
+  return null;
+}
 
 function ScrollRestorationManager() {
   const location = useLocation();
@@ -62,6 +120,7 @@ function App() {
       <Router>
         <AuthProvider>
           <NotificacionProvider>
+            <DemoToastFilter />
             <ScrollRestorationManager />
             <Header />
             <ToastContainer position="top-right" autoClose={3000} />

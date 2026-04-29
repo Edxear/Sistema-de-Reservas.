@@ -7,6 +7,7 @@ import {
   actualizarEstadoOrden,
   buscarUsuarios,
 } from '../../services/ordenMedicaService';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import styles from './Clinical.module.css';
 
 const TIPOS = ['laboratorio', 'imagen', 'interconsulta', 'procedimiento'];
@@ -159,6 +160,34 @@ export default function OrdenesMedicas() {
     completada: ordenes.filter((o) => o.estado === 'completada').length,
   };
 
+  const handleExportExcel = () => {
+    if (!ordenes.length) {
+      toast.info('No hay ordenes para exportar');
+      return;
+    }
+
+    const rows = ordenes.map((orden) => ({
+      Paciente: orden.paciente?.nombre || '',
+      DNI: orden.paciente?.documento || '',
+      ObraSocial: orden.paciente?.obraSocial || '',
+      Medico: orden.medico?.nombre || '',
+      Especialidad: orden.medico?.especialidad || '',
+      Tipo: orden.tipo,
+      Prioridad: orden.prioridad,
+      Estado: orden.estado,
+      FechaObjetivo: orden.fechaObjetivo ? new Date(orden.fechaObjetivo).toLocaleDateString('es-AR') : '',
+      Indicacion: orden.indicacion || '',
+      Diagnostico: orden.diagnostico || '',
+      Resultado: orden.resultadoResumen || '',
+    }));
+
+    exportArrayToExcel({
+      rows,
+      sheetName: 'Ordenes',
+      fileName: `ordenes-medicas-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
+  };
+
   return (
     <div className={styles.page}>
       {/* HERO */}
@@ -181,6 +210,14 @@ export default function OrdenesMedicas() {
               style={{ backgroundColor: '#6366f1', color: '#fff', border: 'none' }}
             >
               {loading ? 'Cargando...' : '🔄 Actualizar'}
+            </button>
+            <button
+              type="button"
+              className={styles.pill}
+              onClick={handleExportExcel}
+              style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none' }}
+            >
+              Exportar Excel
             </button>
             {canCreate(role) && (
               <button
@@ -419,6 +456,7 @@ export default function OrdenesMedicas() {
               const prioridadCfg = PRIORIDAD_CFG[orden.prioridad] || PRIORIDAD_CFG.media;
               const estadoCfg = ESTADO_CFG[orden.estado] || ESTADO_CFG.solicitada;
               const isEditing = editingId === orden._id;
+              const fechaReferencia = orden.fechaOrden || orden.createdAt || orden.fechaObjetivo;
 
               return (
                 <article
@@ -465,7 +503,9 @@ export default function OrdenesMedicas() {
                       </span>
                     </div>
                     <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
-                      {new Date(orden.fechaOrden).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {fechaReferencia
+                        ? new Date(fechaReferencia).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })
+                        : 'Sin fecha'}
                     </span>
                   </div>
 
@@ -480,6 +520,11 @@ export default function OrdenesMedicas() {
                           </span>
                         )}
                       </p>
+                      {!!orden.paciente?.obraSocial && (
+                        <p style={{ margin: '2px 0 0', color: '#6b7280', fontSize: '0.8rem' }}>
+                          Cobertura: {orden.paciente.obraSocial}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Médico</span>
@@ -491,6 +536,11 @@ export default function OrdenesMedicas() {
                           </span>
                         )}
                       </p>
+                      {!!orden.medico?.matriculaProfesional && (
+                        <p style={{ margin: '2px 0 0', color: '#6b7280', fontSize: '0.8rem' }}>
+                          MP: {orden.medico.matriculaProfesional}
+                        </p>
+                      )}
                     </div>
                     {orden.fechaObjetivo && (
                       <div>

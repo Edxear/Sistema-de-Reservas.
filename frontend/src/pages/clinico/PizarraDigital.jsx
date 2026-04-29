@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import { getBeds, createBed, updateBed } from '../../services/bedUnitService';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import styles from './Clinical.module.css';
 
 const ESTADOS = ['libre', 'ocupada', 'reservada', 'limpieza', 'mantenimiento', 'aislamiento'];
@@ -51,6 +52,17 @@ export default function PizarraDigital() {
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  const handleExportExcel = () => {
+    const rows = beds.map((b) => ({
+      Codigo: b.codigo || '',
+      Sector: b.sector || '',
+      Estado: ESTADO_CFG[b.estado]?.label || b.estado || '',
+      Paciente: b.paciente?.nombre || '',
+      Observaciones: b.observaciones || '',
+    }));
+    exportArrayToExcel({ rows, sheetName: 'CensoCamas', fileName: 'censo_camas.xlsx' });
+  };
 
   const sectores = [...new Set(beds.map((b) => b.sector).filter(Boolean))].sort();
   const bedsVisible = sectorFilter ? beds.filter((b) => b.sector === sectorFilter) : beds;
@@ -271,6 +283,14 @@ export default function PizarraDigital() {
             style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none' }}
           >
             {loading ? 'Actualizando...' : '🔄 Actualizar'}
+          </button>
+          <button
+            type="button"
+            className={styles.pill}
+            onClick={handleExportExcel}
+            style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+          >
+            Exportar Excel
           </button>
         </div>
 

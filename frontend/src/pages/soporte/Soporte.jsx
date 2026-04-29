@@ -25,6 +25,7 @@ import {
   updateSupportUser,
 } from '../../services/soporteService';
 import { canAccessSupport, canViewPrivateColleagueComments, isAdminRole } from '../../utils/roles';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import styles from './Soporte.module.css';
 
 const TAB = {
@@ -899,10 +900,27 @@ export default function Soporte() {
     </>
   );
 
-  const renderTickets = () => (
+  const renderTickets = () => {
+    const handleExportTicketsExcel = () => {
+      const rows = tickets.map((t) => ({
+        Codigo: t.codigo || '',
+        Titulo: t.titulo || '',
+        Criticidad: t.criticidad || '',
+        Estado: t.estado || '',
+        Nivel: t.soporteNivel || '',
+        Modulo: t.modulo || '',
+        'Area Clinica': t.areaClinica || '',
+        Solicitante: t.solicitanteNombre || '',
+      }));
+      exportArrayToExcel({ rows, sheetName: 'Tickets', fileName: 'tickets_soporte.xlsx' });
+    };
+    return (
     <>
       <section className={styles.card}>
         <h2>Tickets y SLA</h2>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <button type="button" className={styles.primaryBtn} onClick={handleExportTicketsExcel}>Exportar Excel</button>
+        </div>
         {renderInfoBlock(TAB.TICKETS)}
         <form onSubmit={handleCreateTicket} className={styles.gridForm}>
           <input className={styles.input} placeholder="Titulo" value={ticketForm.titulo} onChange={(e) => setTicketForm((p) => ({ ...p, titulo: e.target.value }))} required />
@@ -994,6 +1012,7 @@ export default function Soporte() {
       </section>
     </>
   );
+  };
 
   const renderUsuarios = () => (
     <section className={styles.card}>

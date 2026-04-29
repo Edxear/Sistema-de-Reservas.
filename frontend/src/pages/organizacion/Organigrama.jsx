@@ -11,6 +11,7 @@ import {
   reorderOrganigrama,
   updateOrganigrama,
 } from '../../services/organigramaService';
+import { exportArrayToExcel } from '../../utils/excelExport';
 import organigramaHospitalario from '../../data/organigramaHospitalario.json';
 import styles from './Organigrama.module.css';
 
@@ -367,6 +368,29 @@ export default function Organigrama() {
     }
   };
 
+  const exportAsExcel = () => {
+    if (!rows.length) {
+      toast.info('No hay datos para exportar');
+      return;
+    }
+
+    const exportRows = rows.map((item) => ({
+      Area: item.area || '',
+      Jefe: item.jefe || '',
+      Subjefe: item.subjefe || '',
+      Estado: item.activo === false ? 'Inactivo' : 'Activo',
+      Equipos: (item.equipos || []).join(', '),
+      Puestos: (item.puestos || []).map((puesto) => `${puesto.nombre}: ${(puesto.personas || []).join(', ')}`).join(' | '),
+      Orden: item.orden || 0,
+    }));
+
+    exportArrayToExcel({
+      rows: exportRows,
+      sheetName: 'Organigrama',
+      fileName: 'organigrama.xlsx',
+    });
+  };
+
   const toggleCollapse = (nodeId) => {
     setCollapsedNodeIds((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
@@ -494,6 +518,7 @@ export default function Organigrama() {
           <div className={styles.exportActions}>
             <button className={styles.secondaryBtn} onClick={exportAsImage}>Exportar PNG</button>
             <button className={styles.secondaryBtn} onClick={exportAsPdf}>Exportar PDF</button>
+            <button className={styles.secondaryBtn} onClick={exportAsExcel}>Exportar Excel</button>
           </div>
         </div>
 

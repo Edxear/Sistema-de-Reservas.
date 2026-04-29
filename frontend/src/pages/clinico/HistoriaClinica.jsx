@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../../services/api';
+import { exportArrayToExcel } from '../../utils/excelExport';
 
 export default function HistoriaClinica() {
   const navigate = useNavigate();
@@ -89,6 +90,19 @@ export default function HistoriaClinica() {
   if (loading) return <div style={{ padding: 20 }}>Cargando historial...</div>;
   if (error) return <div style={{ padding: 20, color: 'red' }}>{error}</div>;
 
+  const handleExportExcel = () => {
+    const rows = entries.map((e) => ({
+      Fecha: e.fecha || e.createdAt ? new Date(e.fecha || e.createdAt).toLocaleDateString('es-AR') : '',
+      Tipo: e.tipo || e.eventCategory || '',
+      Descripcion: e.descripcion || '',
+      Diagnostico: e.clinicalSnapshot?.diagnostico || '',
+      Plan: e.clinicalSnapshot?.plan || '',
+      Critico: e.flags?.esCritico ? 'Sí' : 'No',
+      Seguimiento: e.flags?.requiereSeguimiento ? 'Sí' : 'No',
+    }));
+    exportArrayToExcel({ rows, sheetName: 'HistoriaClinica', fileName: `historia_clinica_${pacienteId}.xlsx` });
+  };
+
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: 'auto' }}>
       <button
@@ -97,6 +111,13 @@ export default function HistoriaClinica() {
         style={{ marginBottom: 10, border: '1px solid #cbd5e1', borderRadius: 8, padding: '8px 12px', background: '#fff' }}
       >
         Volver
+      </button>
+      <button
+        type="button"
+        onClick={handleExportExcel}
+        style={{ marginBottom: 10, marginLeft: 8, border: 0, borderRadius: 8, padding: '8px 14px', background: '#16a34a', color: '#fff', fontWeight: '600' }}
+      >
+        Exportar Excel
       </button>
       <h1>Historia Clínica Longitudinal</h1>
 
