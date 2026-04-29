@@ -17,6 +17,7 @@
     "login": "Ingresar"
   },
   "common": {
+    "menu": "Menú",
     "exportExcel": "Exportar Excel",
     "exportPDF": "Exportar PDF",
     "exportCSV": "Exportar CSV",
@@ -43,14 +44,37 @@
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "loginTitle": "Iniciar Sesión",
-    "demoAccess": "Acceso demo"
+    "demoAccess": "Acceso demo",
+    "exploreWithoutAccount": "¿Querés explorar el sistema sin cuenta?",
+    "tryDemo": "🧪 Probar en modo demo"
+  },
+  "demo": {
+    "title": "Sistema Clínico - Demo",
+    "subtitle": "Explorá el sistema como Administrativo o como Paciente. Los datos son ficticios y no representan personas reales.",
+    "badge": "🧪 Entorno de demostración - datos ficticios",
+    "exploreAs": "Explorar como",
+    "haveCredentials": "¿Tenés credenciales de acceso?"
   },
   "dashboard": {
     "title": "Panel de control",
     "welcome": "Bienvenido",
+    "subtitle": "Gestiona tus turnos y seguimiento clinico de forma centralizada.",
     "metrics": "Métricas",
     "exportMetrics": "Exportar métricas Excel",
-    "exportPatients": "Exportar pacientes Excel"
+    "exportPatients": "Exportar pacientes Excel",
+    "quickAccess": "Accesos rapidos",
+    "goToPrescriptions": "Ir a Recetas",
+    "newBooking": "Crear nueva reserva",
+    "service": "Servicio",
+    "selectService": "Seleccionar servicio",
+    "selectDoctor": "Seleccionar doctor",
+    "noDoctorsAvailable": "No hay doctores disponibles",
+    "noDoctorsForSpecialty": "No hay doctores para esta especialidad",
+    "time": "Hora",
+    "checkingAvailability": "Consultando disponibilidad...",
+    "selectTime": "Seleccionar horario",
+    "noAvailableTimes": "No hay horarios disponibles para ese profesional en la fecha elegida.",
+    "additionalNotes": "Notas adicionales"
   },
   "doctors": {
     "title": "Personal Médico y Administrativo",
@@ -81,6 +105,7 @@
     "title": "Pizarra Digital — Censo de Camas",
     "subtitle": "Estado en tiempo real de todas las camas por sector.",
     "totalBeds": "Total camas",
+    "lastUpdated": "Última actualización",
     "free": "Libre",
     "occupied": "Ocupada",
     "reserved": "Reservada",
@@ -104,8 +129,21 @@
     "colleagues": "Colegas",
     "ratings": "Valoraciones",
     "operation": "Operación",
+    "centerTitle": "Centro de Soporte Clínico",
+    "centerSubtitle": "Panel operativo para monitoreo, tickets y continuidad del servicio.",
     "createTicket": "Crear ticket",
     "exportTickets": "Exportar Excel"
+  },
+  "medicalOrders": {
+    "title": "Órdenes Médicas",
+    "doctorView": "Tus órdenes activas. Creá nuevas órdenes para pacientes.",
+    "generalView": "Visualizá y ejecutá órdenes médicas asignadas.",
+    "newOrder": "Nueva orden",
+    "total": "Total",
+    "urgent": "Urgentes",
+    "requested": "Solicitadas",
+    "inProgress": "En proceso",
+    "completed": "Completadas"
   },
   "nursing": {
     "title": "Enfermería",

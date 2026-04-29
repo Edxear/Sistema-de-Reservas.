@@ -7,10 +7,15 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Importar los Providers
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificacionProvider } from './context/NotificacionContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
 import Chatbot from './components/Chatbot';
+import DemoBanner from './components/DemoBanner';
+import DemoTour from './components/DemoTour';
+import OfflineIndicator from './components/OfflineIndicator';
+import { useDemoAnalytics } from './hooks/useDemoAnalytics';
 
 const DEMO_SUPPRESSED_TOAST_PATTERNS = [
   'no se pudo cargar',
@@ -114,22 +119,33 @@ function ScrollRestorationManager() {
   return null;
 }
 
+function DemoAnalyticsTracker() {
+  useDemoAnalytics();
+  return null;
+}
+
 function App() {
   return (
+    <ThemeProvider>
     <ErrorBoundary>
       <Router>
         <AuthProvider>
           <NotificacionProvider>
             <DemoToastFilter />
             <ScrollRestorationManager />
+            <DemoAnalyticsTracker />
+            <OfflineIndicator />
             <Header />
+            <DemoTour />
             <ToastContainer position="top-right" autoClose={3000} />
             <AppRoutes />
             <Chatbot />
+            <DemoBanner />
           </NotificacionProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

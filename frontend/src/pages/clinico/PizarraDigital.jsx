@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import { getBeds, createBed, updateBed } from '../../services/bedUnitService';
@@ -22,6 +23,7 @@ const canCreate = (role) => ['admin', 'superadmin', 'enfermero'].includes(String
 const initialForm = { codigo: '', sector: '', estado: 'libre', observaciones: '' };
 
 export default function PizarraDigital() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const role = user?.rol;
 
@@ -267,12 +269,12 @@ export default function PizarraDigital() {
   return (
     <div className={styles.page}>
       {/* HERO */}
-      <section className={styles.hero}>
+      <section className={styles.hero} data-tour="pizarra-overview">
         <div className={styles.actionsRow}>
           <div>
-            <h1>🏥 Pizarra Digital — Censo de Camas</h1>
+            <h1>{t('bedBoard.title', 'Pizarra Digital - Censo de Camas')}</h1>
             <p style={{ margin: '0.25rem 0 0', color: '#3b5d7c' }}>
-              Estado en tiempo real de todas las camas por sector.
+              {t('bedBoard.subtitle', 'Estado en tiempo real de todas las camas por sector.')}
             </p>
           </div>
           <button
@@ -282,7 +284,7 @@ export default function PizarraDigital() {
             disabled={loading}
             style={{ backgroundColor: '#3b82f6', color: '#fff', border: 'none' }}
           >
-            {loading ? 'Actualizando...' : '🔄 Actualizar'}
+            {loading ? t('common.loading', 'Cargando...') : `🔄 ${t('common.refresh', 'Actualizar')}`}
           </button>
           <button
             type="button"
@@ -290,14 +292,14 @@ export default function PizarraDigital() {
             onClick={handleExportExcel}
             style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
           >
-            Exportar Excel
+            {t('common.exportExcel', 'Exportar Excel')}
           </button>
         </div>
 
         {/* STATS */}
         <div className={styles.gridMini} style={{ marginTop: '1rem' }}>
           <div className={styles.miniCard} style={{ textAlign: 'center' }}>
-            <strong>Total camas</strong>
+            <strong>{t('bedBoard.totalBeds', 'Total camas')}</strong>
             <p style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1f2937', margin: '4px 0 0' }}>
               {metrics.total}
             </p>
@@ -319,7 +321,7 @@ export default function PizarraDigital() {
 
         {ultimaActualizacion && (
           <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#9ca3af' }}>
-            Última actualización: {ultimaActualizacion.toLocaleTimeString()}
+            {t('bedBoard.lastUpdated', 'Última actualización')}: {ultimaActualizacion.toLocaleTimeString()}
           </p>
         )}
       </section>

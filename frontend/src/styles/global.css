@@ -58,6 +58,19 @@
   --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
+[data-theme="dark"] {
+  --color-bg: #0f1923;
+  --color-surface: #1a2c3d;
+  --color-surface-alt: #1e3348;
+  --color-text: #e2eaf2;
+  --color-muted: #8aa5be;
+  --color-border: #2e4057;
+  --color-border-soft: #253447;
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
 }

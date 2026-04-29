@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -43,6 +44,7 @@ const initialForm = {
 };
 
 export default function OrdenesMedicas() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const role = user?.rol;
 
@@ -191,14 +193,14 @@ export default function OrdenesMedicas() {
   return (
     <div className={styles.page}>
       {/* HERO */}
-      <section className={styles.hero}>
+      <section className={styles.hero} data-tour="ordenes-overview">
         <div className={styles.actionsRow}>
           <div>
-            <h1>📋 Órdenes Médicas</h1>
+            <h1>{t('medicalOrders.title', 'Órdenes Médicas')}</h1>
             <p style={{ margin: '0.25rem 0 0', color: '#3b5d7c' }}>
               {role === 'medico'
-                ? 'Tus órdenes activas. Creá nuevas órdenes para pacientes.'
-                : 'Visualizá y ejecutá órdenes médicas asignadas.'}
+                ? t('medicalOrders.doctorView', 'Tus órdenes activas. Creá nuevas órdenes para pacientes.')
+                : t('medicalOrders.generalView', 'Visualizá y ejecutá órdenes médicas asignadas.')}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -209,7 +211,7 @@ export default function OrdenesMedicas() {
               disabled={loading}
               style={{ backgroundColor: '#6366f1', color: '#fff', border: 'none' }}
             >
-              {loading ? 'Cargando...' : '🔄 Actualizar'}
+              {loading ? t('common.loading', 'Cargando...') : `🔄 ${t('common.refresh', 'Actualizar')}`}
             </button>
             <button
               type="button"
@@ -217,7 +219,7 @@ export default function OrdenesMedicas() {
               onClick={handleExportExcel}
               style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none' }}
             >
-              Exportar Excel
+              {t('common.exportExcel', 'Exportar Excel')}
             </button>
             {canCreate(role) && (
               <button
@@ -226,7 +228,7 @@ export default function OrdenesMedicas() {
                 onClick={() => setShowForm((p) => !p)}
                 style={{ backgroundColor: '#059669', color: '#fff', border: 'none' }}
               >
-                {showForm ? '— Cancelar' : '+ Nueva orden'}
+                {showForm ? `— ${t('common.cancel', 'Cancelar')}` : `+ ${t('medicalOrders.newOrder', 'Nueva orden')}`}
               </button>
             )}
           </div>
@@ -235,23 +237,23 @@ export default function OrdenesMedicas() {
         {/* STATS */}
         <div className={styles.gridMini} style={{ marginTop: '1rem' }}>
           <div className={styles.miniCard}>
-            <strong>Total</strong>
+            <strong>{t('medicalOrders.total', 'Total')}</strong>
             <p style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1f2937', margin: '4px 0 0' }}>{stats.total}</p>
           </div>
           <div className={styles.miniCard} style={{ backgroundColor: PRIORIDAD_CFG.urgente.bg, borderLeft: `3px solid ${PRIORIDAD_CFG.urgente.borde}` }}>
-            <strong style={{ color: PRIORIDAD_CFG.urgente.texto }}>Urgentes</strong>
+            <strong style={{ color: PRIORIDAD_CFG.urgente.texto }}>{t('medicalOrders.urgent', 'Urgentes')}</strong>
             <p style={{ fontSize: '1.6rem', fontWeight: '800', color: PRIORIDAD_CFG.urgente.texto, margin: '4px 0 0' }}>{stats.urgente}</p>
           </div>
           <div className={styles.miniCard} style={{ backgroundColor: ESTADO_CFG.solicitada.bg, borderLeft: `3px solid ${ESTADO_CFG.solicitada.borde}` }}>
-            <strong style={{ color: ESTADO_CFG.solicitada.texto }}>Solicitadas</strong>
+            <strong style={{ color: ESTADO_CFG.solicitada.texto }}>{t('medicalOrders.requested', 'Solicitadas')}</strong>
             <p style={{ fontSize: '1.6rem', fontWeight: '800', color: ESTADO_CFG.solicitada.texto, margin: '4px 0 0' }}>{stats.solicitada}</p>
           </div>
           <div className={styles.miniCard} style={{ backgroundColor: ESTADO_CFG.en_proceso.bg, borderLeft: `3px solid ${ESTADO_CFG.en_proceso.borde}` }}>
-            <strong style={{ color: ESTADO_CFG.en_proceso.texto }}>En proceso</strong>
+            <strong style={{ color: ESTADO_CFG.en_proceso.texto }}>{t('medicalOrders.inProgress', 'En proceso')}</strong>
             <p style={{ fontSize: '1.6rem', fontWeight: '800', color: ESTADO_CFG.en_proceso.texto, margin: '4px 0 0' }}>{stats.en_proceso}</p>
           </div>
           <div className={styles.miniCard} style={{ backgroundColor: ESTADO_CFG.completada.bg, borderLeft: `3px solid ${ESTADO_CFG.completada.borde}` }}>
-            <strong style={{ color: ESTADO_CFG.completada.texto }}>Completadas</strong>
+            <strong style={{ color: ESTADO_CFG.completada.texto }}>{t('medicalOrders.completed', 'Completadas')}</strong>
             <p style={{ fontSize: '1.6rem', fontWeight: '800', color: ESTADO_CFG.completada.texto, margin: '4px 0 0' }}>{stats.completada}</p>
           </div>
         </div>

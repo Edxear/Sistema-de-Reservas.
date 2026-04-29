@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaBars, FaCalendarCheck, FaChevronDown, FaUserMd } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import NotificacionCenter from './NotificacionCenter';
 import {
   canAccessNursingArea,
@@ -19,7 +20,8 @@ import styles from './Header.module.css';
 
 export default function Header() {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
   const {
     isAuthenticated,
     user,
@@ -62,7 +64,7 @@ export default function Header() {
 
         <button className={styles.mobileToggle} onClick={() => setIsMenuOpen((prev) => !prev)}>
           <FaBars />
-          <span>Menu</span>
+          <span>{t('common.menu', 'Menu')}</span>
         </button>
 
         <nav className={`${styles.nav} ${isMenuOpen ? styles.navOpen : ''}`}>
@@ -86,6 +88,15 @@ export default function Header() {
             </select>
           )}
 
+          <button
+            type="button"
+            className={styles.demoToggle}
+            onClick={toggleTheme}
+            aria-label="Cambiar tema"
+          >
+            {theme === 'dark' ? 'Tema: Oscuro' : 'Tema: Claro'}
+          </button>
+
           <select
             className={styles.demoSelect}
             value={i18n.language}
@@ -103,23 +114,23 @@ export default function Header() {
           {showPrivateMenu && (
             <div className={styles.dropdown} ref={dropdownRef}>
               <button className={styles.dropdownTrigger} onClick={() => setIsDropdownOpen((prev) => !prev)}>
-                <span>Gestion</span>
+                <span data-tour="gestion">{t('nav.management', 'Gestion')}</span>
                 <FaChevronDown className={isDropdownOpen ? styles.rotate : ''} />
               </button>
               {isDropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <Link to="/dashboard" onClick={closeAllMenus}>Panel principal</Link>
-                  <Link to="/turnos" onClick={closeAllMenus}>Turnos</Link>
-                  {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>Medicos</Link>}
-                  {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>Pacientes</Link>}
-                  {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>Recetas</Link>}
-                  {canAccessSupport(role) && <Link to="/soporte" onClick={closeAllMenus}>Soporte</Link>}
-                  {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>Enfermeria</Link>}
-                  {canAccessPizarra(role) && <Link to="/pizarra" onClick={closeAllMenus}>Pizarra Camas</Link>}
-                  {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" onClick={closeAllMenus}>Ordenes Medicas</Link>}
-                  {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>Teleconsultas</Link>}
-                  <Link to="/perfil" onClick={closeAllMenus}>Mi perfil</Link>
-                  {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>Organigrama</Link>}
+                  <Link to="/dashboard" data-tour="dashboard" onClick={closeAllMenus}>{t('nav.dashboard', 'Panel principal')}</Link>
+                  <Link to="/turnos" onClick={closeAllMenus}>{t('nav.appointments', 'Turnos')}</Link>
+                  {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>{t('nav.doctors', 'Medicos')}</Link>}
+                  {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>{t('nav.patients', 'Pacientes')}</Link>}
+                  {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>{t('nav.prescriptions', 'Recetas')}</Link>}
+                  {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
+                  {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>{t('nav.nursing', 'Enfermeria')}</Link>}
+                  {canAccessPizarra(role) && <Link to="/pizarra" data-tour="pizarra" onClick={closeAllMenus}>{t('nav.bedBoard', 'Pizarra Camas')}</Link>}
+                  {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" data-tour="ordenes" onClick={closeAllMenus}>{t('nav.medicalOrders', 'Ordenes Medicas')}</Link>}
+                  {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}
+                  <Link to="/perfil" onClick={closeAllMenus}>{t('nav.profile', 'Mi perfil')}</Link>
+                  {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>{t('nav.organigram', 'Organigrama')}</Link>}
                 </div>
               )}
             </div>
@@ -129,12 +140,12 @@ export default function Header() {
           {isRealSession ? (
             <Link to="/perfil" onClick={closeAllMenus}>
               <FaUserMd />
-              <span>Mi Perfil</span>
+              <span>{t('nav.profile', 'Mi Perfil')}</span>
             </Link>
           ) : (
             <Link to="/login" onClick={closeAllMenus}>
               <FaUserMd />
-              <span>Login</span>
+              <span>{t('auth.login', 'Login')}</span>
             </Link>
           )}
         </nav>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { isDemoModeEnabled, mockApiRequest } from './demoApi';
 
 const API_HOST = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
@@ -22,5 +23,16 @@ API.interceptors.request.use((config) => {
 
   return config;
 });
+
+API.interceptors.response.use(
+  (response) => {
+    if (response?.data?._demoBlocked) {
+      toast.warn(response.data.message || 'Accion no disponible en modo demo.');
+    }
+
+    return response;
+  },
+  (error) => Promise.reject(error),
+);
 
 export default API;

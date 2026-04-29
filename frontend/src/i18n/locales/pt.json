@@ -17,6 +17,7 @@
     "login": "Entrar"
   },
   "common": {
+    "menu": "Menu",
     "exportExcel": "Exportar Excel",
     "exportPDF": "Exportar PDF",
     "exportCSV": "Exportar CSV",
@@ -43,14 +44,37 @@
     "login": "Entrar",
     "register": "Registrar",
     "loginTitle": "Entrar",
-    "demoAccess": "Acesso demo"
+    "demoAccess": "Acesso demo",
+    "exploreWithoutAccount": "Quer explorar o sistema sem conta?",
+    "tryDemo": "🧪 Testar modo demo"
+  },
+  "demo": {
+    "title": "Sistema Clínico - Demo",
+    "subtitle": "Explore o sistema como Administrativo ou Paciente. Todos os dados são fictícios e não representam pessoas reais.",
+    "badge": "🧪 Ambiente de demonstração - dados fictícios",
+    "exploreAs": "Explorar como",
+    "haveCredentials": "Você tem credenciais de acesso?"
   },
   "dashboard": {
     "title": "Painel de controle",
     "welcome": "Bem-vindo",
+    "subtitle": "Gerencie consultas e acompanhamento clínico de forma centralizada.",
     "metrics": "Métricas",
     "exportMetrics": "Exportar métricas Excel",
-    "exportPatients": "Exportar pacientes Excel"
+    "exportPatients": "Exportar pacientes Excel",
+    "quickAccess": "Acessos rápidos",
+    "goToPrescriptions": "Ir para Receitas",
+    "newBooking": "Criar nova reserva",
+    "service": "Serviço",
+    "selectService": "Selecionar serviço",
+    "selectDoctor": "Selecionar médico",
+    "noDoctorsAvailable": "Não há médicos disponíveis",
+    "noDoctorsForSpecialty": "Não há médicos para esta especialidade",
+    "time": "Hora",
+    "checkingAvailability": "Consultando disponibilidade...",
+    "selectTime": "Selecionar horário",
+    "noAvailableTimes": "Não há horários disponíveis para esse profissional na data escolhida.",
+    "additionalNotes": "Notas adicionais"
   },
   "doctors": {
     "title": "Equipe Médica e Administrativa",
@@ -81,6 +105,7 @@
     "title": "Painel Digital — Censo de Leitos",
     "subtitle": "Status em tempo real de todos os leitos por setor.",
     "totalBeds": "Total de leitos",
+    "lastUpdated": "Última atualização",
     "free": "Livre",
     "occupied": "Ocupado",
     "reserved": "Reservado",
@@ -104,8 +129,21 @@
     "colleagues": "Colegas",
     "ratings": "Avaliações",
     "operation": "Operação",
+    "centerTitle": "Centro de Suporte Clínico",
+    "centerSubtitle": "Painel operacional para monitoramento, tickets e continuidade do serviço.",
     "createTicket": "Criar ticket",
     "exportTickets": "Exportar Excel"
+  },
+  "medicalOrders": {
+    "title": "Ordens Médicas",
+    "doctorView": "Suas ordens ativas. Crie novas ordens para pacientes.",
+    "generalView": "Visualize e execute ordens médicas atribuídas.",
+    "newOrder": "Nova ordem",
+    "total": "Total",
+    "urgent": "Urgentes",
+    "requested": "Solicitadas",
+    "inProgress": "Em progresso",
+    "completed": "Concluídas"
   },
   "nursing": {
     "title": "Enfermagem",

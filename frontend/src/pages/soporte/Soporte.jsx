@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -158,6 +159,7 @@ const initialObraSocialForm = {
 };
 
 export default function Soporte() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const role = user?.rol;
   const [activeTab, setActiveTab] = useState(TAB.OPERACION);
@@ -692,9 +694,9 @@ export default function Soporte() {
 
   const renderOperacion = () => (
     <>
-      <section className={styles.card}>
-        <h1>Centro de Soporte Clinico</h1>
-        <p>Panel operativo para monitoreo, tickets y continuidad del servicio.</p>
+      <section className={styles.card} data-tour="soporte-overview">
+        <h1>{t('support.centerTitle', 'Centro de Soporte Clínico')}</h1>
+        <p>{t('support.centerSubtitle', 'Panel operativo para monitoreo, tickets y continuidad del servicio.')}</p>
         {renderInfoBlock(TAB.OPERACION)}
       </section>
 
@@ -1293,11 +1295,11 @@ export default function Soporte() {
   return (
     <div className={styles.page}>
       <section className={styles.tabBar}>
-        <button className={activeTab === TAB.OPERACION ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.OPERACION)}>Operacion</button>
-        <button className={activeTab === TAB.TICKETS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.TICKETS)}>Tickets/SLA</button>
-        <button className={activeTab === TAB.USUARIOS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.USUARIOS)}>Usuarios</button>
-        <button className={activeTab === TAB.COLEGAS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.COLEGAS)}>Colegas</button>
-        <button className={activeTab === TAB.VALORACIONES ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.VALORACIONES)}>Valoraciones</button>
+        <button className={activeTab === TAB.OPERACION ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.OPERACION)}>{t('support.operation', 'Operación')}</button>
+        <button className={activeTab === TAB.TICKETS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.TICKETS)}>{t('support.tickets', 'Tickets/SLA')}</button>
+        <button className={activeTab === TAB.USUARIOS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.USUARIOS)}>{t('support.users', 'Usuarios')}</button>
+        <button className={activeTab === TAB.COLEGAS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.COLEGAS)}>{t('support.colleagues', 'Colegas')}</button>
+        <button className={activeTab === TAB.VALORACIONES ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.VALORACIONES)}>{t('support.ratings', 'Valoraciones')}</button>
       </section>
 
       {activeTab === TAB.OPERACION && renderOperacion()}

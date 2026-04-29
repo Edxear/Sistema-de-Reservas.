@@ -17,6 +17,7 @@
     "login": "Log in"
   },
   "common": {
+    "menu": "Menu",
     "exportExcel": "Export Excel",
     "exportPDF": "Export PDF",
     "exportCSV": "Export CSV",
@@ -43,14 +44,37 @@
     "login": "Log in",
     "register": "Register",
     "loginTitle": "Sign In",
-    "demoAccess": "Demo access"
+    "demoAccess": "Demo access",
+    "exploreWithoutAccount": "Want to explore the system without an account?",
+    "tryDemo": "🧪 Try demo mode"
+  },
+  "demo": {
+    "title": "Clinical System - Demo",
+    "subtitle": "Explore the system as Administrator or Patient. All data is fictional and does not represent real people.",
+    "badge": "🧪 Demo environment - fictional data",
+    "exploreAs": "Explore as",
+    "haveCredentials": "Do you have login credentials?"
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome",
+    "subtitle": "Manage appointments and clinical follow-up from a single place.",
     "metrics": "Metrics",
     "exportMetrics": "Export Metrics Excel",
-    "exportPatients": "Export Patients Excel"
+    "exportPatients": "Export Patients Excel",
+    "quickAccess": "Quick access",
+    "goToPrescriptions": "Go to Prescriptions",
+    "newBooking": "Create new booking",
+    "service": "Service",
+    "selectService": "Select service",
+    "selectDoctor": "Select doctor",
+    "noDoctorsAvailable": "No doctors available",
+    "noDoctorsForSpecialty": "No doctors for this specialty",
+    "time": "Time",
+    "checkingAvailability": "Checking availability...",
+    "selectTime": "Select time",
+    "noAvailableTimes": "No time slots are available for that professional on the selected date.",
+    "additionalNotes": "Additional notes"
   },
   "doctors": {
     "title": "Medical & Administrative Staff",
@@ -81,6 +105,7 @@
     "title": "Bed Board — Census",
     "subtitle": "Real-time status of all beds by sector.",
     "totalBeds": "Total beds",
+    "lastUpdated": "Last updated",
     "free": "Free",
     "occupied": "Occupied",
     "reserved": "Reserved",
@@ -104,8 +129,21 @@
     "colleagues": "Colleagues",
     "ratings": "Ratings",
     "operation": "Operation",
+    "centerTitle": "Clinical Support Center",
+    "centerSubtitle": "Operational panel for monitoring, tickets, and service continuity.",
     "createTicket": "Create ticket",
     "exportTickets": "Export Excel"
+  },
+  "medicalOrders": {
+    "title": "Medical Orders",
+    "doctorView": "Your active orders. Create new orders for patients.",
+    "generalView": "View and execute assigned medical orders.",
+    "newOrder": "New order",
+    "total": "Total",
+    "urgent": "Urgent",
+    "requested": "Requested",
+    "inProgress": "In progress",
+    "completed": "Completed"
   },
   "nursing": {
     "title": "Nursing",

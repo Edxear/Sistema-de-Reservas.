@@ -412,6 +412,9 @@ const buildInitialState = () => {
     { _id: 'tick-1', codigo: 'SUP-1001', titulo: 'Intermitencia en agenda medica', descripcion: 'Demoras al confirmar reprogramaciones.', criticidad: 'alto', estado: 'en_progreso', soporteNivel: 'L2', tipoGestion: 'incidente', areaClinica: 'Consultorios externos', modulo: 'Turnos', impactoClinico: 'Riesgo de superposicion de turnos', solicitanteNombre: 'Lucia Fernandez', solicitanteRol: 'secretaria', solicitanteArea: 'Admisiones', tags: ['agenda', 'turnos'], createdAt: daysFromNow(-3, 9, 0), updatedAt: daysFromNow(-1, 16, 0), encuesta: { puntuacion: 4 } },
     { _id: 'tick-2', codigo: 'SUP-1002', titulo: 'Actualizacion de articulo de protocolo', descripcion: 'Incorporar nueva plantilla de trazabilidad.', criticidad: 'medio', estado: 'abierto', soporteNivel: 'L1', tipoGestion: 'requerimiento', areaClinica: 'Calidad', modulo: 'KB', impactoClinico: 'Estandarizacion documental', solicitanteNombre: 'Ana Perez', solicitanteRol: 'enfermero', solicitanteArea: 'Enfermeria', tags: ['kb'], createdAt: daysFromNow(-2, 11, 0), updatedAt: daysFromNow(-2, 11, 0) },
     { _id: 'tick-3', codigo: 'SUP-1003', titulo: 'Solicitud autorizacion - Swiss Medical', descripcion: 'Autorizacion de estudio contrastado. Afiliado: SM-245677', criticidad: 'medio', estado: 'resuelto', soporteNivel: 'L2', tipoGestion: 'obra_social', areaClinica: 'Gestion institucional', modulo: 'Cobertura', impactoClinico: 'Paciente referencia: Carlos Benitez', solicitanteNombre: 'Visitante Demo', solicitanteRol: 'superadmin', solicitanteArea: 'Gestion', tags: ['obra_social', 'interinstitucional'], createdAt: daysFromNow(-5, 8, 0), updatedAt: daysFromNow(-4, 14, 0), encuesta: { puntuacion: 5 } },
+    { _id: 'tick-4', codigo: 'SUP-1004', titulo: 'Falla en impresora de recetas - Consultorio 2', descripcion: 'Impresora no responde al imprimir recetas. Pacientes en espera.', criticidad: 'critico', estado: 'abierto', soporteNivel: 'L1', tipoGestion: 'incidente', areaClinica: 'Consultorios externos', modulo: 'Recetas', impactoClinico: 'Demora en entrega de medicacion', solicitanteNombre: 'Dra. Laura Gomez', solicitanteRol: 'medico', solicitanteArea: 'Consultorios', tags: ['hardware', 'impresora'], createdAt: daysFromNow(-1, 14, 0), updatedAt: daysFromNow(-1, 14, 0) },
+    { _id: 'tick-5', codigo: 'SUP-1005', titulo: 'Alta de nuevo medico en sistema', descripcion: 'Dr. Bruno Ledesma debe tener acceso completo al modulo de recetas y turnos.', criticidad: 'bajo', estado: 'abierto', soporteNivel: 'L1', tipoGestion: 'requerimiento', areaClinica: 'Gestion', modulo: 'Usuarios', impactoClinico: 'Sin impacto directo', solicitanteNombre: 'Visitante Demo', solicitanteRol: 'superadmin', solicitanteArea: 'Gestion', tags: ['usuarios', 'alta'], createdAt: daysFromNow(-4, 10, 0), updatedAt: daysFromNow(-4, 10, 0) },
+    { _id: 'tick-6', codigo: 'SUP-1006', titulo: 'SLA vencido - Ticket de farmacia', descripcion: 'El ticket de farmacia lleva 48hs sin respuesta L2.', criticidad: 'alto', estado: 'en_espera', soporteNivel: 'L2', tipoGestion: 'escalamiento', areaClinica: 'Farmacia', modulo: 'Soporte', impactoClinico: 'Posible desabastecimiento de insumos', solicitanteNombre: 'Oscar Villalba', solicitanteRol: 'admin', solicitanteArea: 'Farmacia', tags: ['sla', 'escalamiento'], createdAt: daysFromNow(-6, 9, 0), updatedAt: daysFromNow(-2, 17, 0) },
   ];
 
   const bedUnits = [
@@ -435,8 +438,11 @@ const buildInitialState = () => {
   ];
 
   const recetas = [
-    { _id: 'rec-1', pacienteId: 'pat-1', medicoId: 'med-1', diagnosticoPrincipal: 'Hipertension arterial', diagnosticoSecundario: 'Dislipidemia', observaciones: 'Control en 30 dias.', medicamentos: [{ nombre: 'Losartan', dosis: '50mg', presentacion: 'Comprimidos', indicaciones: '1 cada 12h' }], createdAt: daysFromNow(-15, 9, 0) },
-    { _id: 'rec-2', pacienteId: 'pat-2', medicoId: 'med-2', diagnosticoPrincipal: 'Arritmia sinusal', diagnosticoSecundario: '', observaciones: 'Reevaluar ECG.', medicamentos: [{ nombre: 'Bisoprolol', dosis: '2.5mg', presentacion: 'Comprimidos', indicaciones: '1 por dia' }], createdAt: daysFromNow(-10, 10, 0) },
+    { _id: 'rec-1', pacienteId: 'pat-1', medicoId: 'med-1', diagnosticoPrincipal: 'Hipertension arterial', diagnosticoSecundario: 'Dislipidemia', observaciones: 'Control en 30 dias. No suspender sin consulta.', medicamentos: [{ nombre: 'Losartan', dosis: '50mg', presentacion: 'Comprimidos', indicaciones: '1 cada 12h con agua' }, { nombre: 'Atorvastatina', dosis: '40mg', presentacion: 'Comprimidos', indicaciones: '1 por noche con cena' }, { nombre: 'AAS', dosis: '100mg', presentacion: 'Comprimidos', indicaciones: '1 al dia con desayuno' }], createdAt: daysFromNow(-15, 9, 0) },
+    { _id: 'rec-2', pacienteId: 'pat-2', medicoId: 'med-2', diagnosticoPrincipal: 'Arritmia sinusal', diagnosticoSecundario: '', observaciones: 'Reevaluar ECG en proxima consulta.', medicamentos: [{ nombre: 'Bisoprolol', dosis: '2.5mg', presentacion: 'Comprimidos', indicaciones: '1 por dia en ayunas' }], createdAt: daysFromNow(-10, 10, 0) },
+    { _id: 'rec-3', pacienteId: 'pat-5', medicoId: 'med-7', diagnosticoPrincipal: 'Hipotiroidismo primario', diagnosticoSecundario: '', observaciones: 'Tomar en ayunas, 30 min antes del desayuno. No suspender.', medicamentos: [{ nombre: 'Levotiroxina', dosis: '50mcg', presentacion: 'Comprimidos', indicaciones: '1 por dia en ayunas' }], createdAt: daysFromNow(-20, 9, 30) },
+    { _id: 'rec-4', pacienteId: 'pat-4', medicoId: 'med-4', diagnosticoPrincipal: 'Fractura de perone', diagnosticoSecundario: 'Dolor postquirurgico', observaciones: 'No superar 3 tomas por dia. Revisar en 7 dias.', medicamentos: [{ nombre: 'Ibuprofeno', dosis: '600mg', presentacion: 'Comprimidos', indicaciones: '1 cada 8h con alimentos' }, { nombre: 'Pantoprazol', dosis: '40mg', presentacion: 'Comprimidos', indicaciones: '1 por dia en ayunas (gastroproteccion)' }], createdAt: daysFromNow(-5, 14, 0) },
+    { _id: 'rec-5', pacienteId: 'pat-3', medicoId: 'med-5', diagnosticoPrincipal: 'Cefalea tensional', diagnosticoSecundario: 'Ansiedad moderada', observaciones: 'Solo en crisis. No usar diariamente.', medicamentos: [{ nombre: 'Ibuprofeno', dosis: '400mg', presentacion: 'Comprimidos', indicaciones: 'A demanda en cefalea, max 3 veces/dia' }, { nombre: 'Alprazolam', dosis: '0.25mg', presentacion: 'Comprimidos', indicaciones: '1/2 comprimido nocturno por 15 dias' }], createdAt: daysFromNow(-8, 11, 0) },
   ];
 
   const recetaFavoritas = [
@@ -445,9 +451,18 @@ const buildInitialState = () => {
   ];
 
   const historiaClinica = [
-    { _id: 'hc-1', pacienteId: 'pat-1', fecha: daysFromNow(-30, 9, 0), tipo: 'evolucion', descripcion: 'Paciente estable. Se ajusta medicacion antihipertensiva.' },
-    { _id: 'hc-2', pacienteId: 'pat-1', fecha: daysFromNow(-15, 11, 0), tipo: 'laboratorio', descripcion: 'Perfil lipidico con mejoria parcial.' },
-    { _id: 'hc-3', pacienteId: 'pat-2', fecha: daysFromNow(-20, 10, 30), tipo: 'interconsulta', descripcion: 'Se solicita Holter y control en cardiologia.' },
+    { _id: 'hc-1', pacienteId: 'pat-1', fecha: daysFromNow(-60, 9, 0), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'Ingresa por guardia con HTA descompensada. PA 180/110. Se inicia captopril 25mg.', clinicalSnapshot: { diagnostico: 'HTA estadio II', plan: 'Captopril 25mg c/8h, dieta hiposodica, control en 7 dias' }, flags: { esCritico: true, requiereSeguimiento: true } },
+    { _id: 'hc-2', pacienteId: 'pat-1', fecha: daysFromNow(-45, 11, 0), tipo: 'laboratorio', eventCategory: 'estudio', descripcion: 'Perfil lipidico con mejoria parcial. LDL 148. Se mantiene atorvastatina.', clinicalSnapshot: { diagnostico: 'Dislipemia mixta', plan: 'Atorvastatina 40mg noche. Nuevo perfil en 3 meses.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-3', pacienteId: 'pat-1', fecha: daysFromNow(-30, 10, 0), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'Buen control tensional. PA 130/80. Tolera bien tratamiento.', clinicalSnapshot: { diagnostico: 'HTA controlada', plan: 'Continuar esquema actual. Control mensual.' }, flags: { esCritico: false, requiereSeguimiento: false } },
+    { _id: 'hc-4', pacienteId: 'pat-1', fecha: daysFromNow(-10, 9, 30), tipo: 'receta', eventCategory: 'receta', descripcion: 'Renovacion de receta antihipertensiva y estatina.', clinicalSnapshot: { diagnostico: 'HTA + dislipemia', plan: 'Captopril 25mg + Atorvastatina 40mg. Laboratorio en 60 dias.' }, flags: { esCritico: false, requiereSeguimiento: false } },
+    { _id: 'hc-5', pacienteId: 'pat-2', fecha: daysFromNow(-40, 10, 30), tipo: 'interconsulta', eventCategory: 'evolucion', descripcion: 'Se solicita Holter 24hs y control en cardiologia por palpitaciones en reposo.', clinicalSnapshot: { diagnostico: 'Arritmia en estudio', plan: 'Holter 24hs, ECG basal, evitar estimulantes.' }, flags: { esCritico: true, requiereSeguimiento: true } },
+    { _id: 'hc-6', pacienteId: 'pat-2', fecha: daysFromNow(-20, 9, 0), tipo: 'laboratorio', eventCategory: 'estudio', descripcion: 'Holter sin bloqueos significativos. Extrasistoles ventriculares aisladas.', clinicalSnapshot: { diagnostico: 'EV aisladas, benignas', plan: 'Control en 3 meses. Sin tratamiento por ahora.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-7', pacienteId: 'pat-3', fecha: daysFromNow(-35, 11, 0), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'Primera consulta. Paciente con cefalea tensional recurrente y ansiedad moderada.', clinicalSnapshot: { diagnostico: 'Cefalea tensional + ansiedad', plan: 'Ibuprofeno a demanda, derivacion a psicologia.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-8', pacienteId: 'pat-4', fecha: daysFromNow(-25, 14, 0), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'Fractura de perone derecho. Radiografia confirmada. Inmovilizacion con bota.', clinicalSnapshot: { diagnostico: 'Fractura perone distal no desplazada', plan: 'Bota de yeso 3 semanas, ibuprofeno 600mg c/8h, RX control.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-9', pacienteId: 'pat-5', fecha: daysFromNow(-50, 9, 0), tipo: 'laboratorio', eventCategory: 'estudio', descripcion: 'TSH 8.2 mUI/L. T4 libre baja. Se diagnostica hipotiroidismo primario.', clinicalSnapshot: { diagnostico: 'Hipotiroidismo primario', plan: 'Levotiroxina 50mcg en ayunas. Control en 6 semanas.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-10', pacienteId: 'pat-6', fecha: daysFromNow(-15, 10, 0), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'EPOC estable. Saturacion 95%. Espirometria pendiente.', clinicalSnapshot: { diagnostico: 'EPOC estadio II', plan: 'Salbutamol inhalador rescate. Espirometria en 30 dias.' }, flags: { esCritico: false, requiereSeguimiento: true } },
+    { _id: 'hc-11', pacienteId: 'pat-7', fecha: daysFromNow(-8, 11, 30), tipo: 'evolucion', eventCategory: 'evolucion', descripcion: 'Broncoespasmo leve. Buena respuesta a broncodilatador. Alta medica.', clinicalSnapshot: { diagnostico: 'Crisis asmatica leve', plan: 'Salbutamol 4 puff c/4h por 48hs, control con pediatra.' }, flags: { esCritico: false, requiereSeguimiento: false } },
+    { _id: 'hc-12', pacienteId: 'pat-8', fecha: daysFromNow(-20, 9, 0), tipo: 'interconsulta', eventCategory: 'evolucion', descripcion: 'Perdida de 8kg en 2 meses sin causa aparente. Se solicita panel oncologico basico.', clinicalSnapshot: { diagnostico: 'Sindrome constitucional en estudio', plan: 'Hemograma, VSG, TAC toracoabdominal, interconsulta nutricion.' }, flags: { esCritico: true, requiereSeguimiento: true } },
   ];
 
   const ordenesMedicas = [
@@ -513,8 +528,13 @@ const buildInitialState = () => {
   };
 
   const notifications = [
-    { _id: 'noti-1', titulo: 'Turno confirmado', mensaje: 'Carlos Benitez confirmo asistencia a la consulta.', leido: false, createdAt: daysFromNow(-1, 13, 0) },
-    { _id: 'noti-2', titulo: 'Alerta operativa', mensaje: 'Cama UTI-01 en limpieza programada.', leido: true, createdAt: daysFromNow(-2, 9, 30) },
+    { _id: 'noti-1', titulo: 'Turno confirmado', mensaje: 'Carlos Benitez confirmo asistencia a la consulta del lunes.', leido: false, tipo: 'reserva_confirmada', enlace: '/turnos', createdAt: daysFromNow(-1, 13, 0) },
+    { _id: 'noti-2', titulo: 'Alerta operativa', mensaje: 'Cama UTI-01 en limpieza programada. Sector al 92% de ocupacion.', leido: false, tipo: 'sistema', createdAt: daysFromNow(-2, 9, 30) },
+    { _id: 'noti-3', titulo: 'Orden medica pendiente', mensaje: 'Orden de laboratorio para Sofia Acuna requiere resultado urgente.', leido: false, tipo: 'orden_medica', enlace: '/ordenes-medicas', createdAt: daysFromNow(-1, 8, 0) },
+    { _id: 'noti-4', titulo: 'Ticket de soporte', mensaje: 'SUP-101: Falla en impresora de recetas — critico — sin resolver.', leido: false, tipo: 'soporte', enlace: '/soporte', createdAt: daysFromNow(-3, 11, 0) },
+    { _id: 'noti-5', titulo: 'Nueva teleconsulta programada', mensaje: 'Teleconsulta con Diego Peralta programada para manana a las 10:00.', leido: false, tipo: 'teleconsulta', enlace: '/teleconsultas', createdAt: daysFromNow(0, 17, 0) },
+    { _id: 'noti-6', titulo: 'Receta lista para imprimir', mensaje: 'Receta de Florencia Rios fue generada y esta lista.', leido: true, tipo: 'receta', enlace: '/recetas', createdAt: daysFromNow(-4, 10, 0) },
+    { _id: 'noti-7', titulo: 'Evaluacion de colega', mensaje: 'Dr. Martin Ruiz recibio una nueva valoracion de desempeno.', leido: true, tipo: 'valoracion', createdAt: daysFromNow(-5, 14, 30) },
   ];
 
   return {
@@ -798,6 +818,15 @@ export const mockApiRequest = async (config) => {
   const path = cleanPath(config.url || '/');
   const params = getParams(config, config.url || '/');
   const body = typeof config.data === 'string' ? JSON.parse(config.data || '{}') : (config.data || {});
+
+  if (method === 'delete') {
+    return response(config, {
+      ok: true,
+      _demoBlocked: true,
+      message: 'Accion bloqueada en modo demo. Los datos ficticios no se eliminan.',
+      path,
+    });
+  }
 
   if (method === 'get' && path === '/auth/me') {
     return response(config, { user: getUser('demo-user') });
@@ -1307,7 +1336,13 @@ export const mockApiRequest = async (config) => {
 
   if (/^\/historia-clinica\/paciente\/[^/]+\/longitudinal$/.test(path) && method === 'get') {
     const patientId = path.split('/')[3];
-    return response(config, deepClone(demoState.historiaClinica.filter((item) => item.pacienteId === patientId)));
+    const records = deepClone(demoState.historiaClinica.filter((item) => item.pacienteId === patientId));
+    const summary = {
+      total: records.length,
+      criticos: records.filter((r) => r.flags?.esCritico).length,
+      requiereSeguimiento: records.filter((r) => r.flags?.requiereSeguimiento).length,
+    };
+    return response(config, { records, summary });
   }
   if (/^\/historia-clinica\/paciente\/[^/]+$/.test(path) && method === 'get') {
     const patientId = path.split('/')[3];

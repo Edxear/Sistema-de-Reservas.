@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext'; 
 import styles from './LoginRegister.module.css';
 
 export default function LoginRegister() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ nombre: '', email: '', telefono: '', password: '' });
   const [loading, setLoading] = useState(false); 
@@ -34,7 +36,7 @@ export default function LoginRegister() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <h2 className={styles.title}>{mode === 'login' ? 'Iniciar Sesion' : 'Registro'}</h2>
+        <h2 className={styles.title}>{mode === 'login' ? t('auth.loginTitle', 'Iniciar Sesion') : t('auth.register', 'Registro')}</h2>
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${mode === 'login' ? styles.tabActive : ''}`}
@@ -111,9 +113,33 @@ export default function LoginRegister() {
           </div>
         </div>
         <button type="submit" disabled={loading} className={styles.submit}>
-          {loading ? 'Cargando...' : mode === 'login' ? 'Ingresar' : 'Registrarse'}
+          {loading ? t('common.loading', 'Cargando...') : mode === 'login' ? t('nav.login', 'Ingresar') : t('auth.register', 'Registrarse')}
         </button>
         </form>
+      </div>
+
+      {/* Demo CTA */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '10px' }}>
+          {t('auth.exploreWithoutAccount', '¿Querés explorar el sistema sin cuenta?')}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/demo')}
+          style={{
+            background: 'linear-gradient(135deg, #1e5a7a, #2980b9)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '10px',
+            padding: '12px 28px',
+            fontSize: '0.95rem',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(41, 128, 185, 0.4)',
+          }}
+        >
+          {t('auth.tryDemo', '🧪 Probar en modo demo')}
+        </button>
       </div>
     </div>
   );

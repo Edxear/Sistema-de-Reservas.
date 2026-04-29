@@ -21,6 +21,7 @@ import Organigrama from '../pages/organizacion/Organigrama';
 import Soporte from '../pages/soporte/Soporte';
 import Enfermeria from '../pages/enfermeria/Enfermeria';
 import PizarraDigital from '../pages/clinico/PizarraDigital';
+import DemoLanding from '../pages/demo/DemoLanding';
 
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -195,6 +196,7 @@ export default function AppRoutes() {
       <Route path="/medicos" element={<MedicosList />} />
       <Route path="/medicos/:id" element={<PaginaMedico />} />
       <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
+      <Route path="/demo" element={<DemoLanding />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

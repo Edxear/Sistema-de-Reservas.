@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { FaCalendarAlt, FaFilter } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
@@ -56,6 +57,7 @@ const getNextAvailableDates = (horarios = [], daysAhead = 30) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   // Obtenemos el usuario y la función de logout del contexto
   const { user, logout, isAuthenticated } = useAuth();
   const role = user?.rol;
@@ -504,43 +506,43 @@ export default function Dashboard() {
 
   // --- RENDERIZADO ---
   if (!user) {
-    return <div>Cargando sesión...</div>; // O un spinner
+    return <div>{t('common.loading', 'Cargando...')}</div>; // O un spinner
   }
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} data-tour="dashboard-overview">
         <div>
-          <h1 className={styles.heroTitle}>Bienvenido, {user?.nombre || user?.name || 'Profesional'}</h1>
-          <p className={styles.heroSub}>Gestiona tus turnos y seguimiento clinico de forma centralizada.</p>
+          <h1 className={styles.heroTitle}>{t('dashboard.welcome', 'Bienvenido')}, {user?.nombre || user?.name || 'Profesional'}</h1>
+          <p className={styles.heroSub}>{t('dashboard.subtitle', 'Gestiona tus turnos y seguimiento clinico de forma centralizada.')}</p>
         </div>
         <button onClick={handleLogout} disabled={loading} className={styles.secondaryBtn}>
-          Cerrar sesion
+          {t('nav.logout', 'Cerrar sesion')}
         </button>
       </section>
 
       {canAccessRecetas(role) && (
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>Accesos rapidos</h2>
+          <h2 className={styles.cardTitle}>{t('dashboard.quickAccess', 'Accesos rapidos')}</h2>
           <div className={styles.actions}>
-            <button onClick={() => navigate('/recetas')} className={styles.secondaryBtn}>Ir a Recetas</button>
+            <button onClick={() => navigate('/recetas')} className={styles.secondaryBtn}>{t('dashboard.goToPrescriptions', 'Ir a Recetas')}</button>
           </div>
         </section>
       )}
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}><FaCalendarAlt /> Crear nueva reserva</h2>
+        <h2 className={styles.cardTitle}><FaCalendarAlt /> {t('dashboard.newBooking', 'Crear nueva reserva')}</h2>
         <form onSubmit={handleNewBooking}>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label>Servicio</label>
+              <label>{t('dashboard.service', 'Servicio')}</label>
               <select
                 className={styles.select}
                 value={bookingData.servicio}
                 onChange={(e) => setBookingData({ ...bookingData, servicio: e.target.value })}
                 required
               >
-                <option value="">Seleccionar servicio</option>
+                <option value="">{t('dashboard.selectService', 'Seleccionar servicio')}</option>
                 {services.map((s) => (
                   <option key={s._id} value={s._id}>
                     {s.nombre} ({s.duracion} min)
@@ -550,19 +552,19 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.field}>
-              <label>Doctor</label>
+              <label>{t('teleconsultations.doctor', 'Doctor')}</label>
               <select
                 className={styles.select}
                 value={bookingData.medico}
                 onChange={(e) => setBookingData({ ...bookingData, medico: e.target.value, hora: '' })}
                 required
               >
-                <option value="">Seleccionar doctor</option>
+                <option value="">{t('dashboard.selectDoctor', 'Seleccionar doctor')}</option>
                 {doctors.length === 0 && (
-                  <option value="" disabled>No hay doctores disponibles</option>
+                  <option value="" disabled>{t('dashboard.noDoctorsAvailable', 'No hay doctores disponibles')}</option>
                 )}
                 {doctors.length > 0 && doctorsFiltrados.length === 0 && (
-                  <option value="" disabled>No hay doctores para esta especialidad</option>
+                  <option value="" disabled>{t('dashboard.noDoctorsForSpecialty', 'No hay doctores para esta especialidad')}</option>
                 )}
                 {doctorsFiltrados.map((d) => (
                   <option key={d._id} value={d._id}>
@@ -573,7 +575,7 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.field}>
-              <label>Fecha</label>
+              <label>{t('teleconsultations.date', 'Fecha')}</label>
               <input
                 className={styles.input}
                 type="date"
@@ -585,7 +587,7 @@ export default function Dashboard() {
             </div>
 
             <div className={styles.field}>
-              <label>Hora</label>
+              <label>{t('dashboard.time', 'Hora')}</label>
               <select
                 className={styles.select}
                 value={bookingData.hora}
@@ -594,23 +596,23 @@ export default function Dashboard() {
                 required
               >
                 <option value="">
-                  {availabilityLoading ? 'Consultando disponibilidad...' : 'Seleccionar horario'}
+                  {availabilityLoading ? t('dashboard.checkingAvailability', 'Consultando disponibilidad...') : t('dashboard.selectTime', 'Seleccionar horario')}
                 </option>
                 {availableSlots.map((slot) => (
                   <option key={slot} value={slot}>{slot}</option>
                 ))}
               </select>
               {!availabilityLoading && bookingData.medico && bookingData.fecha && bookingData.servicio && availableSlots.length === 0 && (
-                <small className={styles.helperText}>No hay horarios disponibles para ese profesional en la fecha elegida.</small>
+                <small className={styles.helperText}>{t('dashboard.noAvailableTimes', 'No hay horarios disponibles para ese profesional en la fecha elegida.')}</small>
               )}
             </div>
           </div>
 
           <div className={styles.field}>
-            <label>Notas</label>
+            <label>{t('teleconsultations.notes', 'Notas')}</label>
             <textarea
               className={styles.textarea}
-              placeholder="Notas adicionales"
+              placeholder={t('dashboard.additionalNotes', 'Notas adicionales')}
               value={bookingData.notas}
               onChange={(e) => setBookingData({ ...bookingData, notas: e.target.value })}
             />
