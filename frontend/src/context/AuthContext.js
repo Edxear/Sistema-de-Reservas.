@@ -219,6 +219,17 @@ export function AuthProvider({ children }) {
       setUser(null);
       localStorage.removeItem('user');
     } else {
+      // Reinicia el tour al pasar de OFF -> ON para ambos perfiles demo.
+      localStorage.removeItem('demoTourDone:admin');
+      localStorage.removeItem('demoTourDone:paciente');
+      sessionStorage.removeItem('demoTourState');
+      sessionStorage.removeItem('demoTourState:admin');
+      sessionStorage.removeItem('demoTourState:paciente');
+      sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('demo-tour-reset'));
+      }
+
       const demoUser = getDemoUser(demoRole);
       setToken('demo-session');
       setUser(demoUser);
@@ -233,6 +244,14 @@ export function AuthProvider({ children }) {
     setDemoRole(nextRole);
     localStorage.setItem('demoRoleOverride', nextRole);
     if (demoMode) {
+      // Al cambiar de perfil demo, vuelve a iniciar el tour para ese perfil.
+      localStorage.removeItem(`demoTourDone:${nextRole}`);
+      sessionStorage.removeItem(`demoTourState:${nextRole}`);
+      sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('demo-tour-reset'));
+      }
+
       const demoUser = getDemoUser(nextRole);
       setUser(demoUser);
       localStorage.setItem('user', JSON.stringify(demoUser));
