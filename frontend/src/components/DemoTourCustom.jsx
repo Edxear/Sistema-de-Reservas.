@@ -186,6 +186,7 @@ export default function DemoTourCustom() {
 
     if (resetNonce && resetNonce !== lastHandledResetNonceRef.current) {
       lastHandledResetNonceRef.current = resetNonce;
+      localStorage.removeItem(getDoneKey(demoRole));
       setStepIndex(0);
       saveTourState(0, steps[0]?.route);
       setIsVisible(true);
@@ -260,7 +261,15 @@ export default function DemoTourCustom() {
   };
 
   const handleReopen = () => {
+    localStorage.removeItem(getDoneKey(demoRole));
+    const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
+    const nextIndex = currentRouteIndex >= 0 ? currentRouteIndex : 0;
+    setStepIndex(nextIndex);
+    saveTourState(nextIndex, steps[nextIndex]?.route);
     setIsVisible(true);
+    if (currentRouteIndex < 0 && steps[0]?.route) {
+      navigate(steps[0].route);
+    }
   };
 
   const isOnDashboard = pathname === '/dashboard';
@@ -330,20 +339,20 @@ export default function DemoTourCustom() {
                 </button>
               </div>
             </div>
-
-            {/* Highlight box around target element */}
-            {rect && (
-              <div
-                className="demo-tour-highlight"
-                style={{
-                  top: `${rect.top - 5}px`,
-                  left: `${rect.left - 5}px`,
-                  width: `${rect.width + 10}px`,
-                  height: `${rect.height + 10}px`,
-                }}
-              />
-            )}
           </div>
+
+          {/* Highlight box around target element */}
+          {rect && (
+            <div
+              className="demo-tour-highlight"
+              style={{
+                top: `${rect.top - 5}px`,
+                left: `${rect.left - 5}px`,
+                width: `${rect.width + 10}px`,
+                height: `${rect.height + 10}px`,
+              }}
+            />
+          )}
 
           {/* Overlay backdrop */}
           <div className="demo-tour-backdrop" onClick={handleClose} />

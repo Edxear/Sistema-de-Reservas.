@@ -139,14 +139,6 @@ const MedicosList = () => {
         <div className={styles.gridMedicos}>
           {medicosPaginados.map(medico => (
             <div key={medico._id} className={styles.tarjeta}>
-              {medico.fotoPerfil && (
-                <img 
-                  src={medico.fotoPerfil} 
-                  alt={medico.nombre}
-                  className={styles.foto}
-                />
-              )}
-              
               <div className={styles.contenido}>
                 <h3>{medico.nombre}</h3>
                 
