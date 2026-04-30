@@ -121,6 +121,7 @@ const PATIENT_STEPS = [
 
 const getDoneKey = (role) => `demoTourDone:${role === 'paciente' ? 'paciente' : 'admin'}`;
 const SESSION_KEY = 'demoTourState';
+const RESET_KEY = 'demoTourResetNonce';
 
 const saveTourState = (stepIndex, route) => {
   try {
@@ -165,11 +166,27 @@ export default function DemoTour() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
+  const [resetNonce, setResetNonce] = useState(() => sessionStorage.getItem(RESET_KEY) || '');
   const steps = useMemo(
     () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
     [demoRole],
   );
   const [run, setRun] = useState(false);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setResetNonce(sessionStorage.getItem(RESET_KEY) || '');
+    };
+
+    window.addEventListener('demo-tour-reset', handleStorage);
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', handleStorage);
+    return () => {
+      window.removeEventListener('demo-tour-reset', handleStorage);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleStorage);
+    };
+  }, []);
 
   const goToStepRoute = (index) => {
     const step = steps[index];
@@ -207,7 +224,7 @@ export default function DemoTour() {
     } else {
       setRun(false);
     }
-  }, [demoMode, demoRole, navigate, steps]);
+  }, [demoMode, demoRole, navigate, resetNonce, steps]);
 
   if (!demoMode) return null;
 

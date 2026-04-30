@@ -27,4 +27,4 @@ export const canViewPrivateColleagueComments = (role) => [ROLE.ADMIN, ROLE.SUPER
 export const canAccessNursingArea = (role) => [ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN].includes(normalizeRole(role));
 export const canAccessPizarra = (role) => [ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA].includes(normalizeRole(role));
 export const canAccessOrdenesMedicas = (role) => [ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN].includes(normalizeRole(role));
-export const canAccessTeleconsultas = (role) => !isPatientRole(role);
+export const canAccessTeleconsultas = (role) => [ROLE.MEDICO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.PACIENTE, ROLE.ENFERMERO, ROLE.SECRETARIA].includes(normalizeRole(role));

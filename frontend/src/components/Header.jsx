@@ -95,6 +95,8 @@ export default function Header() {
                   localStorage.removeItem('demoTourDone:admin');
                   localStorage.removeItem('demoTourDone:paciente');
                   sessionStorage.removeItem('demoTourState');
+                  sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
+                  window.dispatchEvent(new Event('demo-tour-reset'));
                   navigate('/dashboard');
                 }}
               >
