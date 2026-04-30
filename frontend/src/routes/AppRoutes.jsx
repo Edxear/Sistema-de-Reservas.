@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ROLE } from '../utils/roles';
+import { normalizeRole, ROLE } from '../utils/roles';
 import { getDemoDefaultRoute, isDemoRouteAllowed } from '../utils/demoRoutes';
 
 import LoginRegister from '../pages/auth/LoginRegister';
@@ -35,8 +35,10 @@ const LazyRoute = ({ children }) => (
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user, loading, demoMode, demoRole } = useAuth();
   const location = useLocation();
+  const normalizedUserRole = normalizeRole(user?.rol);
+  const normalizedAllowedRoles = allowedRoles?.map((role) => normalizeRole(role)) || null;
 
-  if (loading) {
+  if (loading || (demoMode && !user)) {
     return <div style={{ padding: 24 }}>Cargando sesion...</div>;
   }
 
@@ -53,7 +55,7 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
     return children;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.rol)) {
+  if (normalizedAllowedRoles && !normalizedAllowedRoles.includes(normalizedUserRole)) {
     return <Navigate to="/dashboard" replace />;
   }
 
