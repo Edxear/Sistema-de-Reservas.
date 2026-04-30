@@ -213,7 +213,7 @@ export default function DemoTour() {
         if (currentRouteIndex >= 0) {
           setStepIndex(currentRouteIndex);
           saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
-          setRun(currentRouteIndex === 0);
+          setRun((wasRunning) => wasRunning || currentRouteIndex === 0);
         } else {
           // Keep saved index without forcing navigation outside the current route.
           setStepIndex(saved.stepIndex);
@@ -225,7 +225,7 @@ export default function DemoTour() {
         if (currentRouteIndex >= 0) {
           setStepIndex(currentRouteIndex);
           saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
-          setRun(currentRouteIndex === 0);
+          setRun((wasRunning) => wasRunning || currentRouteIndex === 0);
         } else {
           setStepIndex(0);
           setRun(pathname === steps[0]?.route);

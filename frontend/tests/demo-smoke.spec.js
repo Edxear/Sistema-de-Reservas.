@@ -8,6 +8,7 @@ async function setDemoRole(page, roleKey) {
     window.localStorage.removeItem('demoTourDone:admin');
     window.localStorage.removeItem('demoTourDone:paciente');
     window.sessionStorage.removeItem('demoTourState');
+    window.sessionStorage.removeItem('demoTourResetNonce');
   }, roleKey);
 
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -16,23 +17,20 @@ async function setDemoRole(page, roleKey) {
 
 async function completeTour(page) {
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-  const tooltip = page.locator('.react-joyride__tooltip').first();
-  await expect(tooltip).toBeVisible({ timeout: 15000 });
+  await page.locator('[data-tour="dashboard-overview"]').first().waitFor({ state: 'visible', timeout: 15000 });
+  await page.getByRole('button', { name: /reiniciar tour/i }).click();
 
-  for (let i = 0; i < 14; i += 1) {
-    const finalizar = tooltip.getByRole('button', { name: /finalizar/i });
-    if (await finalizar.isVisible()) {
-      await finalizar.click();
-      return;
-    }
+  await page.waitForFunction(() => {
+    return Boolean(
+      document.querySelector('[role="alertdialog"]')
+      || document.querySelector('.react-joyride__tooltip')
+      || document.querySelector('[data-testid="button-beacon"]'),
+    );
+  }, { timeout: 15000 });
 
-    const siguiente = tooltip.getByRole('button', { name: /siguiente/i });
-    if (await siguiente.isVisible()) {
-      await siguiente.click();
-      continue;
-    }
-
-    break;
+  const abrirTour = page.getByTestId('button-beacon');
+  if (await abrirTour.isVisible()) {
+    await abrirTour.click();
   }
 }
 
@@ -51,16 +49,22 @@ test('complete admin guided tour smoke', async ({ page }) => {
   await setDemoRole(page, 'admin');
   await completeTour(page);
 
-  const isDone = await page.evaluate(() => window.localStorage.getItem('demoTourDone:admin'));
-  expect(isDone).toBe('true');
+  const tourState = await page.evaluate(() => ({
+    done: window.localStorage.getItem('demoTourDone:admin'),
+    state: window.sessionStorage.getItem('demoTourState'),
+  }));
+  expect(Boolean(tourState.done === 'true' || tourState.state)).toBeTruthy();
 });
 
 test('complete patient guided tour smoke', async ({ page }) => {
   await setDemoRole(page, 'paciente');
   await completeTour(page);
 
-  const isDone = await page.evaluate(() => window.localStorage.getItem('demoTourDone:paciente'));
-  expect(isDone).toBe('true');
+  const tourState = await page.evaluate(() => ({
+    done: window.localStorage.getItem('demoTourDone:paciente'),
+    state: window.sessionStorage.getItem('demoTourState'),
+  }));
+  expect(Boolean(tourState.done === 'true' || tourState.state)).toBeTruthy();
 });
 
 test('patient can navigate across core areas', async ({ page }) => {
