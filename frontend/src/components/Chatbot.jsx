@@ -1246,7 +1246,7 @@ Puedo ayudarte con:<br>
 // ============================================================
 
 export default function Chatbot() {
-  const { user } = useAuth();
+  const { user, demoMode } = useAuth();
   const [isOpen, setIsOpen]         = useState(false);
   const [messages, setMessages]     = useState([MENSAJE_BIENVENIDA]);
   const [inputValue, setInputValue] = useState('');
@@ -1687,7 +1687,7 @@ export default function Chatbot() {
   return (
     <>
       {/* ── Botón flotante ── */}
-      {!isOpen && (
+      {!isOpen && !demoMode && (
         <button
           className={styles.toggle}
           onClick={handleToggle}
