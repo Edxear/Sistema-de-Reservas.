@@ -125,6 +125,17 @@ function DemoAnalyticsTracker() {
   return null;
 }
 
+function ChatbotGate() {
+  const { demoMode } = useAuth();
+  const location = useLocation();
+
+  if (demoMode || location.pathname === '/demo') {
+    return null;
+  }
+
+  return <Chatbot />;
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -141,7 +152,7 @@ function App() {
             <DemoTourCustom />
             <ToastContainer position="top-right" autoClose={3000} />
             <AppRoutes />
-            <Chatbot />
+            <ChatbotGate />
             <DemoBanner />
           </NotificacionProvider>
         </AuthProvider>
