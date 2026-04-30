@@ -14,7 +14,7 @@ import AppRoutes from './routes/AppRoutes';
 import Chatbot from './components/Chatbot';
 import DemoBanner from './components/DemoBanner';
 import DemoPageTip from './components/DemoPageTip';
-import DemoTour from './components/DemoTour';
+import DemoTourCustom from './components/DemoTourCustom';
 import OfflineIndicator from './components/OfflineIndicator';
 import { useDemoAnalytics } from './hooks/useDemoAnalytics';
 
@@ -138,7 +138,7 @@ function App() {
             <DemoPageTip />
             <OfflineIndicator />
             <Header />
-            <DemoTour />
+            <DemoTourCustom />
             <ToastContainer position="top-right" autoClose={3000} />
             <AppRoutes />
             <Chatbot />
