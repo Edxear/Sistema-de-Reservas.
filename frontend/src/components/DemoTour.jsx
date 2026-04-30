@@ -213,7 +213,7 @@ export default function DemoTour() {
         if (currentRouteIndex >= 0) {
           setStepIndex(currentRouteIndex);
           saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
-          setRun(true);
+          setRun(currentRouteIndex === 0);
         } else {
           // Keep saved index without forcing navigation outside the current route.
           setStepIndex(saved.stepIndex);
@@ -225,7 +225,7 @@ export default function DemoTour() {
         if (currentRouteIndex >= 0) {
           setStepIndex(currentRouteIndex);
           saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
-          setRun(true);
+          setRun(currentRouteIndex === 0);
         } else {
           setStepIndex(0);
           setRun(pathname === steps[0]?.route);
@@ -268,26 +268,9 @@ export default function DemoTour() {
     }
 
     if (type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.PREV) {
-        const prevIndex = Math.max(index - 1, 0);
-        setStepIndex(prevIndex);
-        saveTourState(prevIndex, steps[prevIndex]?.route);
-        trackTourStep(demoRole, steps[prevIndex], prevIndex, 'target-not-found-prev');
-        goToStepRoute(prevIndex);
-        return;
-      }
-
-      const nextIndex = Math.min(index + 1, steps.length - 1);
-      if (nextIndex === index) {
-        localStorage.setItem(doneKey, 'true');
-        clearTourState();
-        setRun(false);
-        return;
-      }
-      setStepIndex(nextIndex);
-      saveTourState(nextIndex, steps[nextIndex]?.route);
-      trackTourStep(demoRole, steps[nextIndex], nextIndex, 'target-not-found-next');
-      goToStepRoute(nextIndex);
+      // Avoid route jumps when targets are not mounted yet on lazy/async pages.
+      setRun(false);
+      saveTourState(index, steps[index]?.route || pathname);
     }
   };
 
