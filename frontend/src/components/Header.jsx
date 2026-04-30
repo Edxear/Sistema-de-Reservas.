@@ -65,7 +65,7 @@ export default function Header() {
       <div className={styles.inner}>
         <button className={styles.brand} onClick={() => navigate('/dashboard')}>
           <FaCalendarCheck />
-          <span>Sistema Clinico</span>
+          <span>IntegraSalud</span>
         </button>
 
         <button className={styles.mobileToggle} onClick={() => setIsMenuOpen((prev) => !prev)}>

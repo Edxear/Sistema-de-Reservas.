@@ -263,6 +263,8 @@ export default function DemoTourCustom() {
     setIsVisible(true);
   };
 
+  const isOnDashboard = pathname === '/dashboard';
+
   if (!demoMode) return null;
 
   const targetElement = currentStep.target ? document.querySelector(currentStep.target) : null;
@@ -270,8 +272,8 @@ export default function DemoTourCustom() {
 
   return (
     <>
-      {/* Beacon/Indicator button to reopen tour */}
-      {!isVisible && (
+      {/* Beacon/Indicator button — solo visible en el dashboard */}
+      {!isVisible && isOnDashboard && (
         <button
           className="demo-tour-beacon"
           onClick={handleReopen}

@@ -29,12 +29,12 @@ const DEMO_PROFILES = {
     email: 'carlos.benitez@demo.local',
     rol: ROLE.PACIENTE,
     esSuperAdminPrincipal: false,
-    obraSocial: 'Swiss Medical',
+    obraSocial: 'Obra Social',
     numeroAfiliado: 'SM-245677',
   },
 };
 
-const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.admin;
+const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.paciente;
 
 const readDemoModePreference = () => {
   if (typeof window === 'undefined') return DEMO_MODE;
@@ -46,9 +46,11 @@ const readDemoModePreference = () => {
 };
 
 const readDemoRolePreference = () => {
-  if (typeof window === 'undefined') return 'admin';
+  if (typeof window === 'undefined') return 'paciente';
   const storedValue = window.localStorage.getItem('demoRoleOverride');
-  return storedValue === 'paciente' ? 'paciente' : 'admin';
+  if (storedValue === 'admin') return 'admin';
+  if (storedValue === 'paciente') return 'paciente';
+  return 'paciente';
 };
 
 export function AuthProvider({ children }) {
