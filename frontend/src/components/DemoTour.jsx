@@ -207,7 +207,7 @@ export default function DemoTour() {
     } else {
       setRun(false);
     }
-  }, [demoMode, demoRole, navigate, pathname, steps]);
+  }, [demoMode, demoRole, navigate, steps]);
 
   if (!demoMode) return null;
 
