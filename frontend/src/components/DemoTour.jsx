@@ -119,11 +119,37 @@ const PATIENT_STEPS = [
 ];
 
 const getDoneKey = (role) => `demoTourDone:${role === 'paciente' ? 'paciente' : 'admin'}`;
+const SESSION_KEY = 'demoTourState';
+
+const saveTourState = (stepIndex, route) => {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ stepIndex, route }));
+  } catch (_) {
+    return;
+  }
+};
+
+const loadTourState = () => {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+};
+
+const clearTourState = () => {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch (_) {
+    return;
+  }
+};
 
 export default function DemoTour() {
   const { demoMode, demoRole } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pathname } = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
   const steps = useMemo(
     () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
@@ -134,7 +160,7 @@ export default function DemoTour() {
   const goToStepRoute = (index) => {
     const step = steps[index];
     if (!step?.route) return;
-    if (location.pathname !== step.route) {
+    if (pathname !== step.route) {
       navigate(step.route);
     }
   };
@@ -148,16 +174,26 @@ export default function DemoTour() {
 
     const done = localStorage.getItem(getDoneKey(demoRole)) === 'true';
     if (!done) {
-      setStepIndex(0);
-      setRun(true);
-      const firstRoute = steps[0]?.route;
-      if (firstRoute && location.pathname !== firstRoute) {
-        navigate(firstRoute);
+      const saved = loadTourState();
+      if (saved && typeof saved.stepIndex === 'number' && saved.stepIndex < steps.length) {
+        // Resume from saved state
+        setStepIndex(saved.stepIndex);
+        setRun(true);
+        if (saved.route && pathname !== saved.route) {
+          navigate(saved.route);
+        }
+      } else {
+        setStepIndex(0);
+        setRun(true);
+        const firstRoute = steps[0]?.route;
+        if (firstRoute && pathname !== firstRoute) {
+          navigate(firstRoute);
+        }
       }
     } else {
       setRun(false);
     }
-  }, [demoMode, demoRole, navigate, steps]);
+  }, [demoMode, demoRole, navigate, pathname, steps]);
 
   if (!demoMode) return null;
 
@@ -166,6 +202,7 @@ export default function DemoTour() {
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       localStorage.setItem(doneKey, 'true');
+      clearTourState();
       setRun(false);
       setStepIndex(0);
       navigate('/dashboard');
@@ -176,11 +213,13 @@ export default function DemoTour() {
       if (action === ACTIONS.NEXT) {
         const nextIndex = Math.min(index + 1, steps.length - 1);
         setStepIndex(nextIndex);
+        saveTourState(nextIndex, steps[nextIndex]?.route);
         goToStepRoute(nextIndex);
       }
       if (action === ACTIONS.PREV) {
         const prevIndex = Math.max(index - 1, 0);
         setStepIndex(prevIndex);
+        saveTourState(prevIndex, steps[prevIndex]?.route);
         goToStepRoute(prevIndex);
       }
     }
@@ -189,6 +228,7 @@ export default function DemoTour() {
       if (action === ACTIONS.PREV) {
         const prevIndex = Math.max(index - 1, 0);
         setStepIndex(prevIndex);
+        saveTourState(prevIndex, steps[prevIndex]?.route);
         goToStepRoute(prevIndex);
         return;
       }
@@ -196,10 +236,12 @@ export default function DemoTour() {
       const nextIndex = Math.min(index + 1, steps.length - 1);
       if (nextIndex === index) {
         localStorage.setItem(doneKey, 'true');
+        clearTourState();
         setRun(false);
         return;
       }
       setStepIndex(nextIndex);
+      saveTourState(nextIndex, steps[nextIndex]?.route);
       goToStepRoute(nextIndex);
     }
   };
