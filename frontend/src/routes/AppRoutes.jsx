@@ -1,7 +1,8 @@
 import React from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROLE } from '../utils/roles';
+import { getDemoDefaultRoute, isDemoRouteAllowed } from '../utils/demoRoutes';
 
 import LoginRegister from '../pages/auth/LoginRegister';
 import Dashboard from '../pages/app/Dashboard';
@@ -24,7 +25,8 @@ import PizarraDigital from '../pages/clinico/PizarraDigital';
 import DemoLanding from '../pages/demo/DemoLanding';
 
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, loading, demoMode, demoRole } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <div style={{ padding: 24 }}>Cargando sesion...</div>;
@@ -32,6 +34,10 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (demoMode && !isDemoRouteAllowed(location.pathname, demoRole)) {
+    return <Navigate to={getDemoDefaultRoute(demoRole)} replace />;
   }
 
   // El administrador principal tiene acceso transversal sin restricciones.
