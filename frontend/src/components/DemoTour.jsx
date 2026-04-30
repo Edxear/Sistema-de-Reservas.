@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ACTIONS, EVENTS, Joyride, STATUS } from 'react-joyride';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,10 +7,10 @@ import { appendDemoAnalyticsEvent } from '../hooks/useDemoAnalytics';
 const ADMIN_STEPS = [
   {
     route: '/dashboard',
-    target: '[data-tour="dashboard-overview"]',
+    target: 'body',
     title: '📊 Panel de control',
     content: 'Vista general del sistema, métricas y acciones rápidas.',
-    placement: 'bottom',
+    placement: 'center',
     disableBeacon: true,
   },
   {
@@ -79,10 +79,10 @@ const ADMIN_STEPS = [
 const PATIENT_STEPS = [
   {
     route: '/dashboard',
-    target: '[data-tour="dashboard-overview"]',
+    target: 'body',
     title: '🏠 Inicio de paciente',
     content: 'Panel principal con accesos a turnos, teleconsultas y tu actividad.',
-    placement: 'bottom',
+    placement: 'center',
     disableBeacon: true,
   },
   {
@@ -167,9 +167,15 @@ export default function DemoTour() {
   const { pathname } = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
   const [resetNonce, setResetNonce] = useState(() => sessionStorage.getItem(RESET_KEY) || '');
+  const retryTimerRef = useRef(null);
+  const lastHandledResetNonceRef = useRef('');
   const steps = useMemo(
     () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
     [demoRole],
+  );
+  const tourSteps = useMemo(
+    () => steps.map((step) => ({ ...step, disableBeacon: true })),
+    [steps],
   );
   const [run, setRun] = useState(false);
 
@@ -188,6 +194,14 @@ export default function DemoTour() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
+  }, []);
+
   const goToStepRoute = (index) => {
     const step = steps[index];
     if (!step?.route) return;
@@ -200,6 +214,17 @@ export default function DemoTour() {
     if (!demoMode) {
       setRun(false);
       setStepIndex(0);
+      return;
+    }
+
+    if (resetNonce && resetNonce !== lastHandledResetNonceRef.current) {
+      lastHandledResetNonceRef.current = resetNonce;
+      setStepIndex(0);
+      saveTourState(0, steps[0]?.route);
+      setRun(true);
+      if (steps[0]?.route && pathname !== steps[0].route) {
+        navigate(steps[0].route);
+      }
       return;
     }
 
@@ -268,15 +293,32 @@ export default function DemoTour() {
     }
 
     if (type === EVENTS.TARGET_NOT_FOUND) {
-      // Avoid route jumps when targets are not mounted yet on lazy/async pages.
+      // Retry the same step in case the target is still mounting (lazy/async pages).
+      const safeIndex = Math.max(0, Math.min(index, steps.length - 1));
+      const safeRoute = steps[safeIndex]?.route;
+
       setRun(false);
-      saveTourState(index, steps[index]?.route || pathname);
+      setStepIndex(safeIndex);
+      saveTourState(safeIndex, safeRoute || pathname);
+
+      if (safeRoute && pathname !== safeRoute) {
+        navigate(safeRoute);
+      }
+
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+
+      retryTimerRef.current = setTimeout(() => {
+        setStepIndex(safeIndex);
+        setRun(true);
+      }, 350);
     }
   };
 
   return (
     <Joyride
-      steps={steps}
+      steps={tourSteps}
       stepIndex={stepIndex}
       run={run}
       continuous

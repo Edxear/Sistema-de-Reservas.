@@ -88,6 +88,37 @@
   font-weight: 600;
 }
 
+.demoSelect:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.demoDropdownMenu {
+  min-width: 250px;
+  gap: 8px;
+  padding: 10px;
+}
+
+.demoMenuButton {
+  border: 1px solid #dbe4ee;
+  background: #f8fbff;
+  color: #1a3b5d;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.demoMenuButton:hover {
+  background-color: #e8f2ff;
+}
+
+.demoMenuButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .dropdown {
   position: relative;
 }
@@ -155,7 +186,8 @@
   .nav a,
   .demoToggle,
   .demoSelect,
-  .dropdownTrigger {
+  .dropdownTrigger,
+  .demoMenuButton {
     width: 100%;
     justify-content: space-between;
   }

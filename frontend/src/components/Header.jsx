@@ -33,7 +33,9 @@ export default function Header() {
   } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDemoMenuOpen, setIsDemoMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const demoDropdownRef = useRef(null);
   const role = user?.rol;
   const isRealSession = isAuthenticated && !isGuestSession;
   const showPrivateMenu = isAuthenticated || isGuestSession;
@@ -43,6 +45,9 @@ export default function Header() {
       if (!dropdownRef.current?.contains(event.target)) {
         setIsDropdownOpen(false);
       }
+      if (!demoDropdownRef.current?.contains(event.target)) {
+        setIsDemoMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', onDocClick);
@@ -51,6 +56,7 @@ export default function Header() {
 
   const closeAllMenus = () => {
     setIsDropdownOpen(false);
+    setIsDemoMenuOpen(false);
     setIsMenuOpen(false);
   };
 
@@ -68,42 +74,57 @@ export default function Header() {
         </button>
 
         <nav className={`${styles.nav} ${isMenuOpen ? styles.navOpen : ''}`}>
-          <button
-            type="button"
-            className={styles.demoToggle}
-            onClick={() => setDemoMode(!demoMode)}
-          >
-            {demoMode ? 'Modo Demo: ON' : 'Modo Demo: OFF'}
-          </button>
+          <div className={styles.dropdown} ref={demoDropdownRef}>
+            <button
+              type="button"
+              className={styles.dropdownTrigger}
+              onClick={() => setIsDemoMenuOpen((prev) => !prev)}
+              aria-label="Controles de demo"
+            >
+              <span>Demo {demoMode ? 'ON' : 'OFF'}</span>
+              <FaChevronDown className={isDemoMenuOpen ? styles.rotate : ''} />
+            </button>
+            {isDemoMenuOpen && (
+              <div className={`${styles.dropdownMenu} ${styles.demoDropdownMenu}`}>
+                <button
+                  type="button"
+                  className={styles.demoMenuButton}
+                  onClick={() => setDemoMode(!demoMode)}
+                >
+                  {demoMode ? 'Modo Demo: ON' : 'Modo Demo: OFF'}
+                </button>
 
-          {demoMode && (
-            <>
-              <select
-                className={styles.demoSelect}
-                value={demoRole || 'admin'}
-                onChange={(e) => setDemoRole(e.target.value)}
-                aria-label="Seleccionar vista de demo"
-              >
-                <option value="admin">Vista demo: Administrativo</option>
-                <option value="paciente">Vista demo: Paciente</option>
-              </select>
-              <button
-                type="button"
-                className={styles.demoToggle}
-                title="Reiniciar tour guiado"
-                onClick={() => {
-                  localStorage.removeItem('demoTourDone:admin');
-                  localStorage.removeItem('demoTourDone:paciente');
-                  sessionStorage.removeItem('demoTourState');
-                  sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
-                  window.dispatchEvent(new Event('demo-tour-reset'));
-                  navigate('/dashboard');
-                }}
-              >
-                🔄 Reiniciar tour
-              </button>
-            </>
-          )}
+                <select
+                  className={styles.demoSelect}
+                  value={demoRole || 'admin'}
+                  onChange={(e) => setDemoRole(e.target.value)}
+                  aria-label="Seleccionar vista de demo"
+                  disabled={!demoMode}
+                >
+                  <option value="admin">Vista demo: Administrativo</option>
+                  <option value="paciente">Vista demo: Paciente</option>
+                </select>
+
+                <button
+                  type="button"
+                  className={styles.demoMenuButton}
+                  title="Reiniciar tour guiado"
+                  disabled={!demoMode}
+                  onClick={() => {
+                    localStorage.removeItem('demoTourDone:admin');
+                    localStorage.removeItem('demoTourDone:paciente');
+                    sessionStorage.removeItem('demoTourState');
+                    sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
+                    window.dispatchEvent(new Event('demo-tour-reset'));
+                    navigate('/dashboard');
+                    setIsDemoMenuOpen(false);
+                  }}
+                >
+                  Reiniciar tour
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             type="button"

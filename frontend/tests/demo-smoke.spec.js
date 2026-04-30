@@ -17,21 +17,46 @@ async function setDemoRole(page, roleKey) {
 
 async function completeTour(page) {
   await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-  await page.locator('[data-tour="dashboard-overview"]').first().waitFor({ state: 'visible', timeout: 15000 });
-  await page.getByRole('button', { name: /reiniciar tour/i }).click();
-
-  await page.waitForFunction(() => {
-    return Boolean(
-      document.querySelector('[role="alertdialog"]')
-      || document.querySelector('.react-joyride__tooltip')
-      || document.querySelector('[data-testid="button-beacon"]'),
-    );
-  }, { timeout: 15000 });
-
-  const abrirTour = page.getByTestId('button-beacon');
-  if (await abrirTour.isVisible()) {
-    await abrirTour.click();
+  const closeBannerButton = page.getByRole('button', { name: /cerrar aviso/i });
+  if (await closeBannerButton.isVisible()) {
+    await closeBannerButton.click();
   }
+  await page.locator('[data-tour="dashboard-overview"]').first().waitFor({ state: 'visible', timeout: 15000 });
+
+  const hasActiveTour = await page.evaluate(() => Boolean(
+    document.querySelector('[role="alertdialog"]')
+    || document.querySelector('.react-joyride__tooltip')
+    || document.querySelector('[data-testid="button-beacon"]'),
+  ));
+
+  if (!hasActiveTour) {
+    await page.evaluate(() => {
+      const controls = document.querySelector('button[aria-label="Controles de demo"]');
+      if (controls) {
+        controls.click();
+      }
+    });
+    await page.waitForTimeout(200);
+    await page.evaluate(() => {
+      const restart = Array.from(document.querySelectorAll('button')).find((button) => /reiniciar tour/i.test((button.textContent || '').trim()));
+      if (restart) {
+        restart.click();
+      }
+    });
+  }
+
+  await page.waitForFunction(() => Boolean(
+    document.querySelector('[role="alertdialog"]')
+    || document.querySelector('.react-joyride__tooltip')
+    || document.querySelector('[data-testid="button-beacon"]'),
+  ), { timeout: 15000 });
+
+  await page.evaluate(() => {
+    const beacon = document.querySelector('[data-testid="button-beacon"]');
+    if (beacon) {
+      beacon.click();
+    }
+  });
 }
 
 test('demo admin login and management navigation smoke', async ({ page }) => {
