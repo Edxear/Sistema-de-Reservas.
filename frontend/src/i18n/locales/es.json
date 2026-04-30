@@ -49,7 +49,7 @@
     "tryDemo": "🧪 Probar en modo demo"
   },
   "demo": {
-    "title": "Sistema Clínico - Demo",
+    "title": "IntegraSalud - Demo",
     "subtitle": "Explorá el sistema como Administrativo o como Paciente. Los datos son ficticios y no representan personas reales.",
     "badge": "🧪 Entorno de demostración - datos ficticios",
     "exploreAs": "Explorar como",
