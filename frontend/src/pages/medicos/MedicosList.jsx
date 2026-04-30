@@ -108,7 +108,7 @@ const MedicosList = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Nuestros Médicos</h1>
+      <h1 data-tour="medicos-list-overview">Nuestros Médicos</h1>
 
       <div className={styles.filtros}>
         <input

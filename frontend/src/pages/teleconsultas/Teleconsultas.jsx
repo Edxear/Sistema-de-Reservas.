@@ -211,7 +211,7 @@ export default function Teleconsultas() {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* HERO */}
-      <section style={{
+      <section data-tour="teleconsultas-overview" style={{
         marginBottom: '20px',
         padding: '20px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

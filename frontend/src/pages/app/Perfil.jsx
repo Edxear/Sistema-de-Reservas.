@@ -140,7 +140,7 @@ export default function Perfil() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
+      <div className={styles.card} data-tour="perfil-overview">
         <h1 className={styles.title}>Mi Perfil</h1>
         <p className={styles.subtitle}>Rol actual: <strong>{user.rol}</strong> | Email: {user.email}</p>
 

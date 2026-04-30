@@ -190,7 +190,7 @@ const GestionMedicos = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.header} data-tour="gestion-medicos-overview">
         <h1>Personal Médico y Administrativo</h1>
         <button 
           className={styles.botonAgregar}

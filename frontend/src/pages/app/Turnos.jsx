@@ -277,7 +277,7 @@ export default function Turnos() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} data-tour="turnos-overview">
         <div>
           <h1 className={styles.heroTitle}><FaCalendarAlt /> Turnos</h1>
           <p className={styles.heroSub}>Consulta y gestiona tus reservas desde una sola vista.</p>

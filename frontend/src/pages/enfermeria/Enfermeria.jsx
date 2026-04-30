@@ -442,7 +442,7 @@ export default function Enfermeria() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} data-tour="enfermeria-overview">
         <h1>Area de Enfermeria</h1>
         <p>Modulo integral: mejoras transversales, mejoras por rama, organigrama y gestion, digitalizacion y KPIs.</p>
         <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

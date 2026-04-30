@@ -452,7 +452,7 @@ export default function Organigrama() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.header}>
+      <section className={styles.header} data-tour="organigrama-overview">
         <h1>Organigrama Institucional</h1>
         <p>Estructura organizacional para un hospital o clínica, por áreas y rangos.</p>
 
