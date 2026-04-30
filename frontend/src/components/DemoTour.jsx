@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ACTIONS, EVENTS, Joyride, STATUS } from 'react-joyride';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { appendDemoAnalyticsEvent } from '../hooks/useDemoAnalytics';
 
 const ADMIN_STEPS = [
   {
@@ -146,6 +147,19 @@ const clearTourState = () => {
   }
 };
 
+const trackTourStep = (demoRole, step, stepIndex, direction) => {
+  appendDemoAnalyticsEvent({
+    type: 'tour-step',
+    role: demoRole === 'paciente' ? 'paciente' : 'admin',
+    stepIndex,
+    route: step?.route || '',
+    target: step?.target || '',
+    title: step?.title || '',
+    direction,
+    ts: new Date().toISOString(),
+  });
+};
+
 export default function DemoTour() {
   const { demoMode, demoRole } = useAuth();
   const navigate = useNavigate();
@@ -214,12 +228,14 @@ export default function DemoTour() {
         const nextIndex = Math.min(index + 1, steps.length - 1);
         setStepIndex(nextIndex);
         saveTourState(nextIndex, steps[nextIndex]?.route);
+        trackTourStep(demoRole, steps[nextIndex], nextIndex, 'next');
         goToStepRoute(nextIndex);
       }
       if (action === ACTIONS.PREV) {
         const prevIndex = Math.max(index - 1, 0);
         setStepIndex(prevIndex);
         saveTourState(prevIndex, steps[prevIndex]?.route);
+        trackTourStep(demoRole, steps[prevIndex], prevIndex, 'prev');
         goToStepRoute(prevIndex);
       }
     }
@@ -229,6 +245,7 @@ export default function DemoTour() {
         const prevIndex = Math.max(index - 1, 0);
         setStepIndex(prevIndex);
         saveTourState(prevIndex, steps[prevIndex]?.route);
+        trackTourStep(demoRole, steps[prevIndex], prevIndex, 'target-not-found-prev');
         goToStepRoute(prevIndex);
         return;
       }
@@ -242,6 +259,7 @@ export default function DemoTour() {
       }
       setStepIndex(nextIndex);
       saveTourState(nextIndex, steps[nextIndex]?.route);
+      trackTourStep(demoRole, steps[nextIndex], nextIndex, 'target-not-found-next');
       goToStepRoute(nextIndex);
     }
   };
