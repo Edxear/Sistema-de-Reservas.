@@ -165,34 +165,6 @@
   }
 }
 
-.demo-tour-beacon {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1e5a7a, #2980b9);
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 12002;
-  box-shadow: 0 4px 12px rgba(30, 90, 122, 0.4);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.demo-tour-beacon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(30, 90, 122, 0.5);
-}
-
-.demo-tour-beacon:active {
-  transform: scale(0.95);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .demo-tour-modal {
@@ -213,10 +185,5 @@
 
   .demo-tour-btn {
     flex: 1;
-  }
-
-  .demo-tour-beacon {
-    bottom: 20px;
-    right: 20px;
   }
 }

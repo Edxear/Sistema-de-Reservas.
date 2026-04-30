@@ -95,29 +95,29 @@ const PATIENT_STEPS = [
 ];
 
 const getDoneKey = (role) => `demoTourDone:${role === 'paciente' ? 'paciente' : 'admin'}`;
-const SESSION_KEY = 'demoTourState';
+const getSessionKey = (role) => `demoTourState:${role === 'paciente' ? 'paciente' : 'admin'}`;
 const RESET_KEY = 'demoTourResetNonce';
 
-const saveTourState = (stepIndex, route) => {
+const saveTourState = (role, stepIndex, route) => {
   try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ stepIndex, route }));
+    sessionStorage.setItem(getSessionKey(role), JSON.stringify({ stepIndex, route }));
   } catch (_) {
     return;
   }
 };
 
-const loadTourState = () => {
+const loadTourState = (role) => {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = sessionStorage.getItem(getSessionKey(role));
     return raw ? JSON.parse(raw) : null;
   } catch (_) {
     return null;
   }
 };
 
-const clearTourState = () => {
+const clearTourState = (role) => {
   try {
-    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(getSessionKey(role));
   } catch (_) {
     return;
   }
@@ -188,7 +188,7 @@ export default function DemoTourCustom() {
       lastHandledResetNonceRef.current = resetNonce;
       localStorage.removeItem(getDoneKey(demoRole));
       setStepIndex(0);
-      saveTourState(0, steps[0]?.route);
+      saveTourState(demoRole, 0, steps[0]?.route);
       setIsVisible(true);
       if (steps[0]?.route && pathname !== steps[0].route) {
         navigate(steps[0].route);
@@ -198,26 +198,23 @@ export default function DemoTourCustom() {
 
     const done = localStorage.getItem(getDoneKey(demoRole)) === 'true';
     if (!done) {
-      const saved = loadTourState();
+      const saved = loadTourState(demoRole);
       if (saved && typeof saved.stepIndex === 'number' && saved.stepIndex < steps.length) {
         const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
         if (currentRouteIndex >= 0) {
           setStepIndex(currentRouteIndex);
-          saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
+          saveTourState(demoRole, currentRouteIndex, steps[currentRouteIndex]?.route);
           setIsVisible(true);
         } else {
           setStepIndex(saved.stepIndex);
           setIsVisible(true);
         }
       } else {
-        const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
-        if (currentRouteIndex >= 0) {
-          setStepIndex(currentRouteIndex);
-          saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
-          setIsVisible(true);
-        } else {
-          setStepIndex(0);
-          setIsVisible(true);
+        setStepIndex(0);
+        saveTourState(demoRole, 0, steps[0]?.route);
+        setIsVisible(true);
+        if (steps[0]?.route && pathname !== steps[0].route) {
+          navigate(steps[0].route);
         }
       }
     } else {
@@ -229,7 +226,7 @@ export default function DemoTourCustom() {
     if (stepIndex >= steps.length - 1) {
       // Tour finished
       localStorage.setItem(getDoneKey(demoRole), 'true');
-      clearTourState();
+      clearTourState(demoRole);
       setIsVisible(false);
       setStepIndex(0);
       navigate('/dashboard');
@@ -238,7 +235,7 @@ export default function DemoTourCustom() {
 
     const nextIndex = stepIndex + 1;
     setStepIndex(nextIndex);
-    saveTourState(nextIndex, steps[nextIndex]?.route);
+    saveTourState(demoRole, nextIndex, steps[nextIndex]?.route);
     trackTourStep(demoRole, steps[nextIndex], nextIndex, 'next');
     goToStepRoute(nextIndex);
   };
@@ -248,31 +245,17 @@ export default function DemoTourCustom() {
 
     const prevIndex = stepIndex - 1;
     setStepIndex(prevIndex);
-    saveTourState(prevIndex, steps[prevIndex]?.route);
+    saveTourState(demoRole, prevIndex, steps[prevIndex]?.route);
     trackTourStep(demoRole, steps[prevIndex], prevIndex, 'prev');
     goToStepRoute(prevIndex);
   };
 
   const handleClose = () => {
     localStorage.setItem(getDoneKey(demoRole), 'true');
-    clearTourState();
+    clearTourState(demoRole);
     setIsVisible(false);
     setStepIndex(0);
   };
-
-  const handleReopen = () => {
-    localStorage.removeItem(getDoneKey(demoRole));
-    const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
-    const nextIndex = currentRouteIndex >= 0 ? currentRouteIndex : 0;
-    setStepIndex(nextIndex);
-    saveTourState(nextIndex, steps[nextIndex]?.route);
-    setIsVisible(true);
-    if (currentRouteIndex < 0 && steps[0]?.route) {
-      navigate(steps[0].route);
-    }
-  };
-
-  const isOnDashboard = pathname === '/dashboard';
 
   if (!demoMode) return null;
 
@@ -281,19 +264,6 @@ export default function DemoTourCustom() {
 
   return (
     <>
-      {/* Beacon/Indicator button — solo visible en el dashboard */}
-      {!isVisible && isOnDashboard && (
-        <button
-          className="demo-tour-beacon"
-          onClick={handleReopen}
-          data-testid="button-beacon"
-          title="Abrir tour"
-          aria-label="Abrir tour"
-        >
-          ℹ️
-        </button>
-      )}
-
       {/* Custom Tour Modal */}
       {isVisible && (
         <div className="demo-tour-overlay">
