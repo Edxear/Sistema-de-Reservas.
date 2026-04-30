@@ -13,6 +13,7 @@ import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
 import Chatbot from './components/Chatbot';
 import DemoBanner from './components/DemoBanner';
+import DemoPageTip from './components/DemoPageTip';
 import DemoTour from './components/DemoTour';
 import OfflineIndicator from './components/OfflineIndicator';
 import { useDemoAnalytics } from './hooks/useDemoAnalytics';
@@ -134,6 +135,7 @@ function App() {
             <DemoToastFilter />
             <ScrollRestorationManager />
             <DemoAnalyticsTracker />
+            <DemoPageTip />
             <OfflineIndicator />
             <Header />
             <DemoTour />
