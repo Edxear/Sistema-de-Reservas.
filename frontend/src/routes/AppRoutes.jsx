@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROLE } from '../utils/roles';
@@ -19,11 +19,18 @@ import HistoriaClinica from '../pages/clinico/HistoriaClinica';
 import Recetas from '../pages/clinico/Recetas';
 import OrdenesMedicas from '../pages/clinico/OrdenesMedicas';
 import Teleconsultas from '../pages/teleconsultas/Teleconsultas';
-import Organigrama from '../pages/organizacion/Organigrama';
-import Soporte from '../pages/soporte/Soporte';
-import Enfermeria from '../pages/enfermeria/Enfermeria';
 import PizarraDigital from '../pages/clinico/PizarraDigital';
 import DemoLanding from '../pages/demo/DemoLanding';
+
+const Organigrama = React.lazy(() => import('../pages/organizacion/Organigrama'));
+const Soporte = React.lazy(() => import('../pages/soporte/Soporte'));
+const Enfermeria = React.lazy(() => import('../pages/enfermeria/Enfermeria'));
+
+const LazyRoute = ({ children }) => (
+  <Suspense fallback={<div style={{ padding: 24 }}>Cargando modulo...</div>}>
+    {children}
+  </Suspense>
+);
 
 const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user, loading, demoMode, demoRole } = useAuth();
@@ -137,7 +144,9 @@ export default function AppRoutes() {
         path="/organigrama"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
-            <Organigrama />
+            <LazyRoute>
+              <Organigrama />
+            </LazyRoute>
           </ProtectedRoute>
         )}
       />
@@ -161,7 +170,9 @@ export default function AppRoutes() {
         path="/soporte"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <Soporte />
+            <LazyRoute>
+              <Soporte />
+            </LazyRoute>
           </ProtectedRoute>
         )}
       />
@@ -175,7 +186,9 @@ export default function AppRoutes() {
         path="/enfermeria"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <Enfermeria />
+            <LazyRoute>
+              <Enfermeria />
+            </LazyRoute>
           </ProtectedRoute>
         )}
       />
