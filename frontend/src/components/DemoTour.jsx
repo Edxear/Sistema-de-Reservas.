@@ -207,11 +207,17 @@ export default function DemoTour() {
     if (!done) {
       const saved = loadTourState();
       if (saved && typeof saved.stepIndex === 'number' && saved.stepIndex < steps.length) {
-        // Resume from saved state
-        setStepIndex(saved.stepIndex);
-        setRun(true);
-        if (saved.route && pathname !== saved.route) {
-          navigate(saved.route);
+        const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
+
+        // Prefer current route to avoid rebounding to an older saved route.
+        if (currentRouteIndex >= 0) {
+          setStepIndex(currentRouteIndex);
+          saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
+          setRun(true);
+        } else {
+          // Keep saved index without forcing navigation outside the current route.
+          setStepIndex(saved.stepIndex);
+          setRun(false);
         }
       } else {
         const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
