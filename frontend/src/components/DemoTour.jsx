@@ -3,84 +3,210 @@ import { ACTIONS, EVENTS, Joyride, STATUS } from 'react-joyride';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const TOUR_STEPS = [
+const ADMIN_STEPS = [
   {
     route: '/dashboard',
     target: '[data-tour="dashboard-overview"]',
     title: '📊 Panel de control',
-    content: 'Desde aquí tenés una visión general de métricas clave: médicos, pacientes, camas y turnos del día.',
+    content: 'Vista general del sistema, métricas y acciones rápidas.',
     placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    route: '/gestion/medicos',
+    target: 'body',
+    title: '👨‍⚕️ Gestión de médicos',
+    content: 'Aquí podés administrar el staff médico, especialidades y disponibilidad.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/gestion/pacientes',
+    target: 'body',
+    title: '🧑‍🤝‍🧑 Gestión de pacientes',
+    content: 'Alta, edición y consulta de fichas de pacientes y su información principal.',
+    placement: 'center',
     disableBeacon: true,
   },
   {
     route: '/pizarra',
     target: '[data-tour="pizarra-overview"]',
     title: '🛏️ Pizarra digital de camas',
-    content: 'Visualizá el estado de todas las camas en tiempo real: libres, ocupadas, en limpieza o aislamiento.',
+    content: 'Estado en tiempo real de ocupación, limpieza, mantenimiento y reservas.',
     placement: 'bottom',
   },
   {
     route: '/ordenes-medicas',
     target: '[data-tour="ordenes-overview"]',
     title: '📋 Órdenes médicas',
-    content: 'Emitir, confirmar y dar seguimiento a órdenes médicas de laboratorio, imágenes y procedimientos.',
+    content: 'Creación y seguimiento de órdenes por prioridad, estado y resultado.',
     placement: 'bottom',
   },
   {
     route: '/soporte',
     target: '[data-tour="soporte-overview"]',
-    title: '🎫 Soporte y tickets',
-    content: 'Sistema de tickets para gestionar incidentes clínicos, requerimientos y escalamientos.',
+    title: '🎫 Centro de soporte',
+    content: 'Gestión de tickets, SLA, usuarios y base de conocimiento interna.',
     placement: 'bottom',
+  },
+  {
+    route: '/enfermeria',
+    target: 'body',
+    title: '🩺 Área de enfermería',
+    content: 'Checklist, incidentes, iniciativas y tareas operativas de enfermería.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/teleconsultas',
+    target: 'body',
+    title: '💬 Teleconsultas',
+    content: 'Agenda y seguimiento de teleconsultas con profesionales y pacientes.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/organigrama',
+    target: 'body',
+    title: '🏢 Organigrama',
+    content: 'Visualización de estructura institucional y relaciones de áreas.',
+    placement: 'center',
+    disableBeacon: true,
   },
 ];
 
+const PATIENT_STEPS = [
+  {
+    route: '/dashboard',
+    target: '[data-tour="dashboard-overview"]',
+    title: '🏠 Inicio de paciente',
+    content: 'Panel principal con accesos a turnos, teleconsultas y tu actividad.',
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    route: '/turnos',
+    target: 'body',
+    title: '📅 Mis turnos',
+    content: 'Consultá, gestioná y revisá tu historial de turnos médicos.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/teleconsultas',
+    target: 'body',
+    title: '💻 Teleconsultas',
+    content: 'Accedé a consultas virtuales y al estado de cada encuentro.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/perfil',
+    target: 'body',
+    title: '👤 Mi perfil',
+    content: 'Datos personales, cobertura y preferencias de cuenta.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    route: '/medicos',
+    target: 'body',
+    title: '🧑‍⚕️ Profesionales',
+    content: 'Explorá médicos y especialistas disponibles para próximos turnos.',
+    placement: 'center',
+    disableBeacon: true,
+  },
+];
+
+const getDoneKey = (role) => `demoTourDone:${role === 'paciente' ? 'paciente' : 'admin'}`;
+
 export default function DemoTour() {
-  const { demoMode } = useAuth();
+  const { demoMode, demoRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
-  const [run, setRun] = useState(() => {
-    return demoMode && localStorage.getItem('demoTourDone') !== 'true';
-  });
-  const currentStep = useMemo(() => TOUR_STEPS[stepIndex], [stepIndex]);
+  const steps = useMemo(
+    () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
+    [demoRole],
+  );
+  const [run, setRun] = useState(false);
+
+  const goToStepRoute = (index) => {
+    const step = steps[index];
+    if (!step?.route) return;
+    if (location.pathname !== step.route) {
+      navigate(step.route);
+    }
+  };
 
   useEffect(() => {
-    if (!demoMode || !run || !currentStep) return;
-    if (location.pathname !== currentStep.route) {
-      navigate(currentStep.route);
+    if (!demoMode) {
+      setRun(false);
+      setStepIndex(0);
+      return;
     }
-  }, [currentStep, demoMode, location.pathname, navigate, run]);
+
+    const done = localStorage.getItem(getDoneKey(demoRole)) === 'true';
+    if (!done) {
+      setStepIndex(0);
+      setRun(true);
+      const firstRoute = steps[0]?.route;
+      if (firstRoute && location.pathname !== firstRoute) {
+        navigate(firstRoute);
+      }
+    } else {
+      setRun(false);
+    }
+  }, [demoMode, demoRole, navigate, steps]);
 
   if (!demoMode) return null;
 
   const handleCallback = ({ action, index, status, type }) => {
+    const doneKey = getDoneKey(demoRole);
+
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      localStorage.setItem('demoTourDone', 'true');
+      localStorage.setItem(doneKey, 'true');
       setRun(false);
       setStepIndex(0);
       navigate('/dashboard');
       return;
     }
 
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+    if (type === EVENTS.STEP_AFTER) {
       if (action === ACTIONS.NEXT) {
-        setStepIndex((prev) => Math.min(prev + 1, TOUR_STEPS.length - 1));
+        const nextIndex = Math.min(index + 1, steps.length - 1);
+        setStepIndex(nextIndex);
+        goToStepRoute(nextIndex);
       }
       if (action === ACTIONS.PREV) {
-        setStepIndex((prev) => Math.max(prev - 1, 0));
+        const prevIndex = Math.max(index - 1, 0);
+        setStepIndex(prevIndex);
+        goToStepRoute(prevIndex);
       }
     }
 
-    if (type === EVENTS.TARGET_NOT_FOUND && index === TOUR_STEPS.length - 1) {
-      localStorage.setItem('demoTourDone', 'true');
-      setRun(false);
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      if (action === ACTIONS.PREV) {
+        const prevIndex = Math.max(index - 1, 0);
+        setStepIndex(prevIndex);
+        goToStepRoute(prevIndex);
+        return;
+      }
+
+      const nextIndex = Math.min(index + 1, steps.length - 1);
+      if (nextIndex === index) {
+        localStorage.setItem(doneKey, 'true');
+        setRun(false);
+        return;
+      }
+      setStepIndex(nextIndex);
+      goToStepRoute(nextIndex);
     }
   };
 
   return (
     <Joyride
-      steps={TOUR_STEPS}
+      steps={steps}
       stepIndex={stepIndex}
       run={run}
       continuous
