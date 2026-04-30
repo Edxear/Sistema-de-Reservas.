@@ -23,6 +23,8 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "node --no-deprecation ./node_modules/react-scripts/bin/react-scripts.js build",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
     "lint": "eslint src --ext .js,.jsx",
     "eject": "react-scripts eject"
   },
@@ -42,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "crypto-browserify": "^3.12.1",
