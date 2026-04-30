@@ -7,11 +7,10 @@ import { appendDemoAnalyticsEvent } from '../hooks/useDemoAnalytics';
 const ADMIN_STEPS = [
   {
     route: '/dashboard',
-    target: 'body',
+    target: '[data-tour="dashboard-overview"]',
     title: '📊 Panel de control',
     content: 'Vista general del sistema, métricas y acciones rápidas.',
-    placement: 'center',
-    disableBeacon: true,
+    placement: 'bottom',
   },
   {
     route: '/gestion/medicos',
@@ -79,11 +78,10 @@ const ADMIN_STEPS = [
 const PATIENT_STEPS = [
   {
     route: '/dashboard',
-    target: 'body',
+    target: '[data-tour="dashboard-overview"]',
     title: '🏠 Inicio de paciente',
     content: 'Panel principal con accesos a turnos, teleconsultas y tu actividad.',
-    placement: 'center',
-    disableBeacon: true,
+    placement: 'bottom',
   },
   {
     route: '/turnos',
@@ -169,12 +167,13 @@ export default function DemoTour() {
   const [resetNonce, setResetNonce] = useState(() => sessionStorage.getItem(RESET_KEY) || '');
   const retryTimerRef = useRef(null);
   const lastHandledResetNonceRef = useRef('');
+  const lastDialogStateRef = useRef(false);
   const steps = useMemo(
     () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
     [demoRole],
   );
   const tourSteps = useMemo(
-    () => steps.map((step) => ({ ...step, disableBeacon: true })),
+    () => steps,
     [steps],
   );
   const [run, setRun] = useState(false);
@@ -261,9 +260,48 @@ export default function DemoTour() {
     }
   }, [demoMode, demoRole, navigate, pathname, resetNonce, steps]);
 
+  // Detect when Joyride dialog closes and navigate to the next step's route.
+  // This is a workaround for the broken Joyride callback that doesn't trigger on Next button.
+  // Using useLayoutEffect to detect DOM changes immediately.
+  React.useLayoutEffect(() => {
+    if (!demoMode || !run || stepIndex >= steps.length - 1) return;
+
+    const dialogOpen = !!document.querySelector('[role="alertdialog"]');
+    const wasOpen = lastDialogStateRef.current;
+
+    if (wasOpen && !dialogOpen) {
+      // Dialog just closed. Navigate to next step's route.
+      const nextIndex = stepIndex + 1;
+      const nextRoute = steps[nextIndex]?.route;
+      if (nextRoute) {
+        setStepIndex(nextIndex);
+        saveTourState(nextIndex, nextRoute);
+        trackTourStep(demoRole, steps[nextIndex], nextIndex, 'dialog-closed-auto');
+        navigate(nextRoute);
+      }
+    }
+
+    lastDialogStateRef.current = dialogOpen;
+  });
+
   if (!demoMode) return null;
 
-  const handleCallback = ({ action, index, status, type }) => {
+  const handleCallback = ({ action, index, lifecycle, origin, status, type }) => {
+    console.log('[DemoTour.callback]', { action, index, lifecycle, origin, status, type, run, stepIndex });
+    if (typeof window !== 'undefined') {
+      window.__demoTourDebug = {
+        action,
+        index,
+        lifecycle,
+        origin,
+        status,
+        type,
+        pathname,
+        run,
+        stepIndex,
+      };
+    }
+
     const doneKey = getDoneKey(demoRole);
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
