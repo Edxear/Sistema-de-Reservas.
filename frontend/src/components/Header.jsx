@@ -77,15 +77,30 @@ export default function Header() {
           </button>
 
           {demoMode && (
-            <select
-              className={styles.demoSelect}
-              value={demoRole || 'admin'}
-              onChange={(e) => setDemoRole(e.target.value)}
-              aria-label="Seleccionar vista de demo"
-            >
-              <option value="admin">Vista demo: Administrativo</option>
-              <option value="paciente">Vista demo: Paciente</option>
-            </select>
+            <>
+              <select
+                className={styles.demoSelect}
+                value={demoRole || 'admin'}
+                onChange={(e) => setDemoRole(e.target.value)}
+                aria-label="Seleccionar vista de demo"
+              >
+                <option value="admin">Vista demo: Administrativo</option>
+                <option value="paciente">Vista demo: Paciente</option>
+              </select>
+              <button
+                type="button"
+                className={styles.demoToggle}
+                title="Reiniciar tour guiado"
+                onClick={() => {
+                  localStorage.removeItem('demoTourDone:admin');
+                  localStorage.removeItem('demoTourDone:paciente');
+                  sessionStorage.removeItem('demoTourState');
+                  navigate('/dashboard');
+                }}
+              >
+                🔄 Reiniciar tour
+              </button>
+            </>
           )}
 
           <button
