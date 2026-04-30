@@ -214,17 +214,21 @@ export default function DemoTour() {
           navigate(saved.route);
         }
       } else {
-        setStepIndex(0);
-        setRun(true);
-        const firstRoute = steps[0]?.route;
-        if (firstRoute && pathname !== firstRoute) {
-          navigate(firstRoute);
+        const currentRouteIndex = steps.findIndex((step) => step.route === pathname);
+
+        if (currentRouteIndex >= 0) {
+          setStepIndex(currentRouteIndex);
+          saveTourState(currentRouteIndex, steps[currentRouteIndex]?.route);
+          setRun(true);
+        } else {
+          setStepIndex(0);
+          setRun(pathname === steps[0]?.route);
         }
       }
     } else {
       setRun(false);
     }
-  }, [demoMode, demoRole, navigate, resetNonce, steps]);
+  }, [demoMode, demoRole, navigate, pathname, resetNonce, steps]);
 
   if (!demoMode) return null;
 
