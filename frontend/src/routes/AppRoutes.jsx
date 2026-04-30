@@ -6,6 +6,7 @@ import { getDemoDefaultRoute, isDemoRouteAllowed } from '../utils/demoRoutes';
 
 import LoginRegister from '../pages/auth/LoginRegister';
 import Dashboard from '../pages/app/Dashboard';
+import DashboardPaciente from '../pages/app/DashboardPaciente';
 import Turnos from '../pages/app/Turnos';
 import Perfil from '../pages/app/Perfil';
 import MedicosList from '../pages/medicos/MedicosList';
@@ -67,6 +68,9 @@ const PublicRoute = ({ children }) => {
 };
 
 export default function AppRoutes() {
+  const { user } = useAuth();
+  const isPatientDashboard = user?.rol === ROLE.PACIENTE;
+
   return (
     <Routes>
       <Route
@@ -85,7 +89,7 @@ export default function AppRoutes() {
         path="/dashboard"
         element={(
           <ProtectedRoute>
-            <Dashboard />
+            {isPatientDashboard ? <DashboardPaciente /> : <Dashboard />}
           </ProtectedRoute>
         )}
       />

@@ -1,0 +1,228 @@
+.page {
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(58, 122, 254, 0.14), transparent 28%),
+    linear-gradient(180deg, #f5f8ff 0%, #eef4f7 100%);
+  min-height: calc(100vh - 72px);
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #0d9488 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 20px 45px rgba(13, 30, 67, 0.16);
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+}
+
+.kicker {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  opacity: 0.78;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 640px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  font-weight: 700;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.metricCard,
+.panel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 22px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+}
+
+.metricCard {
+  padding: 22px;
+}
+
+.metricIcon {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+  font-size: 1.1rem;
+}
+
+.metricLabel {
+  margin: 16px 0 8px;
+  font-size: 0.92rem;
+  color: #475569;
+}
+
+.metricValue {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  color: #0f172a;
+}
+
+.metricHint {
+  margin: 0 0 16px;
+  min-height: 42px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.metricAction,
+.panelHeader button,
+.quickActions button {
+  border: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.metricAction {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #0f766e;
+  color: #fff;
+  font-weight: 700;
+}
+
+.metricAction:hover,
+.panelHeader button:hover,
+.quickActions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+}
+
+.panel {
+  padding: 22px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 1.12rem;
+  color: #0f172a;
+}
+
+.panelHeader button {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.timeline {
+  display: grid;
+  gap: 14px;
+}
+
+.timelineItem {
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.timelineItem strong,
+.timelineItem span,
+.timelineDate {
+  display: block;
+}
+
+.timelineDate {
+  margin-bottom: 6px;
+  color: #0f766e;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.timelineItem span {
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.quickActions {
+  display: grid;
+  gap: 12px;
+}
+
+.quickActions button {
+  padding: 14px 16px;
+  border-radius: 16px;
+  text-align: left;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.emptyState {
+  margin: 0;
+  color: #64748b;
+}
+
+@media (max-width: 960px) {
+  .metricsGrid,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+  }
+
+  .hero,
+  .metricCard,
+  .panel {
+    padding: 18px;
+  }
+}
