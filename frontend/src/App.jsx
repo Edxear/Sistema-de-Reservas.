@@ -11,7 +11,6 @@ import { ThemeProvider } from './context/ThemeContext';
 
 import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
-import Chatbot from './components/Chatbot';
 import DemoBanner from './components/DemoBanner';
 import DemoPageTip from './components/DemoPageTip';
 import DemoTourCustom from './components/DemoTourCustom';
@@ -125,17 +124,6 @@ function DemoAnalyticsTracker() {
   return null;
 }
 
-function ChatbotGate() {
-  const { demoMode } = useAuth();
-  const location = useLocation();
-
-  if (demoMode || location.pathname === '/demo') {
-    return null;
-  }
-
-  return <Chatbot />;
-}
-
 function App() {
   return (
     <ThemeProvider>
@@ -152,7 +140,6 @@ function App() {
             <DemoTourCustom />
             <ToastContainer position="top-right" autoClose={3000} />
             <AppRoutes />
-            <ChatbotGate />
             <DemoBanner />
           </NotificacionProvider>
         </AuthProvider>
