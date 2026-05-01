@@ -19,6 +19,15 @@ Use these in Vercel Project Settings -> Environment Variables:
   - Enables full navigation without backend.
   - Login/Register are optional and simulated.
 
+For public demo domain behavior:
+
+- On `https://sistema-de-reservas-eta.vercel.app`, app defaults to demo mode even if no localStorage is set.
+- `/` redirects to `/demo` when demo is active.
+- To unlock real mode on your own computer (same domain), open:
+  - `https://sistema-de-reservas-eta.vercel.app/?modo=real`
+- To switch back explicitly:
+  - `https://sistema-de-reservas-eta.vercel.app/?modo=demo`
+
 Optional for real backend mode:
 
 - `REACT_APP_DEMO_MODE=false`
@@ -41,6 +50,8 @@ The header includes a `Modo Demo: ON/OFF` switch:
 - `OFF`: frontend uses real authentication and API endpoints.
 
 The selected mode is stored in localStorage (`demoModeOverride`).
+
+On the public demo domain, turning demo OFF from UI is blocked unless real mode was explicitly unlocked with `?modo=real`.
 
 ## 5) Routes
 

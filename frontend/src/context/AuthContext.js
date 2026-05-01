@@ -15,6 +15,29 @@ export const useAuth = () => {
 };
 
 const DEMO_MODE = process.env.REACT_APP_DEMO_MODE !== 'false';
+const PUBLIC_DEMO_HOSTS = ['sistema-de-reservas-eta.vercel.app'];
+const REAL_MODE_UNLOCK_KEY = 'demoRealModeUnlocked';
+
+const isPublicDemoHost = () => {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname.toLowerCase();
+  return PUBLIC_DEMO_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+};
+
+const readDemoModeFromQuery = () => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const mode = (params.get('modo') || '').toLowerCase();
+  if (mode === 'demo') return true;
+  if (mode === 'real') return false;
+  return null;
+};
+
+const canUseRealMode = () => {
+  if (typeof window === 'undefined') return !isPublicDemoHost();
+  if (!isPublicDemoHost()) return true;
+  return window.localStorage.getItem(REAL_MODE_UNLOCK_KEY) === 'true';
+};
 const DEMO_PROFILES = {
   admin: {
     id: 'demo-user',
@@ -39,9 +62,28 @@ const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.pacie
 const readDemoModePreference = () => {
   if (typeof window === 'undefined') return DEMO_MODE;
 
+  const queryMode = readDemoModeFromQuery();
+  if (queryMode === false) {
+    window.localStorage.setItem(REAL_MODE_UNLOCK_KEY, 'true');
+    window.localStorage.setItem('demoModeOverride', 'false');
+    return false;
+  }
+  if (queryMode === true) {
+    window.localStorage.setItem('demoModeOverride', 'true');
+    return true;
+  }
+
   const storedValue = window.localStorage.getItem('demoModeOverride');
   if (storedValue === 'true') return true;
-  if (storedValue === 'false') return false;
+  if (storedValue === 'false') {
+    if (!canUseRealMode()) {
+      window.localStorage.setItem('demoModeOverride', 'true');
+      return true;
+    }
+    return false;
+  }
+
+  if (isPublicDemoHost()) return true;
   return DEMO_MODE;
 };
 
@@ -210,6 +252,14 @@ export function AuthProvider({ children }) {
 
   const setDemoModeEnabled = (enabled) => {
     const nextValue = Boolean(enabled);
+
+    if (!nextValue && !canUseRealMode()) {
+      toast.info('En este dominio el acceso publico queda en demo. Para modo real usa ?modo=real desde tu equipo.');
+      localStorage.setItem('demoModeOverride', 'true');
+      setDemoMode(true);
+      return;
+    }
+
     setLoading(true);
     setDemoMode(nextValue);
     localStorage.setItem('demoModeOverride', String(nextValue));

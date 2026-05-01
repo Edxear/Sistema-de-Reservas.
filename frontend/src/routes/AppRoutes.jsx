@@ -77,14 +77,14 @@ const PublicRoute = ({ children }) => {
 };
 
 export default function AppRoutes() {
-  const { user } = useAuth();
+  const { user, demoMode } = useAuth();
   const isPatientDashboard = user?.rol === ROLE.PACIENTE;
 
   return (
     <Routes>
       <Route
         path="/"
-        element={<Navigate to="/dashboard" replace />}
+        element={<Navigate to={demoMode ? '/demo' : '/dashboard'} replace />}
       />
       <Route
         path="/login"
