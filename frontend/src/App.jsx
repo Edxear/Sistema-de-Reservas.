@@ -170,7 +170,7 @@ function App() {
               autoClose={3000}
               className={isMobileViewport ? 'mobile-toast-container' : undefined}
               toastClassName={isMobileViewport ? 'mobile-toast' : undefined}
-              style={isMobileViewport ? { top: 'calc(58px + env(safe-area-inset-top, 0px))' } : undefined}
+              style={isMobileViewport ? { top: 'calc(62px + env(safe-area-inset-top, 0px))' } : undefined}
             />
             <AppRoutes />
             <DemoBanner />
