@@ -110,3 +110,23 @@ select,
 textarea {
   font-family: 'Open Sans', sans-serif;
 }
+
+@media (max-width: 768px) {
+  .mobile-toast-container.Toastify__toast-container--top-center {
+    width: calc(100vw - 16px);
+    left: 8px;
+    right: 8px;
+    margin: 0;
+    padding: 0;
+    transform: none;
+  }
+
+  .mobile-toast {
+    border-radius: 12px;
+    min-height: auto;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+}

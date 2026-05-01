@@ -124,7 +124,34 @@ function DemoAnalyticsTracker() {
   return null;
 }
 
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  });
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const onChange = (event) => setIsMobile(event.matches);
+
+    setIsMobile(mediaQuery.matches);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', onChange);
+      return () => mediaQuery.removeEventListener('change', onChange);
+    }
+
+    mediaQuery.addListener(onChange);
+    return () => mediaQuery.removeListener(onChange);
+  }, []);
+
+  return isMobile;
+}
+
 function App() {
+  const isMobileViewport = useIsMobileViewport();
+
   return (
     <ThemeProvider>
     <ErrorBoundary>
@@ -138,7 +165,13 @@ function App() {
             <OfflineIndicator />
             <Header />
             <DemoTourCustom />
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer
+              position={isMobileViewport ? 'top-center' : 'top-right'}
+              autoClose={3000}
+              className={isMobileViewport ? 'mobile-toast-container' : undefined}
+              toastClassName={isMobileViewport ? 'mobile-toast' : undefined}
+              style={isMobileViewport ? { top: 'calc(58px + env(safe-area-inset-top, 0px))' } : undefined}
+            />
             <AppRoutes />
             <DemoBanner />
           </NotificacionProvider>
