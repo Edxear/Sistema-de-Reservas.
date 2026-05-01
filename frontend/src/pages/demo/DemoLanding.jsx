@@ -32,6 +32,10 @@ export default function DemoLanding() {
   const { setDemoMode, setDemoRole } = useAuth();
 
   const handleSelect = (roleKey) => {
+    // Clear any prior tour state so the tour always restarts after role selection.
+    localStorage.removeItem(`demoTourDone:${roleKey}`);
+    sessionStorage.removeItem(`demoTourState:${roleKey}`);
+    sessionStorage.setItem('demoTourResetNonce', String(Date.now()));
     setDemoMode(true);
     setDemoRole(roleKey);
     navigate('/dashboard');

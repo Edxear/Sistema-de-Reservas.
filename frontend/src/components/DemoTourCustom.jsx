@@ -184,6 +184,13 @@ export default function DemoTourCustom() {
       return;
     }
 
+    // Don't auto-navigate or show tour while the user is on the role selection landing.
+    // DemoLanding handles its own navigation after role pick.
+    if (pathname === '/demo') {
+      setIsVisible(false);
+      return;
+    }
+
     if (resetNonce && resetNonce !== lastHandledResetNonceRef.current) {
       lastHandledResetNonceRef.current = resetNonce;
       localStorage.removeItem(getDoneKey(demoRole));
