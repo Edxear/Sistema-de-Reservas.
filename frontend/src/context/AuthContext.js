@@ -73,6 +73,12 @@ const readDemoModePreference = () => {
     return true;
   }
 
+  // In the public domain, default to demo unless real mode is explicitly requested via URL.
+  if (isPublicDemoHost()) {
+    window.localStorage.setItem('demoModeOverride', 'true');
+    return true;
+  }
+
   const storedValue = window.localStorage.getItem('demoModeOverride');
   if (storedValue === 'true') return true;
   if (storedValue === 'false') {
@@ -82,8 +88,6 @@ const readDemoModePreference = () => {
     }
     return false;
   }
-
-  if (isPublicDemoHost()) return true;
   return DEMO_MODE;
 };
 
