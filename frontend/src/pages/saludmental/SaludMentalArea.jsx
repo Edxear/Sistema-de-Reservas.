@@ -11,7 +11,7 @@ import {
 import { canAccessMentalHealthArea } from '../../utils/roles';
 import MensajeriaSegura from '../enfermeria/MensajeriaSegura';
 import AreaBedBoard from '../../components/AreaBedBoard';
-import styles from '../enfermeria/Enfermeria.module.css';
+import styles from '../operaciones/OperationalArea.module.css';
 
 const normalize = (value = '') => String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -158,26 +158,39 @@ export default function SaludMentalArea() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const tabs = [
+    { key: 'panel', label: 'Panel' },
+    { key: 'procesos', label: 'Procesos Clinicos' },
+    { key: 'equipo', label: 'Equipo y Organigrama' },
+    { key: 'pizarra', label: 'Pizarra Camas Area' },
+    { key: 'mensajeria', label: 'Mensajeria' },
+  ];
+
   return (
     <div className={styles.page}>
-      <section className={styles.card} data-tour="salud-mental-overview">
+      <section className={styles.hero} data-tour="salud-mental-overview">
         <h1>Area de Salud Mental</h1>
         <p>
           Area asistencial diferenciada de Enfermeria general, con procesos clinicos especificos por
           patologia psiquiatrica, equipo propio y linea de organigrama dedicada.
         </p>
         <div className={styles.metaRow}>
-          <span>Jefatura: Salud Mental</span>
-          <span>Personal asignado: {mentalHealthTeam.length}</span>
-          <span>Iniciativas activas: {activeInitiatives.length}</span>
-          <span>Ramas disponibles: {catalog?.branches?.length || 0}</span>
+          <span className={styles.metaTag}>Jefatura: Salud Mental</span>
+          <span className={styles.metaTag}>Personal asignado: {mentalHealthTeam.length}</span>
+          <span className={styles.metaTag}>Iniciativas activas: {activeInitiatives.length}</span>
+          <span className={styles.metaTag}>Ramas disponibles: {catalog?.branches?.length || 0}</span>
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button onClick={() => setActiveTab('panel')} className={styles.pill} type="button">Panel</button>
-          <button onClick={() => setActiveTab('procesos')} className={styles.pill} type="button">Procesos Clinicos</button>
-          <button onClick={() => setActiveTab('equipo')} className={styles.pill} type="button">Equipo y Organigrama</button>
-          <button onClick={() => setActiveTab('pizarra')} className={styles.pill} type="button">Pizarra Camas Area</button>
-          <button onClick={() => setActiveTab('mensajeria')} className={styles.pill} type="button">Mensajeria</button>
+        <div className={styles.tabBar}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={activeTab === tab.key ? styles.tabActive : styles.tab}
+              type="button"
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -185,20 +198,20 @@ export default function SaludMentalArea() {
         <section className={styles.card}><p>Cargando datos de Salud Mental...</p></section>
       ) : activeTab === 'panel' ? (
         <>
-          <section className={styles.grid}>
-            <article className={styles.ramaCard}>
+          <section className={styles.grid3}>
+            <article className={styles.panelCard}>
               <h3>Flujo de trabajo del turno</h3>
               {RUTINA_DIARIA.map((item) => <p key={item}>- {item}</p>)}
             </article>
 
-            <article className={styles.ramaCard}>
+            <article className={styles.panelCard}>
               <h3>Protocolos clave</h3>
               {PROTOCOLOS_CLAVE.map((row) => (
                 <p key={row.nombre}>- {row.nombre}: {row.kpi}</p>
               ))}
             </article>
 
-            <article className={styles.ramaCard}>
+            <article className={styles.panelCard}>
               <h3>Linea de gestion</h3>
               <p>Coordinacion: {branchInfo?.coordinacion || branchInfo?.subjefatura || 'Por definir'}</p>
               <p>Total de colaboradores: {branchInfo?.total || mentalHealthTeam.length}</p>
@@ -260,8 +273,8 @@ export default function SaludMentalArea() {
           <h2>Procesos clinicos por patologia prioritaria</h2>
           <div className={styles.grid2}>
             {PATOLOGIAS_PRIORITARIAS.map((path) => (
-              <article key={path.nombre} className={styles.miniCard}>
-                <h3 style={{ marginTop: 0, color: '#154870' }}>{path.nombre}</h3>
+              <article key={path.nombre} className={styles.panelCard}>
+                <h3>{path.nombre}</h3>
                 {path.proceso.map((step) => <p key={step}>- {step}</p>)}
               </article>
             ))}

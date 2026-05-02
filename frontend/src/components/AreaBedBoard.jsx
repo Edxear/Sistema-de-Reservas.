@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getBeds, updateBed } from '../services/bedUnitService';
 import { useAuth } from '../context/AuthContext';
-import styles from '../pages/enfermeria/Enfermeria.module.css';
+import styles from '../pages/operaciones/OperationalArea.module.css';
 
 const ESTADOS = ['libre', 'ocupada', 'reservada', 'limpieza', 'mantenimiento', 'aislamiento'];
 
@@ -122,10 +122,10 @@ export default function AreaBedBoard({ areaKey = 'enfermeria' }) {
     <section className={styles.card}>
       <div className={styles.actionsRow}>
         <div>
-          <h2 style={{ marginBottom: 4 }}>Pizarra de Camas - {config.label}</h2>
-          <p style={{ margin: 0, color: '#4f6982', fontSize: 13 }}>{config.description}</p>
+          <h2>Pizarra de Camas - {config.label}</h2>
+          <p className={styles.note}>{config.description}</p>
         </div>
-        <button className={styles.pill} type="button" onClick={loadBeds} disabled={loading}>
+        <button className={loading ? styles.tabActive : styles.tab} type="button" onClick={loadBeds} disabled={loading}>
           {loading ? 'Actualizando...' : 'Actualizar'}
         </button>
       </div>
@@ -154,10 +154,10 @@ export default function AreaBedBoard({ areaKey = 'enfermeria' }) {
       </div>
 
       {Object.keys(groupedBySector).length === 0 ? (
-        <p style={{ marginTop: 12 }}>No hay camas registradas para esta area.</p>
+        <p className={styles.note}>No hay camas registradas para esta area.</p>
       ) : Object.entries(groupedBySector).map(([sector, sectorBeds]) => (
-        <div key={sector} style={{ marginTop: 14 }}>
-          <h3 style={{ margin: '6px 0', color: '#154870' }}>{sector}</h3>
+        <div key={sector} className={styles.card}>
+          <h2>{sector}</h2>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
@@ -177,7 +177,6 @@ export default function AreaBedBoard({ areaKey = 'enfermeria' }) {
                     <td>
                       <select
                         className={styles.select}
-                        style={{ minWidth: 160, marginBottom: 0 }}
                         disabled={!canEdit(user?.rol) || savingId === String(bed._id)}
                         value={bed.estado}
                         onChange={(e) => handleEstadoChange(bed, e.target.value)}

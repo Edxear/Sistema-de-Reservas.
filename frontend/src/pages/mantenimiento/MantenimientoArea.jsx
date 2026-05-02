@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessMantenimientoArea } from '../../utils/roles';
-import styles from '../enfermeria/Enfermeria.module.css';
+import styles from '../operaciones/OperationalArea.module.css';
 
 const TAREAS_PREVENTIVAS = [
   { sistema: 'Oxigeno central', frecuencia: 'Diaria', estado: 'ok', responsable: 'Infraestructura Turno A' },
@@ -43,39 +43,52 @@ export default function MantenimientoArea() {
 
   if (!canAccess) return <Navigate to="/dashboard" replace />;
 
+  const tabs = [
+    { key: 'panel', label: 'Panel' },
+    { key: 'preventivo', label: 'Preventivo' },
+    { key: 'incidentes', label: 'Incidentes' },
+    { key: 'biomedica', label: 'Ingenieria Clinica' },
+  ];
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <h1>Area de Mantenimiento Hospitalario</h1>
         <p>Continuidad operativa de infraestructura critica, ingenieria clinica y soporte edilicio.</p>
         <div className={styles.metaRow}>
-          <span>Tareas hoy: {metrics.tareasHoy}</span>
-          <span>Alertas preventivas: {metrics.alertas}</span>
-          <span>Incidentes activos: {metrics.incidentesActivos}</span>
-          <span>Criticos: {metrics.incidentesCriticos}</span>
+          <span className={styles.metaTag}>Tareas hoy: {metrics.tareasHoy}</span>
+          <span className={styles.metaTag}>Alertas preventivas: {metrics.alertas}</span>
+          <span className={styles.metaTag}>Incidentes activos: {metrics.incidentesActivos}</span>
+          <span className={styles.metaTag}>Criticos: {metrics.incidentesCriticos}</span>
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('panel')}>Panel</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('preventivo')}>Preventivo</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('incidentes')}>Incidentes</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('biomedica')}>Ingenieria Clinica</button>
+        <div className={styles.tabBar}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={activeTab === tab.key ? styles.tabActive : styles.tab}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </section>
 
       {activeTab === 'panel' && (
-        <section className={styles.grid}>
-          <article className={styles.ramaCard}>
+        <section className={styles.grid3}>
+          <article className={styles.panelCard}>
             <h3>Objetivo del turno</h3>
             <p>Mantener operativa la infraestructura critica sin afectar asistencia.</p>
             <p>Prioridad: oxigeno, energia, gases, climatizacion y esterilizacion.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Protocolo de incidente critico</h3>
             <p>1. Contencion inmediata de riesgo.</p>
             <p>2. Aviso a Jefatura y Operaciones.</p>
             <p>3. Plan de contingencia y SLA de recuperacion.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Impacto clinico</h3>
             <p>Cada evento se clasifica por riesgo en areas asistenciales.</p>
             <p>Se prioriza guardia, UTI, quirofano y neonatologia.</p>

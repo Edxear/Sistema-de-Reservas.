@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessParamedicosArea } from '../../utils/roles';
-import styles from '../enfermeria/Enfermeria.module.css';
+import styles from '../operaciones/OperationalArea.module.css';
 
 const SALIDAS = [
   { codigo: 'AMB-501', tipo: 'Trauma vial', prioridad: 'alta', unidad: 'Movil 1', estado: 'en curso', eta: '12 min' },
@@ -41,38 +41,51 @@ export default function ParamedicosArea() {
 
   if (!canAccess) return <Navigate to="/dashboard" replace />;
 
+  const tabs = [
+    { key: 'panel', label: 'Panel' },
+    { key: 'salidas', label: 'Salidas' },
+    { key: 'flota', label: 'Flota' },
+    { key: 'checklist', label: 'Checklist Prehospitalario' },
+  ];
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <h1>Area de Paramedicos y Ambulancia</h1>
         <p>Operacion prehospitalaria, estabilizacion inicial, traslados y coordinacion con Guardia.</p>
         <div className={styles.metaRow}>
-          <span>Salidas activas: {metrics.salidasActivas}</span>
-          <span>Flota operativa: {metrics.flotaOperativa}</span>
-          <span>Eventos alta prioridad: {metrics.prioridadAlta}</span>
+          <span className={styles.metaTag}>Salidas activas: {metrics.salidasActivas}</span>
+          <span className={styles.metaTag}>Flota operativa: {metrics.flotaOperativa}</span>
+          <span className={styles.metaTag}>Eventos alta prioridad: {metrics.prioridadAlta}</span>
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('panel')}>Panel</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('salidas')}>Salidas</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('flota')}>Flota</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('checklist')}>Checklist Prehospitalario</button>
+        <div className={styles.tabBar}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={activeTab === tab.key ? styles.tabActive : styles.tab}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </section>
 
       {activeTab === 'panel' && (
-        <section className={styles.grid}>
-          <article className={styles.ramaCard}>
+        <section className={styles.grid3}>
+          <article className={styles.panelCard}>
             <h3>Flujo operativo diario</h3>
             <p>1. Briefing de turnos y disponibilidad de moviles.</p>
             <p>2. Reposicion de insumos criticos y chequeo DEA.</p>
             <p>3. Coordinacion con Guardia Medica para recepcion.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Calidad asistencial</h3>
             <p>Tiempos de respuesta, calidad de entrega y seguridad de traslado.</p>
             <p>Registro estandarizado prehospitalario para continuidad clinica.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Interoperabilidad</h3>
             <p>Preaviso al hospital receptor con resumen clinico y estado del paciente.</p>
             <p>Trazabilidad completa desde escena hasta admision.</p>
@@ -149,7 +162,7 @@ export default function ParamedicosArea() {
             {CHECKLIST_PREHOSP.map((item) => (
               <div key={item} className={styles.item}>
                 <div className={styles.itemTitle}>{item}</div>
-                <div className={styles.metaMini}>Estandar de seguridad y continuidad asistencial</div>
+                <div className={styles.itemMeta}>Estandar de seguridad y continuidad asistencial</div>
               </div>
             ))}
           </div>

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessGuardiaMedicaArea } from '../../utils/roles';
 import AreaBedBoard from '../../components/AreaBedBoard';
-import styles from '../enfermeria/Enfermeria.module.css';
+import styles from '../operaciones/OperationalArea.module.css';
 
 const TRIAGE = [
   { nivel: 'Rojo', tiempo: 'Inmediato', criterio: 'Riesgo vital, shock, compromiso de via aerea', accion: 'Ingreso directo a shock room y medico de guardia en sala' },
@@ -41,42 +41,55 @@ export default function GuardiaMedicaArea() {
 
   if (!canAccess) return <Navigate to="/dashboard" replace />;
 
+  const tabs = [
+    { key: 'panel', label: 'Panel Diario' },
+    { key: 'triage', label: 'Triage' },
+    { key: 'circuitos', label: 'Circuitos Criticos' },
+    { key: 'observacion', label: 'Observacion' },
+    { key: 'pizarra', label: 'Pizarra Camas Area' },
+  ];
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
         <h1>Area de Guardia Medica</h1>
         <p>Gestion integral de urgencias, triage, shock room, observacion y derivaciones criticas.</p>
         <div className={styles.metaRow}>
-          <span>Espera promedio: {metrics.esperaPromedio}</span>
-          <span>Pacientes en espera: {metrics.pacientesEnEspera}</span>
-          <span>Shock room activos: {metrics.shockRoomActivos}</span>
-          <span>Observacion activa: {metrics.observacionActiva}</span>
+          <span className={styles.metaTag}>Espera promedio: {metrics.esperaPromedio}</span>
+          <span className={styles.metaTag}>Pacientes en espera: {metrics.pacientesEnEspera}</span>
+          <span className={styles.metaTag}>Shock room activos: {metrics.shockRoomActivos}</span>
+          <span className={styles.metaTag}>Observacion activa: {metrics.observacionActiva}</span>
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('panel')}>Panel Diario</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('triage')}>Triage</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('circuitos')}>Circuitos Criticos</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('observacion')}>Observacion</button>
-          <button className={styles.pill} type="button" onClick={() => setActiveTab('pizarra')}>Pizarra Camas Area</button>
+        <div className={styles.tabBar}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={activeTab === tab.key ? styles.tabActive : styles.tab}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </section>
 
       {activeTab === 'panel' && (
-        <section className={styles.grid}>
-          <article className={styles.ramaCard}>
+        <section className={styles.grid3}>
+          <article className={styles.panelCard}>
             <h3>Inicio de turno</h3>
             <p>1. Pase clinico con casos activos y pendientes.</p>
             <p>2. Verificacion de carro de paro y medicacion critica.</p>
             <p>3. Chequeo de disponibilidad de camas de observacion.</p>
             <p>4. Confirmacion de equipos de imagen/lab en guardia.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Seguridad del paciente</h3>
             <p>Doble identificacion en procedimientos.</p>
             <p>Alerta temprana de sepsis y eventos neurologicos.</p>
             <p>Registro de reevaluaciones por tiempo objetivo.</p>
           </article>
-          <article className={styles.ramaCard}>
+          <article className={styles.panelCard}>
             <h3>Coordinacion interservicios</h3>
             <p>Derivaciones con UTI, Imagenes, Laboratorio y Quirofano.</p>
             <p>Comunicacion con enfermeria y equipo prehospitalario.</p>
@@ -117,8 +130,8 @@ export default function GuardiaMedicaArea() {
           <h2>Circuitos asistenciales de alta prioridad</h2>
           <div className={styles.grid2}>
             {CIRCUITOS.map((item) => (
-              <article key={item.nombre} className={styles.miniCard}>
-                <h3 style={{ marginTop: 0, color: '#154870' }}>{item.nombre}</h3>
+              <article key={item.nombre} className={styles.panelCard}>
+                <h3>{item.nombre}</h3>
                 {item.pasos.map((paso) => <p key={paso}>- {paso}</p>)}
               </article>
             ))}
