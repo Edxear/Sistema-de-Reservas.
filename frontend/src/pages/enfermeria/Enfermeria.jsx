@@ -28,6 +28,7 @@ import FotosHeridas from './FotosHeridas';
 import MensajeriaSegura from './MensajeriaSegura';
 import CargaTrabajo from './CargaTrabajo';
 import AyudaRapida from './AyudaRapida';
+import SaludMental from './SaludMental';
 
 const TRANSVERSAL_ITEMS = [
   'Pase de guardia seguro',
@@ -456,6 +457,7 @@ export default function Enfermeria() {
           <button onClick={() => setActiveTab('carga')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'carga' ? '#6366f1' : '#e5e7eb', color: activeTab === 'carga' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>👥 Carga</button>
           <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'dashboard' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'dashboard' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📊 Dashboard</button>
           <button onClick={() => setActiveTab('config')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'config' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'config' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚙️ Config</button>
+          <button onClick={() => setActiveTab('saludMental')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'saludMental' ? '#7c3aed' : '#e5e7eb', color: activeTab === 'saludMental' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🧠 Salud Mental</button>
         </div>
 
         <div className={styles.metaRow}>
@@ -478,6 +480,7 @@ export default function Enfermeria() {
       {activeTab === 'conocimiento' && <BaseConocimiento />}
       {activeTab === 'heridas' && <FotosHeridas branches={branches} scope={dashboard?.scope || {}} permissions={permissions} />}
       {activeTab === 'mensajeria' && <MensajeriaSegura />}
+      {activeTab === 'saludMental' && <SaludMental />}
         {(activeTab === 'dashboard' || activeTab === 'config') && (<>
       <section className={styles.card}>
         <div className={styles.actionsRow}>

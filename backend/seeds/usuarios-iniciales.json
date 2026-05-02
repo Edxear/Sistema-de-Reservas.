@@ -177,6 +177,33 @@
       "ramaEnfermeria": "Control de Infecciones",
       "rolJerarquicoEnfermeria": "coordinacion",
       "cargoOrganigrama": "Control de Infecciones"
+    },
+    {
+      "nombre": "Enf. Claudia Brest",
+      "email": "claudia.brest@integrasalud.com",
+      "telefono": "3415404010",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Oncologia / Cuidados Paliativos",
+      "rolJerarquicoEnfermeria": "coordinacion",
+      "cargoOrganigrama": "Coordinadora de Oncologia"
+    },
+    {
+      "nombre": "Enf. Hernan Diaz",
+      "email": "hernan.diaz@integrasalud.com",
+      "telefono": "3415404011",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Cardiologia Critica",
+      "rolJerarquicoEnfermeria": "senior",
+      "cargoOrganigrama": "Referente Cardiologia Critica"
+    },
+    {
+      "nombre": "Enf. Andrea Mena",
+      "email": "andrea.mena@integrasalud.com",
+      "telefono": "3415404012",
+      "rol": "enfermero",
+      "ramaEnfermeria": "Rehabilitacion / Kinesiologia",
+      "rolJerarquicoEnfermeria": "coordinacion",
+      "cargoOrganigrama": "Coordinadora de Rehabilitacion"
     }
   ],
   "pacientes": [

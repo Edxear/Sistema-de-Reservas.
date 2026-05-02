@@ -207,7 +207,58 @@ const buildInitialState = () => {
       telefono: '341-555-3333',
       rol: 'enfermero',
       especialidad: 'enfermeria clinica',
+      ramaEnfermeria: 'Guardia',
+      rolJerarquicoEnfermeria: 'coordinacion',
+      cargoOrganigrama: 'Coordinadora de Guardia',
       bio: 'Referente de calidad y seguridad del paciente.',
+    },
+    {
+      _id: 'nurse-2',
+      nombre: 'Enf. Valeria Sosa',
+      email: 'valeria.sosa@demo.local',
+      telefono: '341-555-3334',
+      rol: 'enfermero',
+      especialidad: 'enfermeria clinica',
+      ramaEnfermeria: 'Salud Mental',
+      rolJerarquicoEnfermeria: 'senior',
+      cargoOrganigrama: 'Referente de Salud Mental',
+      bio: 'Especialista en enfermeria de salud mental y contenciones.',
+    },
+    {
+      _id: 'nurse-3',
+      nombre: 'Enf. Claudia Brest',
+      email: 'claudia.brest@demo.local',
+      telefono: '341-555-3335',
+      rol: 'enfermero',
+      especialidad: 'enfermeria clinica',
+      ramaEnfermeria: 'Oncologia / Cuidados Paliativos',
+      rolJerarquicoEnfermeria: 'coordinacion',
+      cargoOrganigrama: 'Coordinadora de Oncologia',
+      bio: 'Cuidados oncologicos y paliativos.',
+    },
+    {
+      _id: 'nurse-4',
+      nombre: 'Enf. Hernan Diaz',
+      email: 'hernan.diaz@demo.local',
+      telefono: '341-555-3336',
+      rol: 'enfermero',
+      especialidad: 'enfermeria clinica',
+      ramaEnfermeria: 'Cardiologia Critica',
+      rolJerarquicoEnfermeria: 'senior',
+      cargoOrganigrama: 'Referente Cardiologia Critica',
+      bio: 'Monitoreo cardiaco y soporte vital avanzado.',
+    },
+    {
+      _id: 'nurse-5',
+      nombre: 'Enf. Andrea Mena',
+      email: 'andrea.mena@demo.local',
+      telefono: '341-555-3337',
+      rol: 'enfermero',
+      especialidad: 'enfermeria clinica',
+      ramaEnfermeria: 'Rehabilitacion / Kinesiologia',
+      rolJerarquicoEnfermeria: 'coordinacion',
+      cargoOrganigrama: 'Coordinadora de Rehabilitacion',
+      bio: 'Rehabilitacion motora y respiratoria.',
     },
     {
       _id: 'sec-1',
@@ -742,7 +793,7 @@ const computeNursingOrganigrama = () => ({
     { _id: 'nh-1', rama: 'Guardia', responsable: 'Lic. Ana Perez', equipo: '12 personas', turno: 'Rotativo' },
     { _id: 'nh-2', rama: 'Internacion', responsable: 'Carla Medina', equipo: '10 personas', turno: 'Mixto' },
   ],
-  branches: ['Guardia', 'Internacion', 'UTI', 'Pediatria'],
+  branches: ['Guardia', 'Internacion Adultos', 'UTI / Cuidados Criticos', 'Quirurgica', 'Pediatrica', 'Neonatologia', 'Salud Mental', 'Vacunatorio', 'Control de Infecciones', 'Oncologia / Cuidados Paliativos', 'Cardiologia Critica', 'Rehabilitacion / Kinesiologia'],
   byBranch: [
     { rama: 'Guardia', personal: 12, cobertura: 'Completa', referentes: ['Lic. Ana Perez'] },
     { rama: 'Internacion', personal: 10, cobertura: 'Ajustada', referentes: ['Carla Medina'] },
@@ -1227,7 +1278,7 @@ export const mockApiRequest = async (config) => {
   }
 
   if (method === 'get' && path === '/enfermeria/catalog') {
-    return response(config, { branches: ['Guardia', 'Internacion', 'UTI', 'Pediatria'], hierarchy: computeNursingOrganigrama().hierarchy });
+    return response(config, { branches: ['Guardia', 'Internacion Adultos', 'UTI / Cuidados Criticos', 'Quirurgica', 'Pediatrica', 'Neonatologia', 'Salud Mental', 'Vacunatorio', 'Control de Infecciones', 'Oncologia / Cuidados Paliativos', 'Cardiologia Critica', 'Rehabilitacion / Kinesiologia'], hierarchy: computeNursingOrganigrama().hierarchy });
   }
   if (method === 'get' && path === '/enfermeria/dashboard') {
     return response(config, computeNursingDashboard());

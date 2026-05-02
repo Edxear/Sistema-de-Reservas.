@@ -18,6 +18,9 @@ const BRANCHES = [
   'Salud Mental',
   'Vacunatorio',
   'Control de Infecciones',
+  'Oncologia / Cuidados Paliativos',
+  'Cardiologia Critica',
+  'Rehabilitacion / Kinesiologia',
 ];
 
 const HIERARCHY = [
