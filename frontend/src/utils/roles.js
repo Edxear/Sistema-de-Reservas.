@@ -35,7 +35,12 @@ export const canAccessMentalHealthArea = (user) => {
   const cargo = normalizeText(user?.cargoOrganigrama);
   const area = normalizeText(user?.areaOrganigrama);
 
-  return rama.includes('salud mental') || cargo.includes('salud mental') || area.includes('salud mental');
+  return (
+    rama.includes('salud mental') || cargo.includes('salud mental') || area.includes('salud mental')
+    || rama.includes('psiquiatr') || cargo.includes('psiquiatr') || area.includes('psiquiatr')
+    || rama.includes('neuropsiq') || area.includes('neuropsiq')
+    || rama.includes('psico') || area.includes('psico')
+  );
 };
 export const canAccessGuardiaMedicaArea = (user) => {
   const role = normalizeRole(user?.rol);

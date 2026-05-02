@@ -11,6 +11,7 @@ import {
 import { canAccessMentalHealthArea } from '../../utils/roles';
 import MensajeriaSegura from '../enfermeria/MensajeriaSegura';
 import AreaBedBoard from '../../components/AreaBedBoard';
+import ShiftReport from '../../components/ShiftReport';
 import styles from '../operaciones/OperationalArea.module.css';
 
 const normalize = (value = '') => String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -164,6 +165,7 @@ export default function SaludMentalArea() {
     { key: 'equipo', label: 'Equipo y Organigrama' },
     { key: 'pizarra', label: 'Pizarra Camas Area' },
     { key: 'mensajeria', label: 'Mensajeria' },
+    { key: 'pase', label: 'Pase de Guardia' },
   ];
 
   return (
@@ -314,6 +316,12 @@ export default function SaludMentalArea() {
 
       {activeTab === 'pizarra' && <AreaBedBoard areaKey="salud-mental" />}
       {activeTab === 'mensajeria' && <MensajeriaSegura />}
+      {activeTab === 'pase' && (
+        <section className={styles.card}>
+          <h2>Pase de Guardia</h2>
+          <ShiftReport area="salud-mental" areaLabel="Salud Mental" />
+        </section>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessGuardiaMedicaArea } from '../../utils/roles';
 import AreaBedBoard from '../../components/AreaBedBoard';
+import ShiftReport from '../../components/ShiftReport';
 import styles from '../operaciones/OperationalArea.module.css';
 
 const TRIAGE = [
@@ -47,6 +48,7 @@ export default function GuardiaMedicaArea() {
     { key: 'circuitos', label: 'Circuitos Criticos' },
     { key: 'observacion', label: 'Observacion' },
     { key: 'pizarra', label: 'Pizarra Camas Area' },
+    { key: 'pase', label: 'Pase de Guardia' },
   ];
 
   return (
@@ -170,6 +172,13 @@ export default function GuardiaMedicaArea() {
       )}
 
       {activeTab === 'pizarra' && <AreaBedBoard areaKey="guardia-medica" />}
+
+      {activeTab === 'pase' && (
+        <section className={styles.card}>
+          <h2>Pase de Guardia</h2>
+          <ShiftReport area="guardia" areaLabel="Guardia Medica" />
+        </section>
+      )}
     </div>
   );
 }

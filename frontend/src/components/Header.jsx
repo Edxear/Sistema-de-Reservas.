@@ -19,6 +19,7 @@ import {
   canAccessSupport,
   canManageDoctors,
   canManagePatients,
+  isAdminRole,
 } from '../utils/roles';
 import styles from './Header.module.css';
 
@@ -180,6 +181,7 @@ export default function Header() {
                   {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Medica')}</Link>}
                   {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramedicos y Ambulancia')}</Link>}
                   {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
+                  {isAdminRole(role) && <Link to="/dashboard-operacional" onClick={closeAllMenus}>{t('nav.operationalDashboard', 'Dashboard Operacional')}</Link>}
                   {canAccessPizarra(role) && <Link to="/pizarra" data-tour="pizarra" onClick={closeAllMenus}>{t('nav.bedBoard', 'Pizarra Camas')}</Link>}
                   {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" data-tour="ordenes" onClick={closeAllMenus}>{t('nav.medicalOrders', 'Ordenes Medicas')}</Link>}
                   {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}

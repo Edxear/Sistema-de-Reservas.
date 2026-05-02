@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canAccessMantenimientoArea } from '../../utils/roles';
+import ShiftReport from '../../components/ShiftReport';
 import styles from '../operaciones/OperationalArea.module.css';
 
 const TAREAS_PREVENTIVAS = [
@@ -48,6 +49,7 @@ export default function MantenimientoArea() {
     { key: 'preventivo', label: 'Preventivo' },
     { key: 'incidentes', label: 'Incidentes' },
     { key: 'biomedica', label: 'Ingenieria Clinica' },
+    { key: 'pase', label: 'Pase de Turno' },
   ];
 
   return (
@@ -179,6 +181,13 @@ export default function MantenimientoArea() {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {activeTab === 'pase' && (
+        <section className={styles.card}>
+          <h2>Pase de Turno</h2>
+          <ShiftReport area="mantenimiento" areaLabel="Mantenimiento Hospitalario" />
         </section>
       )}
     </div>
