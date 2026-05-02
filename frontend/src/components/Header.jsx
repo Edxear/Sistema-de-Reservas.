@@ -7,6 +7,10 @@ import { useTheme } from '../context/ThemeContext';
 import NotificacionCenter from './NotificacionCenter';
 import {
   canAccessNursingArea,
+  canAccessMentalHealthArea,
+  canAccessGuardiaMedicaArea,
+  canAccessMantenimientoArea,
+  canAccessParamedicosArea,
   canAccessOrganigrama,
   canAccessPizarra,
   canAccessOrdenesMedicas,
@@ -172,6 +176,10 @@ export default function Header() {
                   {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>{t('nav.prescriptions', 'Recetas')}</Link>}
                   {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
                   {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>{t('nav.nursing', 'Enfermeria')}</Link>}
+                  {canAccessMentalHealthArea(user) && <Link to="/salud-mental" onClick={closeAllMenus}>{t('nav.mentalHealth', 'Salud Mental')}</Link>}
+                  {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Medica')}</Link>}
+                  {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramedicos y Ambulancia')}</Link>}
+                  {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
                   {canAccessPizarra(role) && <Link to="/pizarra" data-tour="pizarra" onClick={closeAllMenus}>{t('nav.bedBoard', 'Pizarra Camas')}</Link>}
                   {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" data-tour="ordenes" onClick={closeAllMenus}>{t('nav.medicalOrders', 'Ordenes Medicas')}</Link>}
                   {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}

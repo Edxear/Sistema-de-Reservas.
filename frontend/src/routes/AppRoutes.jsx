@@ -25,6 +25,10 @@ import DemoLanding from '../pages/demo/DemoLanding';
 const Organigrama = React.lazy(() => import('../pages/organizacion/Organigrama'));
 const Soporte = React.lazy(() => import('../pages/soporte/Soporte'));
 const Enfermeria = React.lazy(() => import('../pages/enfermeria/Enfermeria'));
+const SaludMentalArea = React.lazy(() => import('../pages/saludmental/SaludMentalArea'));
+const GuardiaMedicaArea = React.lazy(() => import('../pages/guardia/GuardiaMedicaArea'));
+const ParamedicosArea = React.lazy(() => import('../pages/paramedicos/ParamedicosArea'));
+const MantenimientoArea = React.lazy(() => import('../pages/mantenimiento/MantenimientoArea'));
 
 const LazyRoute = ({ children }) => (
   <Suspense fallback={<div style={{ padding: 24 }}>Cargando modulo...</div>}>
@@ -194,6 +198,46 @@ export default function AppRoutes() {
           <ProtectedRoute allowedRoles={[ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <LazyRoute>
               <Enfermeria />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/salud-mental"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
+            <LazyRoute>
+              <SaludMentalArea />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/guardia-medica"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
+            <LazyRoute>
+              <GuardiaMedicaArea />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/paramedicos-ambulancia"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
+            <LazyRoute>
+              <ParamedicosArea />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/mantenimiento"
+        element={(
+          <ProtectedRoute allowedRoles={[ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>
+            <LazyRoute>
+              <MantenimientoArea />
             </LazyRoute>
           </ProtectedRoute>
         )}
