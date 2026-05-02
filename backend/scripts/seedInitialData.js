@@ -1,6 +1,5 @@
-const path = require('path');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const loadEnv = require('../config/loadEnv');
 
 const User = require('../models/User');
 const Service = require('../models/Service');
@@ -11,7 +10,7 @@ const HistoriaClinica = require('../models/HistoriaClinica');
 const seedUsers = require('../seeds/usuarios-iniciales.json');
 const organigramaHospitalario = require('../seeds/organigrama-hospitalario.json');
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+loadEnv();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const SEED_INITIAL_PASSWORD = process.env.SEED_INITIAL_PASSWORD || seedUsers.passwordComun || 'clinica123';

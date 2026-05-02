@@ -78,6 +78,10 @@ const PublicRoute = ({ children }) => {
 
 export default function AppRoutes() {
   const { user, demoMode } = useAuth();
+  const isPublicDemoHost = typeof window !== 'undefined' && (
+    window.location.hostname.toLowerCase() === 'sistema-de-reservas-eta.vercel.app'
+    || window.location.hostname.toLowerCase().endsWith('.sistema-de-reservas-eta.vercel.app')
+  );
   const isPatientDashboard = user?.rol === ROLE.PACIENTE;
 
   return (
@@ -221,7 +225,7 @@ export default function AppRoutes() {
       <Route path="/medicos" element={<MedicosList />} />
       <Route path="/medicos/:id" element={<PaginaMedico />} />
       <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
-      <Route path="/demo" element={<DemoLanding />} />
+      <Route path="/demo" element={isPublicDemoHost ? <DemoLanding /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

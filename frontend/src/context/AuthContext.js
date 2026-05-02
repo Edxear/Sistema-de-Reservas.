@@ -62,6 +62,12 @@ const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.pacie
 const readDemoModePreference = () => {
   if (typeof window === 'undefined') return DEMO_MODE;
 
+  // Fuera del host publico de demo, forzamos modo real.
+  if (!isPublicDemoHost()) {
+    window.localStorage.setItem('demoModeOverride', 'false');
+    return false;
+  }
+
   const queryMode = readDemoModeFromQuery();
   if (queryMode === false) {
     window.localStorage.setItem(REAL_MODE_UNLOCK_KEY, 'true');
@@ -256,6 +262,13 @@ export function AuthProvider({ children }) {
 
   const setDemoModeEnabled = (enabled) => {
     const nextValue = Boolean(enabled);
+
+    if (nextValue && !isPublicDemoHost()) {
+      localStorage.setItem('demoModeOverride', 'false');
+      setDemoMode(false);
+      toast.info('Modo demo disponible solo en Vercel publico.');
+      return;
+    }
 
     if (!nextValue && !canUseRealMode()) {
       toast.info('En este dominio el acceso publico queda en demo. Para modo real usa ?modo=real desde tu equipo.');

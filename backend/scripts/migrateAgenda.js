@@ -1,11 +1,10 @@
-const path = require('path');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const loadEnv = require('../config/loadEnv');
 
 const User = require('../models/User');
 const AgendaMedica = require('../models/AgendaMedica');
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+loadEnv();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

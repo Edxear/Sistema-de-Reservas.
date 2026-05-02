@@ -13,6 +13,10 @@ export default function LoginRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login, register } = useAuth(); 
+  const isPublicDemoHost = typeof window !== 'undefined' && (
+    window.location.hostname.toLowerCase() === 'sistema-de-reservas-eta.vercel.app'
+    || window.location.hostname.toLowerCase().endsWith('.sistema-de-reservas-eta.vercel.app')
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,6 +123,7 @@ export default function LoginRegister() {
       </div>
 
       {/* Demo CTA */}
+      {isPublicDemoHost && (
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '10px' }}>
           {t('auth.exploreWithoutAccount', '¿Querés explorar el sistema sin cuenta?')}
@@ -141,6 +146,7 @@ export default function LoginRegister() {
           {t('auth.tryDemo', '🧪 Probar en modo demo')}
         </button>
       </div>
+      )}
     </div>
   );
 }

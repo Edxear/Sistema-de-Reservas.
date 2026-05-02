@@ -1,4 +1,11 @@
 const DEFAULT_DEMO_MODE = process.env.REACT_APP_DEMO_MODE !== 'false';
+const PUBLIC_DEMO_HOSTS = ['sistema-de-reservas-eta.vercel.app'];
+
+const isPublicDemoHost = () => {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname.toLowerCase();
+  return PUBLIC_DEMO_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+};
 
 const deepClone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -585,6 +592,10 @@ const nextId = (key, prefix) => {
 
 export const isDemoModeEnabled = () => {
   if (typeof window === 'undefined') return DEFAULT_DEMO_MODE;
+  if (!isPublicDemoHost()) {
+    window.localStorage.setItem('demoModeOverride', 'false');
+    return false;
+  }
   const override = window.localStorage.getItem('demoModeOverride');
   if (override === 'true') return true;
   if (override === 'false') return false;

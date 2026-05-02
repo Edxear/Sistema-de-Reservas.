@@ -37,6 +37,10 @@ export default function Header() {
   const dropdownRef = useRef(null);
   const demoDropdownRef = useRef(null);
   const role = user?.rol;
+  const isPublicDemoHost = typeof window !== 'undefined' && (
+    window.location.hostname.toLowerCase() === 'sistema-de-reservas-eta.vercel.app'
+    || window.location.hostname.toLowerCase().endsWith('.sistema-de-reservas-eta.vercel.app')
+  );
   const isRealSession = isAuthenticated && !isGuestSession;
   const showPrivateMenu = isAuthenticated || isGuestSession;
 
@@ -74,6 +78,7 @@ export default function Header() {
         </button>
 
         <nav className={`${styles.nav} ${isMenuOpen ? styles.navOpen : ''}`}>
+          {isPublicDemoHost && (
           <div className={styles.dropdown} ref={demoDropdownRef}>
             <button
               type="button"
@@ -127,6 +132,7 @@ export default function Header() {
               </div>
             )}
           </div>
+          )}
 
           <button
             type="button"

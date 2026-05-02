@@ -113,22 +113,28 @@ textarea {
 
 @media (max-width: 768px) {
   .mobile-toast-container.Toastify__toast-container--top-center {
-    width: calc(100vw - 18px);
-    left: 9px;
-    right: 9px;
+    width: calc(100vw - 16px);
+    left: 8px;
+    right: 8px;
     margin: 0;
     padding: 0;
     transform: none;
   }
 
   .mobile-toast {
-    border-radius: 14px;
+    border-radius: 16px;
     min-height: auto;
-    margin-bottom: 7px;
-    padding: 9px 11px;
-    font-size: 0.82rem;
-    line-height: 1.32;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+    background: rgba(21, 52, 74, 0.82);
+    color: #e7f4fe;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
   }
 
   .mobile-toast .Toastify__toast-body {
@@ -138,6 +144,12 @@ textarea {
 
   .mobile-toast .Toastify__close-button {
     align-self: center;
-    opacity: 0.85;
+    opacity: 0.88;
+    color: #e7f4fe;
+  }
+
+  .mobile-toast .Toastify__progress-bar {
+    height: 3px;
+    opacity: 0.75;
   }
 }

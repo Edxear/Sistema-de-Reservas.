@@ -1,9 +1,8 @@
-const dotenv = require('dotenv');
-const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
+const loadEnv = require('./config/loadEnv');
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+loadEnv();
 
 const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET', 'FRONTEND_URL'];
 const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
