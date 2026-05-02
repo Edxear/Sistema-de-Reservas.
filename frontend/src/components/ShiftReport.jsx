@@ -54,7 +54,6 @@ export default function ShiftReport({ area = 'enfermeria', areaLabel = 'Enfermer
   const [turno, setTurno] = useState('manana');
   const [notas, setNotas] = useState('');
   const [pendientes, setPendientes] = useState('');
-  const [printed, setPrinted] = useState(false);
 
   const today = new Date().toLocaleDateString('es-AR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -87,10 +86,7 @@ export default function ShiftReport({ area = 'enfermeria', areaLabel = 'Enfermer
   }, {});
 
   const handlePrint = () => {
-    setPrinted(true);
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    window.print();
   };
 
   const turnoLabel = TURNOS.find((t) => t.key === turno)?.label || turno;

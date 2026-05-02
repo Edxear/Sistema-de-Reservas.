@@ -2,6 +2,7 @@
  * Phase 6 – Unit tests for roles.js
  * Uses CRA's built-in Jest + jsdom environment (no extra config needed).
  */
+/* eslint-env jest */
 
 import {
   ROLE,

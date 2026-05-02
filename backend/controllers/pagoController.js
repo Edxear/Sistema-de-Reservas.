@@ -1,6 +1,5 @@
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 const Booking = require('../models/Booking');
-const User = require('../models/User');
 const {
   enviarEmailBackground,
   emailConfirmarReserva,

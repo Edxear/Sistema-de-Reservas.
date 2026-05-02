@@ -1,4 +1,3 @@
-const User = require('../models/User');
 
 /**
  * Middleware que verifica que el usuario sea:

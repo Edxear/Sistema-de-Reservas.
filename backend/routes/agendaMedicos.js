@@ -1,7 +1,6 @@
 const express = require('express');
 const { check } = require('express-validator');
 const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
 const validateRequest = require('../middleware/validateRequest');
 const { agendaOwnerOrAdmin, medicoOrAdmin } = require('../middleware/agendaAuth');
 const router = express.Router();

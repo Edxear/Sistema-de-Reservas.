@@ -49,6 +49,7 @@ const HIERARCHY_LEVEL = {
 
 const getAuthUserId = (req) => req.user?.id || req.user?._id;
 const isAdminRole = (role) => ['admin', 'superadmin'].includes(String(role || '').toLowerCase());
+
 const isNursingRole = (role) => ['enfermero', 'admin', 'superadmin'].includes(String(role || '').toLowerCase());
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -64,7 +65,6 @@ const normalizeNoAccents = (value = '') => normalize(value).normalize('NFD').rep
 
 const roleFromActor = (actor) => normalize(actor?.rol);
 const cargoFromActor = (actor) => normalizeNoAccents(actor?.cargoOrganigrama);
-const areaFromActor = (actor) => normalizeNoAccents(actor?.areaOrganigrama);
 const branchFromActor = (actor) => String(actor?.ramaEnfermeria || actor?.sectorOrganigrama || '').trim();
 
 const isPrincipalAdmin = (actor) => Boolean(actor?.esSuperAdminPrincipal);

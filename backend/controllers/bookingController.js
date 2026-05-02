@@ -578,7 +578,7 @@ exports.updateBooking = async (req, res) => {
 
           // Notificación al paciente
           try {
-              const notifPaciente = await crearNotificacion(
+              await crearNotificacion(
               paciente._id,
               'reserva_confirmada',
               '¡Tu reserva está confirmada!',
@@ -609,7 +609,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al médico
             try {
-              const notifMedico = await crearNotificacion(
+              await crearNotificacion(
                 medico._id,
                 'reserva_confirmada',
                 `Turno confirmado: ${paciente.nombre}`,
@@ -643,7 +643,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al paciente
             try {
-              const notifPaciente = await crearNotificacion(
+              await crearNotificacion(
                 paciente._id,
                 'reserva_cancelada',
                 'Tu turno fue cancelado',
@@ -674,7 +674,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al médico
             try {
-              const notifMedico = await crearNotificacion(
+              await crearNotificacion(
                 medico._id,
                 'reserva_cancelada',
                 `Turno cancelado: ${paciente?.nombre}`,
@@ -707,7 +707,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al paciente
             try {
-              const notifPaciente = await crearNotificacion(
+              await crearNotificacion(
                 paciente._id,
                 'reserva_reprogramada',
                 `Tu turno movido a ${new Date(updated.fecha).toLocaleDateString()}`,
@@ -737,7 +737,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al médico
             try {
-              const notifMedico = await crearNotificacion(
+              await crearNotificacion(
                 medico._id,
                 'reserva_reprogramada',
                 `Turno reprogramado: ${paciente?.nombre}`,
@@ -769,7 +769,7 @@ exports.updateBooking = async (req, res) => {
 
             // Notificación al paciente
             try {
-              const notifPaciente = await crearNotificacion(
+              await crearNotificacion(
                 paciente._id,
                 'reserva_atendida',
                 '¡Turno completado! Déjanos tu opinión',

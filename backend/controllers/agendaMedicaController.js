@@ -3,8 +3,6 @@ const AgendaExcepcion = require('../models/AgendaExcepcion');
 const User = require('../models/User');
 const disponibilidadService = require('../services/disponibilidadService');
 
-const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
-
 /**
  * GET /api/medicos/:id/disponibilidad
  * Obtiene slots disponibles para una fecha y duración específica

@@ -169,24 +169,32 @@ export default function Header() {
                 <FaChevronDown className={isDropdownOpen ? styles.rotate : ''} />
               </button>
               {isDropdownOpen && (
-                <div className={styles.dropdownMenu}>
-                  <Link to="/dashboard" data-tour="dashboard" onClick={closeAllMenus}>{t('nav.dashboard', 'Panel principal')}</Link>
-                  <Link to="/turnos" onClick={closeAllMenus}>{t('nav.appointments', 'Turnos')}</Link>
-                  {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>{t('nav.doctors', 'Medicos')}</Link>}
-                  {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>{t('nav.patients', 'Pacientes')}</Link>}
-                  {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>{t('nav.prescriptions', 'Recetas')}</Link>}
-                  {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
-                  {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>{t('nav.nursing', 'Enfermeria')}</Link>}
-                  {canAccessMentalHealthArea(user) && <Link to="/salud-mental" onClick={closeAllMenus}>{t('nav.mentalHealth', 'Salud Mental')}</Link>}
-                  {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Medica')}</Link>}
-                  {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramedicos y Ambulancia')}</Link>}
-                  {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
-                  {isAdminRole(role) && <Link to="/dashboard-operacional" onClick={closeAllMenus}>{t('nav.operationalDashboard', 'Dashboard Operacional')}</Link>}
-                  {canAccessPizarra(role) && <Link to="/pizarra" data-tour="pizarra" onClick={closeAllMenus}>{t('nav.bedBoard', 'Pizarra Camas')}</Link>}
-                  {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" data-tour="ordenes" onClick={closeAllMenus}>{t('nav.medicalOrders', 'Ordenes Medicas')}</Link>}
-                  {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}
-                  <Link to="/perfil" onClick={closeAllMenus}>{t('nav.profile', 'Mi perfil')}</Link>
-                  {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>{t('nav.organigram', 'Organigrama')}</Link>}
+                <div className={`${styles.dropdownMenu} ${styles.dropdownMenu2col}`}>
+                  {/* Columna izquierda — Clínico */}
+                  <div className={styles.menuCol}>
+                    <span className={styles.colHeader}>Clínico</span>
+                    <Link to="/dashboard" data-tour="dashboard" onClick={closeAllMenus}>{t('nav.dashboard', 'Panel principal')}</Link>
+                    <Link to="/turnos" onClick={closeAllMenus}>{t('nav.appointments', 'Turnos')}</Link>
+                    {canAccessPizarra(role) && <Link to="/pizarra" data-tour="pizarra" onClick={closeAllMenus}>{t('nav.bedBoard', 'Pizarra Camas')}</Link>}
+                    {canAccessOrdenesMedicas(role) && <Link to="/ordenes-medicas" data-tour="ordenes" onClick={closeAllMenus}>{t('nav.medicalOrders', 'Órdenes Médicas')}</Link>}
+                    {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>{t('nav.prescriptions', 'Recetas')}</Link>}
+                    {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}
+                  </div>
+                  {/* Columna derecha — Áreas y Gestión */}
+                  <div className={styles.menuCol}>
+                    <span className={styles.colHeader}>Áreas y Gestión</span>
+                    {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>{t('nav.doctors', 'Médicos')}</Link>}
+                    {canManagePatients(role) && <Link to="/gestion/pacientes" onClick={closeAllMenus}>{t('nav.patients', 'Pacientes')}</Link>}
+                    {canAccessNursingArea(role) && <Link to="/enfermeria" onClick={closeAllMenus}>{t('nav.nursing', 'Enfermería')}</Link>}
+                    {canAccessMentalHealthArea(user) && <Link to="/salud-mental" onClick={closeAllMenus}>{t('nav.mentalHealth', 'Salud Mental')}</Link>}
+                    {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Médica')}</Link>}
+                    {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramédicos')}</Link>}
+                    {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
+                    {isAdminRole(role) && <Link to="/dashboard-operacional" onClick={closeAllMenus}>{t('nav.operationalDashboard', 'Dashboard Operacional')}</Link>}
+                    {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
+                    {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>{t('nav.organigram', 'Organigrama')}</Link>}
+                    <Link to="/perfil" onClick={closeAllMenus}>{t('nav.profile', 'Mi perfil')}</Link>
+                  </div>
                 </div>
               )}
             </div>

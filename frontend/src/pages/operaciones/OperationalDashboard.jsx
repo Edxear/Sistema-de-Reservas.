@@ -7,7 +7,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../../context/AuthContext';
 import { getBeds } from '../../services/bedUnitService';
 import { getIncidentes } from '../../services/areaOperacionalService';
 import { SkeletonKpiGrid, SkeletonTable } from '../../components/SkeletonLoader';
@@ -35,7 +34,6 @@ function sectorToArea(sector = '') {
 }
 
 export default function OperationalDashboard() {
-  const { user } = useAuth();
   const [beds, setBeds] = useState([]);
   const [incidentes, setIncidentes] = useState([]);
   const [loading, setLoading] = useState(true);

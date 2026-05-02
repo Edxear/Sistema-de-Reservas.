@@ -1,5 +1,4 @@
 const Rating = require('../models/Rating');
-const User = require('../models/User');
 
 /**
  * Obtener ratings de un médico

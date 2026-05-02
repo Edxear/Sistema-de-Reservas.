@@ -1,7 +1,6 @@
 const ColleagueRating = require('../models/ColleagueRating');
 const User = require('../models/User');
 const { logAuditEvent } = require('../utils/auditLogger');
-const mongoose = require('mongoose');
 
 const ADMIN_VIEW_ROLES = ['admin', 'superadmin'];
 const STAFF_ROLES = ['admin', 'superadmin', 'medico', 'enfermero', 'secretaria'];
