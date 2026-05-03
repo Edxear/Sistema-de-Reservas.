@@ -153,3 +153,517 @@ textarea {
     opacity: 0.75;
   }
 }
+
+/* ============================================
+   MEJORA VISUAL: ÁREA DE GUARDIA MÉDICA
+   ============================================ */
+
+.guardia-page {
+  padding: var(--space-6) var(--space-8);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Cabecera */
+.guardia-title-section h1 {
+  font-size: 1.8rem;
+  margin-bottom: var(--space-2);
+}
+
+.guardia-title-section p {
+  color: var(--color-muted);
+  margin-bottom: var(--space-6);
+}
+
+/* Métricas */
+.guardia-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.guardia-metric-card {
+  flex: 1;
+  min-width: 180px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-soft);
+  transition: transform var(--transition-fast), box-shadow var(--transition-base);
+}
+
+.guardia-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.guardia-metric-icon {
+  font-size: 2rem;
+  color: var(--color-primary-light);
+}
+
+.guardia-metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-primary);
+}
+
+.guardia-metric-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+}
+
+/* Tabs */
+.guardia-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-6);
+}
+
+.guardia-tab {
+  background: transparent;
+  border: none;
+  padding: var(--space-3) var(--space-5);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.guardia-tab:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.guardia-tab-active {
+  color: var(--color-primary-light);
+  border-bottom: 2px solid var(--color-primary-light);
+  background: var(--color-surface);
+}
+
+/* Tarjetas generales */
+.guardia-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border-soft);
+  margin-bottom: var(--space-6);
+}
+
+.guardia-card h2 {
+  font-size: 1.4rem;
+  margin-bottom: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Panel de inicio (tres tarjetas) */
+.guardia-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+.guardia-panel-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border-left: 4px solid var(--color-primary-light);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition-fast), box-shadow var(--transition-base);
+}
+
+.guardia-panel-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
+}
+
+.guardia-panel-card h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.2rem;
+  margin-bottom: var(--space-4);
+}
+
+.guardia-panel-card ul {
+  padding-left: var(--space-4);
+  margin: 0;
+}
+
+.guardia-panel-card li {
+  margin: var(--space-2) 0;
+  color: var(--color-text);
+}
+
+/* Tabla de triage */
+.guardia-table-wrapper {
+  overflow-x: auto;
+}
+
+.guardia-triage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.guardia-triage-table th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.guardia-triage-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+/* Colores por nivel de triage (usando variables existentes) */
+.guardia-triage-rojo {
+  background-color: var(--color-danger-bg);
+}
+.guardia-triage-naranja {
+  background-color: var(--color-warning-bg);
+}
+.guardia-triage-amarillo {
+  background-color: #fff9db; /* personalizado para amarillo claro */
+}
+.guardia-triage-verde {
+  background-color: var(--color-success-bg);
+}
+.guardia-triage-azul {
+  background-color: var(--color-info-bg);
+}
+
+/* Circuitos críticos */
+.guardia-circuitos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.guardia-circuito-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-soft);
+  transition: all var(--transition-fast);
+}
+
+.guardia-circuito-card:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-soft);
+}
+
+.guardia-circuito-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  color: var(--color-primary-light);
+  font-size: 1.3rem;
+}
+
+.guardia-circuito-header h3 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.guardia-circuito-card ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.guardia-circuito-card li {
+  margin: var(--space-2) 0;
+  font-size: 0.85rem;
+  padding-left: var(--space-2);
+}
+
+/* Tabla genérica (observación) */
+.guardia-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.guardia-table th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.guardia-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+/* Badges de riesgo */
+.guardia-risk-badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.guardia-risk-high {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.guardia-risk-medium {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.guardia-risk-low {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .guardia-page {
+    padding: var(--space-4);
+  }
+  .guardia-metrics {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .guardia-metric-card {
+    min-width: auto;
+  }
+  .guardia-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .guardia-tab {
+    white-space: nowrap;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA PIZARRA DE CAMAS (BED BOARD)
+   ============================================ */
+
+.bedboard-sector {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.bedboard-sector-title {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-2);
+  border-left: 4px solid var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.bedboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-5);
+}
+
+.bedboard-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border-left: 4px solid;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bedboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.bedboard-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.bedboard-card-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1rem;
+}
+
+.bedboard-select {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  background: var(--color-surface);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.bedboard-patient {
+  background: var(--color-surface-alt);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  margin: var(--space-2) 0;
+  font-size: 0.85rem;
+}
+
+.bedboard-patient p {
+  margin: var(--space-1) 0;
+}
+
+.bedboard-patient-empty {
+  background: var(--color-border-soft);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  margin: var(--space-2) 0;
+}
+
+.bedboard-card-actions {
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bedboard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.bedboard-btn.edit {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.bedboard-btn.assign {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.bedboard-btn.save {
+  background: var(--color-primary-light);
+  color: white;
+}
+
+.bedboard-btn.cancel {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.bedboard-btn:hover {
+  filter: brightness(0.95);
+  transform: scale(0.98);
+}
+
+.bedboard-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Modal */
+.bedboard-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.bedboard-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-strong);
+}
+
+.bedboard-modal h3 {
+  margin-bottom: var(--space-5);
+  color: var(--color-primary);
+}
+
+.bedboard-form-group {
+  margin-bottom: var(--space-4);
+}
+
+.bedboard-form-group label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.bedboard-form-group input,
+.bedboard-form-group textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.bedboard-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 768px) {
+  .bedboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .bedboard-modal {
+    width: 95%;
+    padding: var(--space-4);
+  }
+}
+
+

@@ -53,7 +53,7 @@ export default function ParamedicosArea() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <h1>Area de Paramedicos y Ambulancia</h1>
+        <h1>Area de Ambulancia</h1>
         <p>Operacion prehospitalaria, estabilizacion inicial, traslados y coordinacion con Guardia.</p>
         <div className={styles.metaRow}>
           <span className={styles.metaTag}>Salidas activas: {metrics.salidasActivas}</span>
