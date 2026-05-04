@@ -28,7 +28,8 @@
     "eject": "react-scripts eject"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20.19.0 <21",
+    "npm": ">=10.8.0 <11"
   },
   "browserslist": {
     "production": [
