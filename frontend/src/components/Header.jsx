@@ -172,13 +172,13 @@ export default function Header() {
           </select>
 
           {showPrivateMenu && (
-            <div className={styles.dropdown} ref={dropdownRef}>
+            <div className={`${styles.dropdown} ${styles.managementDropdown}`} ref={dropdownRef}>
               <button className={styles.dropdownTrigger} onClick={() => setIsDropdownOpen((prev) => !prev)}>
                 <span data-tour="gestion">{t('nav.management', 'Gestion')}</span>
                 <FaChevronDown className={isDropdownOpen ? styles.rotate : ''} />
               </button>
               {isDropdownOpen && (
-                <div className={`${styles.dropdownMenu} ${styles.dropdownMenu2col}`}>
+                <div className={`${styles.dropdownMenu} ${styles.dropdownMenu3col}`}>
                   {/* Columna izquierda — Clínico */}
                   <div className={styles.menuCol}>
                     <span className={styles.colHeader}>Clínico</span>
@@ -189,7 +189,7 @@ export default function Header() {
                     {canAccessRecetas(role) && <Link to="/recetas" onClick={closeAllMenus}>{t('nav.prescriptions', 'Recetas')}</Link>}
                     {canAccessTeleconsultas(role) && <Link to="/teleconsultas" onClick={closeAllMenus}>{t('nav.teleconsultations', 'Teleconsultas')}</Link>}
                   </div>
-                  {/* Columna derecha — Áreas y Gestión */}
+                  {/* Columna del medio — Áreas y Gestión */}
                   <div className={styles.menuCol}>
                     <span className={styles.colHeader}>Áreas y Gestión</span>
                     {canManageDoctors(role) && <Link to="/gestion/medicos" onClick={closeAllMenus}>{t('nav.doctors', 'Médicos')}</Link>}
@@ -199,25 +199,29 @@ export default function Header() {
                     {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Médica')}</Link>}
                     {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramédicos')}</Link>}
                     {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
-                    {visibleStrategicModules.length > 0 && <Link to="/modulos-estrategicos" onClick={closeAllMenus}>Modulos estrategicos</Link>}
-                    {visibleStrategicModules.length > 0 && (
-                      <div className={styles.groupedLinksWrap}>
-                        {Object.entries(groupedStrategicModules).map(([category, modules]) => (
-                          <div key={category} className={styles.groupedLinksBlock}>
-                            <span className={styles.subColHeader}>{category}</span>
-                            {modules.map((module) => (
-                              <Link key={module.key} to={module.path} className={styles.subMenuLink} onClick={closeAllMenus}>
-                                {module.title}
-                              </Link>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                     {isAdminRole(role) && <Link to="/dashboard-operacional" onClick={closeAllMenus}>{t('nav.operationalDashboard', 'Dashboard Operacional')}</Link>}
                     {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
                     {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>{t('nav.organigram', 'Organigrama')}</Link>}
                     <Link to="/perfil" onClick={closeAllMenus}>{t('nav.profile', 'Mi perfil')}</Link>
+                  </div>
+
+                  {/* Columna derecha — Módulos Estratégicos */}
+                  <div className={styles.menuCol}>
+                    <span className={styles.colHeader}>Módulos Estratégicos</span>
+                    {visibleStrategicModules.length > 0 && <Link to="/modulos-estrategicos" onClick={closeAllMenus}>Ver hub de módulos</Link>}
+                    {visibleStrategicModules.length > 0 && Object.entries(groupedStrategicModules).map(([category, modules]) => (
+                      <div key={category} className={styles.groupedLinksBlock}>
+                        <span className={styles.subColHeader}>{category}</span>
+                        {modules.map((module) => (
+                          <Link key={module.key} to={module.path} className={styles.subMenuLink} onClick={closeAllMenus}>
+                            {module.title}
+                          </Link>
+                        ))}
+                      </div>
+                    ))}
+                    {visibleStrategicModules.length === 0 && (
+                      <span className={styles.emptyHint}>Sin módulos asignados para este rol.</span>
+                    )}
                   </div>
                 </div>
               )}
