@@ -19,8 +19,10 @@ import {
   canAccessSupport,
   canManageDoctors,
   canManagePatients,
+  hasAnyAllowedRole,
   isAdminRole,
 } from '../utils/roles';
+import { STRATEGIC_MODULES } from '../data/strategicModules';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -42,6 +44,13 @@ export default function Header() {
   const dropdownRef = useRef(null);
   const demoDropdownRef = useRef(null);
   const role = user?.rol;
+  const visibleStrategicModules = STRATEGIC_MODULES.filter((module) => hasAnyAllowedRole(user, module.allowedRoles));
+  const groupedStrategicModules = visibleStrategicModules.reduce((acc, module) => {
+    const category = module.category || 'General';
+    acc[category] = acc[category] || [];
+    acc[category].push(module);
+    return acc;
+  }, {});
   const isPublicDemoHost = typeof window !== 'undefined' && (
     window.location.hostname.toLowerCase() === 'sistema-de-reservas-eta.vercel.app'
     || window.location.hostname.toLowerCase().endsWith('.sistema-de-reservas-eta.vercel.app')
@@ -190,6 +199,21 @@ export default function Header() {
                     {canAccessGuardiaMedicaArea(user) && <Link to="/guardia-medica" onClick={closeAllMenus}>{t('nav.er', 'Guardia Médica')}</Link>}
                     {canAccessParamedicosArea(user) && <Link to="/paramedicos-ambulancia" onClick={closeAllMenus}>{t('nav.paramedics', 'Paramédicos')}</Link>}
                     {canAccessMantenimientoArea(user) && <Link to="/mantenimiento" onClick={closeAllMenus}>{t('nav.maintenance', 'Mantenimiento')}</Link>}
+                    {visibleStrategicModules.length > 0 && <Link to="/modulos-estrategicos" onClick={closeAllMenus}>Modulos estrategicos</Link>}
+                    {visibleStrategicModules.length > 0 && (
+                      <div className={styles.groupedLinksWrap}>
+                        {Object.entries(groupedStrategicModules).map(([category, modules]) => (
+                          <div key={category} className={styles.groupedLinksBlock}>
+                            <span className={styles.subColHeader}>{category}</span>
+                            {modules.map((module) => (
+                              <Link key={module.key} to={module.path} className={styles.subMenuLink} onClick={closeAllMenus}>
+                                {module.title}
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {isAdminRole(role) && <Link to="/dashboard-operacional" onClick={closeAllMenus}>{t('nav.operationalDashboard', 'Dashboard Operacional')}</Link>}
                     {canAccessSupport(role) && <Link to="/soporte" data-tour="soporte" onClick={closeAllMenus}>{t('nav.support', 'Soporte')}</Link>}
                     {canAccessOrganigrama(role) && <Link to="/organigrama" onClick={closeAllMenus}>{t('nav.organigram', 'Organigrama')}</Link>}

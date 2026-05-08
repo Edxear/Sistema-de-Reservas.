@@ -6,9 +6,12 @@ const Service = require('../models/Service');
 const Booking = require('../models/Booking');
 const Receta = require('../models/Receta');
 const HistoriaClinica = require('../models/HistoriaClinica');
+const StrategicModuleDomainSnapshot = require('../models/StrategicModuleDomainSnapshot');
 
 const seedUsers = require('../seeds/usuarios-iniciales.json');
 const organigramaHospitalario = require('../seeds/organigrama-hospitalario.json');
+const { STRATEGIC_MODULES_DATA } = require('../data/strategicModulesData');
+const { groupStrategicModulesByDomain } = require('../data/strategicModuleDomains');
 
 loadEnv();
 
@@ -225,6 +228,7 @@ async function run() {
     Booking.deleteMany({}),
     Receta.deleteMany({}),
     HistoriaClinica.deleteMany({}),
+    StrategicModuleDomainSnapshot.deleteMany({}),
   ]);
 
   const principalSuperAdmin = await User.create({
@@ -391,6 +395,15 @@ async function run() {
   const conteoTurnos = await Booking.countDocuments({});
   const conteoHistorias = await HistoriaClinica.countDocuments({});
   const conteoRecetas = await Receta.countDocuments({});
+  const modulosEstrategicos = await StrategicModuleDomainSnapshot.insertMany(
+    groupStrategicModulesByDomain(STRATEGIC_MODULES_DATA).map((domain) => ({
+      ...domain,
+      modules: domain.modules.map((moduleData) => ({
+        ...moduleData,
+        lastUpdated: moduleData.lastUpdated ? new Date(moduleData.lastUpdated) : new Date(),
+      })),
+    })),
+  );
 
   console.log('Seed inicial completado:');
   console.log(`- Superadmin principal: ${principalSuperAdmin.email}`);
@@ -402,6 +415,7 @@ async function run() {
   console.log(`- Turnos: ${conteoTurnos}`);
   console.log(`- Historias clinicas: ${conteoHistorias}`);
   console.log(`- Recetas: ${conteoRecetas}`);
+  console.log(`- Dominios modulos estrategicos: ${modulosEstrategicos.length}`);
   console.log('- Password inicial configurada por variable de entorno: SEED_INITIAL_PASSWORD');
 
   await mongoose.disconnect();

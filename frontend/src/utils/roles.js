@@ -10,6 +10,14 @@ export const ROLE = {
 export const normalizeRole = (role) => String(role || '').toLowerCase();
 const normalizeText = (value) => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+export const hasAnyAllowedRole = (userOrRole, allowedRoles = []) => {
+  const currentRole = typeof userOrRole === 'string'
+    ? normalizeRole(userOrRole)
+    : normalizeRole(userOrRole?.rol);
+
+  return allowedRoles.map((role) => normalizeRole(role)).includes(currentRole);
+};
+
 export const isPatientRole = (role) => normalizeRole(role) === ROLE.PACIENTE;
 export const isSuperAdminRole = (role) => normalizeRole(role) === ROLE.SUPERADMIN;
 export const isSuperAdminPrincipal = (user) => user?.esSuperAdminPrincipal === true;

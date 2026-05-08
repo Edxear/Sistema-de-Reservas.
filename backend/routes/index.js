@@ -25,6 +25,7 @@ const areaOperacionalRoutes = require('./areaOperacional');
 const interoperabilidadRoutes = require('./interoperabilidad');
 const teleconsultasRoutes = require('./teleconsultas');
 const nursingRoutes = require('./nursing');
+const strategicModulesRoutes = require('./strategicModules');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -52,6 +53,7 @@ function registerApiRoutes(app) {
   app.use('/api/interoperabilidad', interoperabilidadRoutes);
   app.use('/api/teleconsultas', teleconsultasRoutes);
   app.use('/api/enfermeria', nursingRoutes);
+  app.use('/api/strategic-modules', strategicModulesRoutes);
 }
 
 module.exports = {

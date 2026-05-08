@@ -16,6 +16,7 @@ import DemoPageTip from './components/DemoPageTip';
 import DemoTourCustom from './components/DemoTourCustom';
 import OfflineIndicator from './components/OfflineIndicator';
 import { useDemoAnalytics } from './hooks/useDemoAnalytics';
+import { applyRouteScroll, buildScrollStorageKey, persistRouteScroll } from './utils/scrollRestoration';
 
 const DEMO_SUPPRESSED_TOAST_PATTERNS = [
   'no se pudo cargar',
@@ -84,25 +85,16 @@ function ScrollRestorationManager() {
       window.history.scrollRestoration = 'manual';
     }
 
-    const entryKey = location.key || `${location.pathname}${location.search}`;
-    const key = `scroll:${entryKey}`;
+    applyRouteScroll({ navigationType, location });
 
-    if (navigationType === 'POP') {
-      const saved = sessionStorage.getItem(key);
-      if (saved) {
-        const y = Number(saved);
-        if (!Number.isNaN(y)) {
-          requestAnimationFrame(() => window.scrollTo({ top: y, left: 0, behavior: 'auto' }));
-        }
-      }
-    }
+    const key = buildScrollStorageKey(location);
 
     let ticking = false;
     const persistScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        sessionStorage.setItem(key, String(window.scrollY));
+        persistRouteScroll({ location: { key }, y: window.scrollY });
         ticking = false;
       });
     };

@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { getBeds } from '../../services/bedUnitService';
 import { getIncidentes } from '../../services/areaOperacionalService';
 import { SkeletonKpiGrid, SkeletonTable } from '../../components/SkeletonLoader';
+import { STRATEGIC_MODULES } from '../../data/strategicModules';
 import styles from './OperationalArea.module.css';
 
 const AREAS = [
@@ -214,6 +215,32 @@ export default function OperationalDashboard() {
             })}
           </div>
         )}
+      </div>
+
+      <div className={styles.card}>
+        <h2 style={{ margin: '0 0 14px', color: '#113b60', fontSize: 16 }}>Expansion Funcional Prioritaria</h2>
+        <div className={styles.grid3} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+          {STRATEGIC_MODULES.map((module) => (
+            <div key={module.key} className={styles.panelCard} style={{ borderTop: `4px solid ${module.accent}` }}>
+              <h3>{module.title}</h3>
+              <p>{module.description}</p>
+              <div className={styles.metaRow}>
+                <span className={styles.metaTag}>{module.category}</span>
+                <span className={styles.metaTag}>{module.tags[0]}</span>
+              </div>
+              <Link
+                to={module.path}
+                style={{
+                  border: '1px solid #c8dbf0', borderRadius: 8, background: '#fff',
+                  color: '#18466d', padding: '7px 12px', fontSize: 12, fontWeight: 700,
+                  textDecoration: 'none', width: 'fit-content',
+                }}
+              >
+                Abrir modulo
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Recent critical incidents */}

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { appendDemoAnalyticsEvent } from '../hooks/useDemoAnalytics';
+import { STRATEGIC_MODULES } from '../data/strategicModules';
 import './DemoTourCustom.css';
 
 const ADMIN_STEPS = [
@@ -94,6 +95,21 @@ const PATIENT_STEPS = [
   },
 ];
 
+const STRATEGIC_MODULE_STEPS = [
+  {
+    route: '/modulos-estrategicos',
+    target: '[data-tour="modulos-estrategicos-overview"]',
+    title: '🧭 Hub de módulos estratégicos',
+    content: 'Desde aquí se agrupan las nuevas áreas clínicas, operativas y de gobierno con la misma línea visual del resto del sistema.',
+  },
+  ...STRATEGIC_MODULES.map((module) => ({
+    route: module.path,
+    target: '[data-tour="strategic-module-overview"]',
+    title: `🗂️ ${module.title}`,
+    content: module.description,
+  })),
+];
+
 const getDoneKey = (role) => `demoTourDone:${role === 'paciente' ? 'paciente' : 'admin'}`;
 const getSessionKey = (role) => `demoTourState:${role === 'paciente' ? 'paciente' : 'admin'}`;
 const RESET_KEY = 'demoTourResetNonce';
@@ -146,7 +162,7 @@ export default function DemoTourCustom() {
   const lastHandledResetNonceRef = useRef('');
 
   const steps = useMemo(
-    () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
+    () => (demoRole === 'paciente' ? PATIENT_STEPS : [...ADMIN_STEPS, ...STRATEGIC_MODULE_STEPS]),
     [demoRole],
   );
 

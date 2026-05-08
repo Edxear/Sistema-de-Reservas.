@@ -13,6 +13,8 @@ const ADMIN_ROUTE_PATTERNS = [
   '/paramedicos-ambulancia',
   '/mantenimiento',
   '/dashboard-operacional',
+  '/modulos-estrategicos',
+  '/modulos/*',
   '/organigrama',
   '/gestion/medicos',
   '/gestion/pacientes',

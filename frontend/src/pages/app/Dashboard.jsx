@@ -13,8 +13,9 @@ import { getBookings, createBooking, updateBooking, getBookingMetrics, getPatien
 import { getDisponibilidad } from '../../services/disponibilidadService';
 import Chat from '../../components/Chat';
 import { crearPreferencia } from '../../services/pagoService';
-import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics } from '../../utils/roles';
+import { canAccessHistoria, canAccessRecetas, canManageBookings, canViewAdminMetrics, hasAnyAllowedRole } from '../../utils/roles';
 import { exportArrayToExcel } from '../../utils/excelExport';
+import { STRATEGIC_MODULES } from '../../data/strategicModules';
 import styles from './Dashboard.module.css';
 
 const WEEK_DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
@@ -61,6 +62,7 @@ export default function Dashboard() {
   // Obtenemos el usuario y la función de logout del contexto
   const { user, logout, isAuthenticated } = useAuth();
   const role = user?.rol;
+  const visibleStrategicModules = STRATEGIC_MODULES.filter((module) => hasAnyAllowedRole(user, module.allowedRoles));
 
   const [doctors, setDoctors] = useState([]);
   const [services, setServices] = useState([]);
@@ -526,6 +528,18 @@ export default function Dashboard() {
           <h2 className={styles.cardTitle}>{t('dashboard.quickAccess', 'Accesos rapidos')}</h2>
           <div className={styles.actions}>
             <button onClick={() => navigate('/recetas')} className={styles.secondaryBtn}>{t('dashboard.goToPrescriptions', 'Ir a Recetas')}</button>
+          </div>
+        </section>
+      )}
+
+      {visibleStrategicModules.length > 0 && (
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Modulos estrategicos</h2>
+          <div className={styles.actions}>
+            <button onClick={() => navigate('/modulos-estrategicos')} className={styles.secondaryBtn}>Abrir hub de modulos</button>
+            {visibleStrategicModules.slice(0, 4).map((module) => (
+              <button key={module.key} onClick={() => navigate(module.path)} className={styles.secondaryBtn}>{module.title}</button>
+            ))}
           </div>
         </section>
       )}

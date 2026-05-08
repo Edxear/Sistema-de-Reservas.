@@ -31,6 +31,8 @@ const GuardiaMedicaArea = React.lazy(() => import('../pages/guardia/GuardiaMedic
 const ParamedicosArea = React.lazy(() => import('../pages/paramedicos/ParamedicosArea'));
 const MantenimientoArea = React.lazy(() => import('../pages/mantenimiento/MantenimientoArea'));
 const OperationalDashboard = React.lazy(() => import('../pages/operaciones/OperationalDashboard'));
+const StrategicModulesHub = React.lazy(() => import('../pages/modulos/StrategicModulesHub'));
+const StrategicModuleArea = React.lazy(() => import('../pages/modulos/StrategicModuleArea'));
 
 const LazyRoute = ({ children, area = false }) => (
   <Suspense fallback={area ? <SkeletonAreaPage /> : <div style={{ padding: 24 }}>Cargando modulo...</div>}>
@@ -250,6 +252,26 @@ export default function AppRoutes() {
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
             <LazyRoute area>
               <OperationalDashboard />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/modulos-estrategicos"
+        element={(
+          <ProtectedRoute>
+            <LazyRoute area>
+              <StrategicModulesHub />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/modulos/:moduleSlug"
+        element={(
+          <ProtectedRoute>
+            <LazyRoute area>
+              <StrategicModuleArea />
             </LazyRoute>
           </ProtectedRoute>
         )}

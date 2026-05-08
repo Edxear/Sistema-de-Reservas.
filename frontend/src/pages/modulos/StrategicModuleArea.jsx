@@ -1,0 +1,174 @@
+import React, { useEffect, useState } from 'react';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getStrategicModule } from '../../data/strategicModules';
+import { hasAnyAllowedRole } from '../../utils/roles';
+import { getStrategicModuleDetail } from '../../services/strategicModulesService';
+import styles from '../operaciones/OperationalArea.module.css';
+
+function renderTab(tab) {
+  if (tab.kind === 'cards') {
+    return (
+      <section className={styles.grid3}>
+        {tab.items.map((item) => (
+          <article key={item.title} className={styles.panelCard}>
+            <h3>{item.title}</h3>
+            {item.lines.map((line) => <p key={line}>{line}</p>)}
+          </article>
+        ))}
+      </section>
+    );
+  }
+
+  if (tab.kind === 'table') {
+    return (
+      <section className={styles.card}>
+        <h2>{tab.title}</h2>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                {tab.columns.map((column) => <th key={column}>{column}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {tab.rows.map((row) => (
+                <tr key={row.join('|')}>
+                  {row.map((value) => <td key={value}>{value}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className={styles.card}>
+      <h2>{tab.title}</h2>
+      <div className={styles.listWrap}>
+        {tab.items.map((item) => (
+          <article key={item.title} className={styles.item}>
+            <div className={styles.itemTitle}>{item.title}</div>
+            <div className={styles.itemMeta}>{item.meta}</div>
+            <div className={styles.note}>{item.detail}</div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function StrategicModuleArea() {
+  const { moduleSlug } = useParams();
+  const { user, demoMode } = useAuth();
+  const module = getStrategicModule(moduleSlug);
+  const [activeTab, setActiveTab] = useState(module?.tabs?.[0]?.key || 'panel');
+  const [backendDetail, setBackendDetail] = useState(null);
+
+  useEffect(() => {
+    setActiveTab(module?.tabs?.[0]?.key || 'panel');
+  }, [moduleSlug, module]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (!module || demoMode) {
+      setBackendDetail(null);
+      return undefined;
+    }
+
+    getStrategicModuleDetail(module.slug)
+      .then((payload) => {
+        if (!mounted) return;
+        setBackendDetail(payload.module || null);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setBackendDetail(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [demoMode, module, moduleSlug]);
+
+  if (!module) return <Navigate to="/modulos-estrategicos" replace />;
+  if (!hasAnyAllowedRole(user, module.allowedRoles)) return <Navigate to="/dashboard" replace />;
+
+  const currentTab = module.tabs.find((tab) => tab.key === activeTab) || module.tabs[0];
+
+  return (
+    <div className={styles.page}>
+      <section className={styles.hero} data-tour="strategic-module-overview" style={{ borderColor: `${module.accent}33`, background: `linear-gradient(180deg, ${module.accent}12 0%, #f8fbff 100%)` }}>
+        <h1>{module.title}</h1>
+        <p>{module.description}</p>
+        <div className={styles.metaRow}>
+          <span className={styles.metaTag}>{module.category}</span>
+          {module.tags.map((tag) => <span key={tag} className={styles.metaTag}>{tag}</span>)}
+          <span className={styles.metaTag}>{backendDetail?.localBackend ? 'Backend local activo' : 'Modo visual / demo'}</span>
+          {backendDetail?.owner && <span className={styles.metaTag}>Owner: {backendDetail.owner}</span>}
+        </div>
+        <div className={styles.grid3} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+          {(backendDetail?.liveMetrics || module.metrics).map((metric) => (
+            <article key={metric.label} className={styles.panelCard}>
+              <h3 style={{ color: module.accent }}>{metric.value}</h3>
+              <p>{metric.label}</p>
+            </article>
+          ))}
+        </div>
+        <div className={styles.actionsRow}>
+          <Link to="/modulos-estrategicos" className={styles.btnSecondary}>Volver al hub de modulos</Link>
+        </div>
+        <div className={styles.tabBar}>
+          {module.tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={activeTab === tab.key ? styles.tabActive : styles.tab}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {renderTab(currentTab)}
+
+      {backendDetail && (
+        <section className={styles.grid2}>
+          <article className={styles.card}>
+            <h2>Checkpoints operativos locales</h2>
+            <div className={styles.listWrap}>
+              {backendDetail.checkpoints.map((item) => (
+                <div key={item.name} className={styles.item}>
+                  <div className={styles.actionsRow}>
+                    <span className={styles.itemTitle}>{item.name}</span>
+                    <span className={item.state === 'ok' ? styles.badgeOk : item.state === 'warn' ? styles.badgeWarn : styles.badgeDanger}>
+                      {item.state}
+                    </span>
+                  </div>
+                  <div className={styles.note}>{item.note}</div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className={styles.card}>
+            <h2>Roadmap de implementacion local</h2>
+            <div className={styles.listWrap}>
+              {backendDetail.timeline.map((item) => (
+                <div key={item.event} className={styles.item}>
+                  <div className={styles.itemTitle}>{item.event}</div>
+                  <div className={styles.itemMeta}>{item.eta}</div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      )}
+    </div>
+  );
+}
