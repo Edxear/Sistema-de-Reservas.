@@ -82,7 +82,12 @@ export default function StrategicModulesHub() {
                 </div>
                 {backendSummary[module.slug]?.highlights?.length > 0 && <p className={styles.note}>{backendSummary[module.slug].highlights[0]}</p>}
                 <div className={styles.actionsRow}>
-                  <Link to={module.path} className={styles.btnSecondary}>Abrir modulo</Link>
+                  <Link to={`${module.path}/${module.tabs?.[0]?.key || 'panel'}`} className={styles.btnSecondary}>Abrir modulo</Link>
+                </div>
+                <div className={styles.metaRow}>
+                  {(module.tabs || []).map((tab) => (
+                    <Link key={tab.key} to={`${module.path}/${tab.key}`} className={styles.metaTag}>{tab.label}</Link>
+                  ))}
                 </div>
               </article>
             ))}

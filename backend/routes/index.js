@@ -26,6 +26,16 @@ const interoperabilidadRoutes = require('./interoperabilidad');
 const teleconsultasRoutes = require('./teleconsultas');
 const nursingRoutes = require('./nursing');
 const strategicModulesRoutes = require('./strategicModules');
+const hceRoutes = require('./hce');
+const laboratorioRoutes = require('./laboratorio');
+const imagenologiaRoutes = require('./imagenologia');
+const farmaciaRoutes = require('./farmacia');
+const facturacionRoutes = require('./facturacion');
+const admisionRoutes = require('./admision');
+const listaEsperaRoutes = require('./listaEspera');
+const uciRoutes = require('./uci');
+const inventarioRoutes = require('./inventario');
+const reportesRoutes = require('./reportes');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -54,6 +64,16 @@ function registerApiRoutes(app) {
   app.use('/api/teleconsultas', teleconsultasRoutes);
   app.use('/api/enfermeria', nursingRoutes);
   app.use('/api/strategic-modules', strategicModulesRoutes);
+  app.use('/api/hce', hceRoutes);
+  app.use('/api/laboratorio', laboratorioRoutes);
+  app.use('/api/imagenologia', imagenologiaRoutes);
+  app.use('/api/farmacia', farmaciaRoutes);
+  app.use('/api/facturacion', facturacionRoutes);
+  app.use('/api/admision', admisionRoutes);
+  app.use('/api/lista-espera', listaEsperaRoutes);
+  app.use('/api/uci', uciRoutes);
+  app.use('/api/inventario', inventarioRoutes);
+  app.use('/api/reportes', reportesRoutes);
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getStrategicModule } from '../../data/strategicModules';
 import { hasAnyAllowedRole } from '../../utils/roles';
@@ -61,15 +61,23 @@ function renderTab(tab) {
 }
 
 export default function StrategicModuleArea() {
-  const { moduleSlug } = useParams();
+  const { moduleSlug, sectionKey } = useParams();
+  const navigate = useNavigate();
   const { user, demoMode } = useAuth();
   const module = getStrategicModule(moduleSlug);
-  const [activeTab, setActiveTab] = useState(module?.tabs?.[0]?.key || 'panel');
+  const initialTab = (module?.tabs || []).find((tab) => tab.key === sectionKey)?.key || module?.tabs?.[0]?.key || 'panel';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [backendDetail, setBackendDetail] = useState(null);
 
   useEffect(() => {
-    setActiveTab(module?.tabs?.[0]?.key || 'panel');
-  }, [moduleSlug, module]);
+    const fallbackTab = module?.tabs?.[0]?.key || 'panel';
+    const resolvedTab = (module?.tabs || []).find((tab) => tab.key === sectionKey)?.key || fallbackTab;
+    setActiveTab(resolvedTab);
+
+    if (module && sectionKey && !(module.tabs || []).some((tab) => tab.key === sectionKey)) {
+      navigate(`/modulos/${module.slug}/${fallbackTab}`, { replace: true });
+    }
+  }, [moduleSlug, module, sectionKey, navigate]);
 
   useEffect(() => {
     let mounted = true;
@@ -98,6 +106,7 @@ export default function StrategicModuleArea() {
   if (!hasAnyAllowedRole(user, module.allowedRoles)) return <Navigate to="/dashboard" replace />;
 
   const currentTab = module.tabs.find((tab) => tab.key === activeTab) || module.tabs[0];
+  const buildTabPath = (tabKey) => `/modulos/${module.slug}/${tabKey}`;
 
   return (
     <div className={styles.page}>
@@ -123,14 +132,13 @@ export default function StrategicModuleArea() {
         </div>
         <div className={styles.tabBar}>
           {module.tabs.map((tab) => (
-            <button
+            <Link
               key={tab.key}
-              type="button"
               className={activeTab === tab.key ? styles.tabActive : styles.tab}
-              onClick={() => setActiveTab(tab.key)}
+              to={buildTabPath(tab.key)}
             >
               {tab.label}
-            </button>
+            </Link>
           ))}
         </div>
       </section>

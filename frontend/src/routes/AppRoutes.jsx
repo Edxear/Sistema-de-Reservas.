@@ -277,6 +277,16 @@ export default function AppRoutes() {
         )}
       />
       <Route
+        path="/modulos/:moduleSlug/:sectionKey"
+        element={(
+          <ProtectedRoute>
+            <LazyRoute area>
+              <StrategicModuleArea />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
+      <Route
         path="/pizarra"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.SECRETARIA]}>

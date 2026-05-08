@@ -137,6 +137,8 @@ function generarTitulo(tipo) {
     receta_nueva: 'Nueva Receta',
     mensaje: 'Nuevo Mensaje',
     pago_confirmado: 'Pago Confirmado',
+    alerta_clinica: 'Alerta Clinica',
+    alerta_operativa: 'Alerta Operativa',
   };
   return titulos[tipo] || 'Notificación';
 }

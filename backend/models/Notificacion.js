@@ -18,6 +18,8 @@ const notificacionSchema = new mongoose.Schema(
         'receta_nueva',
         'mensaje',
         'pago_confirmado',
+        'alerta_clinica',
+        'alerta_operativa',
       ],
       required: true,
     },
@@ -47,7 +49,7 @@ const notificacionSchema = new mongoose.Schema(
     },
     referenciaModelo: {
       type: String,
-      enum: ['Booking', 'Mensaje', 'Pago', 'Receta', null],
+      enum: ['Booking', 'Mensaje', 'Pago', 'Receta', 'SolicitudLab', 'SolicitudImagen', 'EpisodioUCI', 'Insumo', 'Equipo', null],
       default: null,
     },
   },
