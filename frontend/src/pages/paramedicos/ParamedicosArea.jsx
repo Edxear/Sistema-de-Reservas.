@@ -42,35 +42,42 @@ export default function ParamedicosArea() {
 
   if (!canAccess) return <Navigate to="/dashboard" replace />;
 
-  const tabs = [
-    { key: 'panel', label: 'Panel' },
-    { key: 'salidas', label: 'Salidas' },
-    { key: 'flota', label: 'Flota' },
-    { key: 'checklist', label: 'Checklist Prehospitalario' },
-    { key: 'pase', label: 'Pase de Turno' },
-  ];
-
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <h1>Area de Ambulancia</h1>
-        <p>Operacion prehospitalaria, estabilizacion inicial, traslados y coordinacion con Guardia.</p>
+        <h1>Área de Ambulancia</h1>
+        <p>Operación prehospitalaria, estabilización inicial, traslados y coordinación con Guardia.</p>
         <div className={styles.metaRow}>
           <span className={styles.metaTag}>Salidas activas: {metrics.salidasActivas}</span>
           <span className={styles.metaTag}>Flota operativa: {metrics.flotaOperativa}</span>
           <span className={styles.metaTag}>Eventos alta prioridad: {metrics.prioridadAlta}</span>
         </div>
-        <div className={styles.tabBar}>
-          {tabs.map((tab) => (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {[
+            { key: 'panel', label: '🚑 Panel', color: '#0891b2' },
+            { key: 'salidas', label: '📍 Salidas', color: '#ef4444' },
+            { key: 'flota', label: '🚗 Flota', color: '#3b82f6' },
+            { key: 'checklist', label: '✅ Checklist', color: '#10b981' },
+            { key: 'pase', label: '🔁 Pase de Turno', color: '#f97316' },
+          ].map((tab) => (
             <button
               key={tab.key}
-              className={activeTab === tab.key ? styles.tabActive : styles.tab}
               type="button"
               onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.key ? tab.color : '#e5e7eb',
+                color: activeTab === tab.key ? '#fff' : '#1f2937',
+                border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+              }}
             >
               {tab.label}
             </button>
           ))}
+        </div>
+        <div className={styles.metaRow} style={{ marginTop: '0.5rem' }}>
+          <span>Usuario activo: {user?.nombre || 'Sin sesión'}</span>
+          <span>Rol: {user?.rol || '-'}</span>
         </div>
       </section>
 

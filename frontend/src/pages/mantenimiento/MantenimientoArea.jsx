@@ -44,14 +44,6 @@ export default function MantenimientoArea() {
 
   if (!canAccess) return <Navigate to="/dashboard" replace />;
 
-  const tabs = [
-    { key: 'panel', label: 'Panel' },
-    { key: 'preventivo', label: 'Preventivo' },
-    { key: 'incidentes', label: 'Incidentes' },
-    { key: 'biomedica', label: 'Ingenieria Clinica' },
-    { key: 'pase', label: 'Pase de Turno' },
-  ];
-
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -63,17 +55,32 @@ export default function MantenimientoArea() {
           <span className={styles.metaTag}>Incidentes activos: {metrics.incidentesActivos}</span>
           <span className={styles.metaTag}>Criticos: {metrics.incidentesCriticos}</span>
         </div>
-        <div className={styles.tabBar}>
-          {tabs.map((tab) => (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {[
+            { key: 'panel', label: '🔧 Panel', color: '#f97316' },
+            { key: 'preventivo', label: '📅 Preventivo', color: '#3b82f6' },
+            { key: 'incidentes', label: '⚠️ Incidentes', color: '#ef4444' },
+            { key: 'biomedica', label: '⚙️ Ingeniería Clínica', color: '#059669' },
+            { key: 'pase', label: '🔁 Pase de Turno', color: '#0f766e' },
+          ].map((tab) => (
             <button
               key={tab.key}
-              className={activeTab === tab.key ? styles.tabActive : styles.tab}
               type="button"
               onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.key ? tab.color : '#e5e7eb',
+                color: activeTab === tab.key ? '#fff' : '#1f2937',
+                border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+              }}
             >
               {tab.label}
             </button>
           ))}
+        </div>
+        <div className={styles.metaRow} style={{ marginTop: '0.5rem' }}>
+          <span>Usuario activo: {user?.nombre || 'Sin sesión'}</span>
+          <span>Rol: {user?.rol || '-'}</span>
         </div>
       </section>
 

@@ -236,15 +236,20 @@ export default function SaludMental() {
       </div>
 
       {/* Tabs */}
-      <div className={styles.tabBar} style={{ marginBottom: '1rem' }}>
-        {TABS.map((t) => (
+      <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        {TABS.map((tab) => (
           <button
-            key={t.key}
+            key={tab.key}
             type="button"
-            className={activeTab === t.key ? styles.tabActive : styles.tab}
-            onClick={() => setActiveTab(t.key)}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: activeTab === tab.key ? '#7c3aed' : '#e5e7eb',
+              color: activeTab === tab.key ? '#fff' : '#1f2937',
+              border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+            }}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>

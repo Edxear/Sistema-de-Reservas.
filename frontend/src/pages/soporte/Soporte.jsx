@@ -1294,12 +1294,34 @@ export default function Soporte() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.tabBar}>
-        <button className={activeTab === TAB.OPERACION ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.OPERACION)}>{t('support.operation', 'Operación')}</button>
-        <button className={activeTab === TAB.TICKETS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.TICKETS)}>{t('support.tickets', 'Tickets/SLA')}</button>
-        <button className={activeTab === TAB.USUARIOS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.USUARIOS)}>{t('support.users', 'Usuarios')}</button>
-        <button className={activeTab === TAB.COLEGAS ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.COLEGAS)}>{t('support.colleagues', 'Colegas')}</button>
-        <button className={activeTab === TAB.VALORACIONES ? styles.tabActive : styles.tab} onClick={() => setActiveTab(TAB.VALORACIONES)}>{t('support.ratings', 'Valoraciones')}</button>
+      <section className={styles.hero}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {[
+            { key: TAB.OPERACION, label: '⚙️ Operación', color: '#3b82f6' },
+            { key: TAB.TICKETS, label: '🎫 Tickets/SLA', color: '#ef4444' },
+            { key: TAB.USUARIOS, label: '👤 Usuarios', color: '#10b981' },
+            { key: TAB.COLEGAS, label: '🤝 Colegas', color: '#8b5cf6' },
+            { key: TAB.VALORACIONES, label: '⭐ Valoraciones', color: '#f97316' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.key ? tab.color : '#e5e7eb',
+                color: activeTab === tab.key ? '#fff' : '#1f2937',
+                border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className={styles.metaRow} style={{ marginTop: '0.5rem' }}>
+          <span>Usuario activo: {user?.nombre || 'Sin sesión'}</span>
+          <span>Rol: {user?.rol || '-'}</span>
+        </div>
       </section>
 
       {activeTab === TAB.OPERACION && renderOperacion()}

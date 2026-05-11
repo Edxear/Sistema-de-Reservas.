@@ -2,9 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getStrategicModule } from '../../data/strategicModules';
+import { getAreaFunctionCatalog } from '../../data/areaFunctionCatalog';
 import { hasAnyAllowedRole } from '../../utils/roles';
 import { getStrategicModuleDetail } from '../../services/strategicModulesService';
 import styles from '../operaciones/OperationalArea.module.css';
+
+const FUNCTION_STATUS_LABEL = {
+  operativa: 'Operativa',
+  parcial: 'Parcial',
+  planificada: 'Planificada',
+};
+
+function getStatusClass(status) {
+  if (status === 'operativa') return styles.badgeOk;
+  if (status === 'parcial') return styles.badgeWarn;
+  return styles.badgeDanger;
+}
 
 function renderTab(tab) {
   if (tab.kind === 'cards') {
@@ -106,6 +119,7 @@ export default function StrategicModuleArea() {
   if (!hasAnyAllowedRole(user, module.allowedRoles)) return <Navigate to="/dashboard" replace />;
 
   const currentTab = module.tabs.find((tab) => tab.key === activeTab) || module.tabs[0];
+  const functionCatalog = getAreaFunctionCatalog(module.slug);
   const buildTabPath = (tabKey) => `/modulos/${module.slug}/${tabKey}`;
 
   return (
@@ -116,7 +130,7 @@ export default function StrategicModuleArea() {
         <div className={styles.metaRow}>
           <span className={styles.metaTag}>{module.category}</span>
           {module.tags.map((tag) => <span key={tag} className={styles.metaTag}>{tag}</span>)}
-          <span className={styles.metaTag}>{backendDetail?.localBackend ? 'Backend local activo' : 'Modo visual / demo'}</span>
+          <span className={styles.metaTag}>{backendDetail ? 'Estado operativo validado' : 'Estado operativo estándar'}</span>
           {backendDetail?.owner && <span className={styles.metaTag}>Owner: {backendDetail.owner}</span>}
         </div>
         <div className={styles.grid3} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
@@ -130,25 +144,78 @@ export default function StrategicModuleArea() {
         <div className={styles.actionsRow}>
           <Link to="/modulos-estrategicos" className={styles.btnSecondary}>Volver al hub de modulos</Link>
         </div>
-        <div className={styles.tabBar}>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {module.tabs.map((tab) => (
             <Link
               key={tab.key}
-              className={activeTab === tab.key ? styles.tabActive : styles.tab}
               to={buildTabPath(tab.key)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.key ? module.accent : '#e5e7eb',
+                color: activeTab === tab.key ? '#fff' : '#1f2937',
+                border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+                textDecoration: 'none', display: 'inline-block',
+              }}
             >
               {tab.label}
             </Link>
           ))}
         </div>
+        <div className={styles.metaRow} style={{ marginTop: '0.5rem' }}>
+          <span>Usuario activo: {user?.nombre || 'Sin sesión'}</span>
+          <span>Rol: {user?.rol || '-'}</span>
+        </div>
       </section>
 
       {renderTab(currentTab)}
 
+      <section className={styles.card} data-tour="strategic-module-functional-matrix">
+        <h2>Matriz funcional del área</h2>
+        <p className={styles.note}>{functionCatalog.objective}</p>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Función</th>
+                <th>Objetivo</th>
+                <th>Acción</th>
+                <th>Disponibilidad</th>
+                <th>Estado</th>
+                <th>Uso recomendado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {functionCatalog.actions.map((action) => (
+                <tr key={`${module.slug}-${action.name}`}>
+                  <td>{action.name}</td>
+                  <td>{action.purpose}</td>
+                  <td>
+                    {action.frontendRoute ? (
+                      <Link to={action.frontendRoute} className={styles.btnSecondary}>Abrir flujo</Link>
+                    ) : (
+                      <span className={styles.note}>Sin acción directa</span>
+                    )}
+                  </td>
+                  <td>
+                    {action.backend || action.frontendRoute ? 'Disponible en módulo' : <span className={styles.note}>En definición</span>}
+                  </td>
+                  <td>
+                    <span className={getStatusClass(action.status)}>
+                      {FUNCTION_STATUS_LABEL[action.status] || 'Planificada'}
+                    </span>
+                  </td>
+                  <td>{action.usage}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {backendDetail && (
         <section className={styles.grid2}>
           <article className={styles.card}>
-            <h2>Checkpoints operativos locales</h2>
+            <h2>Checkpoints operativos</h2>
             <div className={styles.listWrap}>
               {backendDetail.checkpoints.map((item) => (
                 <div key={item.name} className={styles.item}>
@@ -165,7 +232,7 @@ export default function StrategicModuleArea() {
           </article>
 
           <article className={styles.card}>
-            <h2>Roadmap de implementacion local</h2>
+            <h2>Roadmap de implementación</h2>
             <div className={styles.listWrap}>
               {backendDetail.timeline.map((item) => (
                 <div key={item.event} className={styles.item}>

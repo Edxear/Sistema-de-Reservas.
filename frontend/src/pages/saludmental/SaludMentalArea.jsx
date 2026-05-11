@@ -159,15 +159,6 @@ export default function SaludMentalArea() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const tabs = [
-    { key: 'panel', label: 'Panel' },
-    { key: 'procesos', label: 'Procesos Clinicos' },
-    { key: 'equipo', label: 'Equipo y Organigrama' },
-    { key: 'pizarra', label: 'Pizarra Camas Area' },
-    { key: 'mensajeria', label: 'Mensajeria' },
-    { key: 'pase', label: 'Pase de Guardia' },
-  ];
-
   return (
     <div className={styles.page}>
       <section className={styles.hero} data-tour="salud-mental-overview">
@@ -182,17 +173,33 @@ export default function SaludMentalArea() {
           <span className={styles.metaTag}>Iniciativas activas: {activeInitiatives.length}</span>
           <span className={styles.metaTag}>Ramas disponibles: {catalog?.branches?.length || 0}</span>
         </div>
-        <div className={styles.tabBar}>
-          {tabs.map((tab) => (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {[
+            { key: 'panel', label: '🧠 Panel', color: '#7c3aed' },
+            { key: 'procesos', label: '📋 Procesos Clínicos', color: '#3b82f6' },
+            { key: 'equipo', label: '👥 Equipo', color: '#059669' },
+            { key: 'pizarra', label: '🛏️ Pizarra Camas', color: '#0f766e' },
+            { key: 'mensajeria', label: '💬 Mensajería', color: '#0891b2' },
+            { key: 'pase', label: '🔁 Pase de Guardia', color: '#f97316' },
+          ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={activeTab === tab.key ? styles.tabActive : styles.tab}
               type="button"
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: activeTab === tab.key ? tab.color : '#e5e7eb',
+                color: activeTab === tab.key ? '#fff' : '#1f2937',
+                border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600',
+              }}
             >
               {tab.label}
             </button>
           ))}
+        </div>
+        <div className={styles.metaRow} style={{ marginTop: '0.5rem' }}>
+          <span>Usuario activo: {user?.nombre || 'Sin sesión'}</span>
+          <span>Rol: {user?.rol || '-'}</span>
         </div>
       </section>
 
