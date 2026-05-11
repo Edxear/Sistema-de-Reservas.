@@ -58,6 +58,22 @@ const ADMIN_STEPS = [
     disableBeacon: true,
   },
   {
+    route: '/enfermeria',
+    target: '[data-tour="enfermeria-shift"]',
+    title: '✅ Tareas de turno',
+    content: 'Genera tareas automáticas por turno y actualiza su estado para evitar omisiones clínicas.',
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    route: '/enfermeria',
+    target: '[data-tour="enfermeria-handoff"]',
+    title: '🔁 Handoff estructurado',
+    content: 'Registra el pase de guardia con pendientes críticos y estado draft/sent/received.',
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
     route: '/teleconsultas',
     target: '[data-tour="teleconsultas-overview"]',
     title: '💬 Teleconsultas',

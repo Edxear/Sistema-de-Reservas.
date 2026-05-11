@@ -566,6 +566,15 @@ const buildInitialState = () => {
       { _id: 'nin-1', rama: 'Guardia', tipo: 'medicacion', severidad: 'media', descripcion: 'Doble chequeo detecto dosis incompleta.', pacienteRef: 'pat-1', acciones: 'Se corrigio antes de administrar.', estado: 'cerrado', createdAt: daysFromNow(-4, 10, 0) },
       { _id: 'nin-2', rama: 'Internacion', tipo: 'caida', severidad: 'baja', descripcion: 'Sin lesion. Se refuerza prevencion.', pacienteRef: 'pat-2', acciones: 'Reentrenamiento del equipo.', estado: 'seguimiento', createdAt: daysFromNow(-6, 11, 0) },
     ],
+    shiftTasks: [
+      { _id: 'nst-1', rama: 'Guardia', turno: 'manana', fechaTurno: daysFromNow(0, 7, 0), tipo: 'constantes', titulo: 'Tomar constantes de inicio de turno', prioridad: 'alta', estado: 'pendiente', origen: 'auto' },
+      { _id: 'nst-2', rama: 'Guardia', turno: 'manana', fechaTurno: daysFromNow(0, 8, 0), tipo: 'medicacion', titulo: 'Administrar medicacion AM', prioridad: 'alta', estado: 'en_progreso', origen: 'auto' },
+      { _id: 'nst-3', rama: 'Internacion Adultos', turno: 'tarde', fechaTurno: daysFromNow(0, 15, 0), tipo: 'cura', titulo: 'Curacion programada en habitacion 203', prioridad: 'media', estado: 'pendiente', origen: 'manual' },
+    ],
+    handoffs: [
+      { _id: 'nhf-1', rama: 'Guardia', fechaTurno: daysFromNow(0, 6, 30), turnoSaliente: 'noche', turnoEntrante: 'manana', estado: 'sent', resumenTurno: 'Sin eventos criticos. Dos pacientes en observacion prolongada.', pendientesCriticos: ['Control de glucemia en cama 4'], medicacionAdministrada: 'Completa', createdAt: daysFromNow(0, 6, 45) },
+      { _id: 'nhf-2', rama: 'Internacion Adultos', fechaTurno: daysFromNow(-1, 13, 30), turnoSaliente: 'manana', turnoEntrante: 'tarde', estado: 'received', resumenTurno: 'Un evento de caida sin lesion. Seguimiento activo.', pendientesCriticos: ['Valorar riesgo de caidas cama 7'], medicacionAdministrada: 'Con observaciones', createdAt: daysFromNow(-1, 13, 45) },
+    ],
     config: {
       thresholds: {
         eventosPor1000: { greenMax: 5, yellowMax: 10 },
@@ -630,6 +639,8 @@ const buildInitialState = () => {
       woundPhoto: 100,
       article: 100,
       notification: 100,
+      shiftTask: 100,
+      handoff: 100,
     },
   };
 };
@@ -1351,6 +1362,91 @@ export const mockApiRequest = async (config) => {
     const id = path.split('/')[3];
     const current = demoState.nursing.woundPhotos.find((item) => item._id === id);
     Object.assign(current, body || {});
+    return response(config, deepClone(current));
+  }
+
+  if (method === 'get' && path === '/enfermeria/shift-tasks') {
+    const rama = params.rama;
+    const turno = params.turno;
+    const estado = params.estado;
+    let rows = [...demoState.nursing.shiftTasks];
+    if (rama) rows = rows.filter((item) => item.rama === rama);
+    if (turno) rows = rows.filter((item) => item.turno === turno);
+    if (estado) rows = rows.filter((item) => item.estado === estado);
+    const page = Number(params.page || 1);
+    const limit = Number(params.limit || 25);
+    const start = (page - 1) * limit;
+    return response(config, {
+      items: deepClone(rows.slice(start, start + limit)),
+      pagination: {
+        page,
+        limit,
+        total: rows.length,
+        totalPages: Math.max(1, Math.ceil(rows.length / limit)),
+      },
+    });
+  }
+
+  if (method === 'post' && path === '/enfermeria/shift-tasks/generate') {
+    const rama = body?.rama || 'Guardia';
+    const turno = body?.turno || 'manana';
+    const overwrite = Boolean(body?.overwrite);
+    if (overwrite) {
+      demoState.nursing.shiftTasks = demoState.nursing.shiftTasks.filter((item) => !(item.rama === rama && item.turno === turno && item.origen === 'auto'));
+    }
+    const created = [
+      { _id: nextId('shiftTask', 'nst'), rama, turno, tipo: 'constantes', titulo: 'Control de constantes por inicio de turno', prioridad: 'alta', estado: 'pendiente', origen: 'auto', fechaTurno: new Date().toISOString() },
+      { _id: nextId('shiftTask', 'nst'), rama, turno, tipo: 'medicacion', titulo: 'Verificar medicacion pendiente', prioridad: 'alta', estado: 'pendiente', origen: 'auto', fechaTurno: new Date().toISOString() },
+    ];
+    demoState.nursing.shiftTasks.unshift(...created);
+    return response(config, { ok: true, generated: created.length, items: deepClone(created) }, 201);
+  }
+
+  if (/^\/enfermeria\/shift-tasks\/[^/]+$/.test(path) && method === 'patch') {
+    const id = path.split('/')[3];
+    const current = demoState.nursing.shiftTasks.find((item) => item._id === id);
+    if (!current) return response(config, { message: 'Tarea no encontrada' }, 404);
+    Object.assign(current, body || {});
+    return response(config, deepClone(current));
+  }
+
+  if (method === 'get' && path === '/enfermeria/handoffs') {
+    const rama = params.rama;
+    const estado = params.estado;
+    let rows = [...demoState.nursing.handoffs];
+    if (rama) rows = rows.filter((item) => item.rama === rama);
+    if (estado) rows = rows.filter((item) => item.estado === estado);
+    const page = Number(params.page || 1);
+    const limit = Number(params.limit || 20);
+    const start = (page - 1) * limit;
+    return response(config, {
+      items: deepClone(rows.slice(start, start + limit)),
+      pagination: {
+        page,
+        limit,
+        total: rows.length,
+        totalPages: Math.max(1, Math.ceil(rows.length / limit)),
+      },
+    });
+  }
+
+  if (method === 'post' && path === '/enfermeria/handoffs') {
+    const created = {
+      _id: nextId('handoff', 'nhf'),
+      estado: 'draft',
+      createdAt: new Date().toISOString(),
+      ...body,
+    };
+    demoState.nursing.handoffs.unshift(created);
+    return response(config, deepClone(created), 201);
+  }
+
+  if (/^\/enfermeria\/handoffs\/[^/]+\/status$/.test(path) && method === 'patch') {
+    const id = path.split('/')[3];
+    const current = demoState.nursing.handoffs.find((item) => item._id === id);
+    if (!current) return response(config, { message: 'Handoff no encontrado' }, 404);
+    current.estado = body?.estado || current.estado;
+    if (typeof body?.resumenTurno === 'string') current.resumenTurno = body.resumenTurno;
     return response(config, deepClone(current));
   }
 

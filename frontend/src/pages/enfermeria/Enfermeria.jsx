@@ -4,18 +4,24 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import {
   createNursingChecklist,
+  createNursingHandoff,
   createNursingIncident,
   createNursingInitiative,
+  generateNursingShiftTasks,
   getNursingCatalog,
   getNursingConfig,
   getNursingDashboard,
   getNursingOrganigrama,
   listNursingChecklists,
+  listNursingHandoffs,
   listNursingIncidents,
   listNursingInitiatives,
+  listNursingShiftTasks,
   updateNursingConfig,
+  updateNursingHandoffStatus,
   updateNursingIncidentStatus,
   updateNursingInitiative,
+  updateNursingShiftTask,
 } from '../../services/enfermeriaService';
 import { exportGroupedSheetsToExcel } from '../../utils/excelExport';
 import styles from './Enfermeria.module.css';
@@ -71,6 +77,21 @@ const initialIncident = {
   acciones: '',
 };
 
+const initialTaskGenerateForm = {
+  rama: 'Guardia',
+  turno: 'manana',
+  overwrite: false,
+};
+
+const initialHandoffForm = {
+  rama: 'Guardia',
+  turnoSaliente: 'manana',
+  turnoEntrante: 'tarde',
+  resumenTurno: '',
+  medicacionAdministrada: '',
+  pendientesCriticosText: '',
+};
+
 const defaultThresholds = {
   eventosPor1000: { greenMax: 5, yellowMax: 10 },
   respuestaMin: { greenMax: 15, yellowMax: 45 },
@@ -108,6 +129,8 @@ export default function Enfermeria() {
   const [initiatives, setInitiatives] = useState([]);
   const [checklists, setChecklists] = useState([]);
   const [incidents, setIncidents] = useState([]);
+  const [shiftTasks, setShiftTasks] = useState([]);
+  const [handoffs, setHandoffs] = useState([]);
   const [thresholds, setThresholds] = useState(defaultThresholds);
   const [permissions, setPermissions] = useState(defaultPermissions);
   const [loading, setLoading] = useState(false);
@@ -116,11 +139,23 @@ export default function Enfermeria() {
   const [initiativeForm, setInitiativeForm] = useState(initialInitiative);
   const [checklistForm, setChecklistForm] = useState(initialChecklist);
   const [incidentForm, setIncidentForm] = useState(initialIncident);
+  const [taskGenerateForm, setTaskGenerateForm] = useState(initialTaskGenerateForm);
+  const [handoffForm, setHandoffForm] = useState(initialHandoffForm);
 
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [catalogData, configData, dashboardData, organigramaData, initiativesData, checklistData, incidentsData] = await Promise.all([
+      const [
+        catalogData,
+        configData,
+        dashboardData,
+        organigramaData,
+        initiativesData,
+        checklistData,
+        incidentsData,
+        shiftTaskData,
+        handoffData,
+      ] = await Promise.all([
         getNursingCatalog(),
         getNursingConfig(),
         getNursingDashboard({ days: 30 }),
@@ -128,6 +163,8 @@ export default function Enfermeria() {
         listNursingInitiatives({}),
         listNursingChecklists({}),
         listNursingIncidents({}),
+        listNursingShiftTasks({}),
+        listNursingHandoffs({}),
       ]);
 
       setCatalog(catalogData || { branches: [], hierarchy: [] });
@@ -137,6 +174,8 @@ export default function Enfermeria() {
       setInitiatives(pickItems(initiativesData));
       setChecklists(pickItems(checklistData));
       setIncidents(pickItems(incidentsData));
+      setShiftTasks(pickItems(shiftTaskData));
+      setHandoffs(pickItems(handoffData));
 
       setPermissions({
         ...defaultPermissions,
@@ -147,6 +186,8 @@ export default function Enfermeria() {
       const firstBranch = (catalogData?.branches || [])[0] || 'Guardia';
       setChecklistForm((prev) => ({ ...prev, rama: firstBranch }));
       setIncidentForm((prev) => ({ ...prev, rama: firstBranch }));
+      setTaskGenerateForm((prev) => ({ ...prev, rama: firstBranch }));
+      setHandoffForm((prev) => ({ ...prev, rama: firstBranch }));
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo cargar el modulo de enfermeria');
     } finally {
@@ -168,6 +209,16 @@ export default function Enfermeria() {
   const incidentsVisible = useMemo(
     () => incidents.filter((i) => (ramaFilter ? i.rama === ramaFilter : true)).slice(0, 20),
     [incidents, ramaFilter],
+  );
+
+  const shiftTasksVisible = useMemo(
+    () => shiftTasks.filter((t) => (ramaFilter ? t.rama === ramaFilter : true)).slice(0, 40),
+    [shiftTasks, ramaFilter],
+  );
+
+  const handoffsVisible = useMemo(
+    () => handoffs.filter((h) => (ramaFilter ? h.rama === ramaFilter : true)).slice(0, 30),
+    [handoffs, ramaFilter],
   );
 
   const initiativesByCategory = useMemo(() => ({
@@ -403,6 +454,67 @@ export default function Enfermeria() {
     }
   };
 
+  const handleGenerateShiftTasks = async (e) => {
+    e.preventDefault();
+    if (!permissions.canCreateChecklist) {
+      toast.error('No tienes permisos para generar tareas de turno');
+      return;
+    }
+    try {
+      await generateNursingShiftTasks(taskGenerateForm);
+      toast.success('Tareas de turno generadas');
+      await loadAll();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudieron generar tareas de turno');
+    }
+  };
+
+  const handleTaskStatus = async (id, estado) => {
+    try {
+      await updateNursingShiftTask(id, { estado });
+      await loadAll();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar la tarea');
+    }
+  };
+
+  const handleCreateHandoff = async (e) => {
+    e.preventDefault();
+    if (!permissions.canCreateChecklist) {
+      toast.error('No tienes permisos para registrar handoff');
+      return;
+    }
+    try {
+      const pendientesCriticos = handoffForm.pendientesCriticosText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+      await createNursingHandoff({
+        rama: handoffForm.rama,
+        turnoSaliente: handoffForm.turnoSaliente,
+        turnoEntrante: handoffForm.turnoEntrante,
+        resumenTurno: handoffForm.resumenTurno,
+        medicacionAdministrada: handoffForm.medicacionAdministrada,
+        pendientesCriticos,
+        estado: 'draft',
+      });
+      setHandoffForm((prev) => ({ ...initialHandoffForm, rama: prev.rama }));
+      toast.success('Handoff registrado');
+      await loadAll();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo registrar handoff');
+    }
+  };
+
+  const handleHandoffStatus = async (id, estado) => {
+    try {
+      await updateNursingHandoffStatus(id, { estado });
+      await loadAll();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'No se pudo actualizar handoff');
+    }
+  };
+
   const updateThresholdValue = (group, key, value) => {
     const numericValue = Number(value || 0);
     setThresholds((prev) => ({
@@ -456,6 +568,8 @@ export default function Enfermeria() {
           <button onClick={() => setActiveTab('mensajeria')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'mensajeria' ? '#0f766e' : '#e5e7eb', color: activeTab === 'mensajeria' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>💬 Mensajeria</button>
           <button onClick={() => setActiveTab('pizarraArea')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'pizarraArea' ? '#2563eb' : '#e5e7eb', color: activeTab === 'pizarraArea' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🛏️ Pizarra Camas</button>
           <button onClick={() => setActiveTab('carga')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'carga' ? '#6366f1' : '#e5e7eb', color: activeTab === 'carga' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>👥 Carga</button>
+          <button data-tour="enfermeria-shift" onClick={() => setActiveTab('turnoAvanzado')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'turnoAvanzado' ? '#0ea5e9' : '#e5e7eb', color: activeTab === 'turnoAvanzado' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>✅ Tareas Turno</button>
+          <button data-tour="enfermeria-handoff" onClick={() => setActiveTab('handoff')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'handoff' ? '#f97316' : '#e5e7eb', color: activeTab === 'handoff' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>🔁 Handoff</button>
           <button onClick={() => setActiveTab('dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'dashboard' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'dashboard' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>📊 Dashboard</button>
           <button onClick={() => setActiveTab('config')} style={{ padding: '0.5rem 1rem', backgroundColor: activeTab === 'config' ? '#3b82f6' : '#e5e7eb', color: activeTab === 'config' ? '#fff' : '#1f2937', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>⚙️ Config</button>
         </div>
@@ -481,6 +595,82 @@ export default function Enfermeria() {
       {activeTab === 'heridas' && <FotosHeridas branches={branches} scope={dashboard?.scope || {}} permissions={permissions} />}
       {activeTab === 'mensajeria' && <MensajeriaSegura />}
       {activeTab === 'pizarraArea' && <AreaBedBoard areaKey="enfermeria" />}
+      {activeTab === 'turnoAvanzado' && (
+        <section className={styles.card} data-tour="enfermeria-shift-panel">
+          <h2>Tareas de Turno</h2>
+          <form onSubmit={handleGenerateShiftTasks} className={styles.gridMini}>
+            <select className={styles.select} value={taskGenerateForm.rama} onChange={(e) => setTaskGenerateForm((p) => ({ ...p, rama: e.target.value }))}>
+              {branches.map((rama) => <option key={rama} value={rama}>{rama}</option>)}
+            </select>
+            <select className={styles.select} value={taskGenerateForm.turno} onChange={(e) => setTaskGenerateForm((p) => ({ ...p, turno: e.target.value }))}>
+              <option value="manana">manana</option>
+              <option value="tarde">tarde</option>
+              <option value="noche">noche</option>
+            </select>
+            <label className={styles.metaRow}>
+              <input type="checkbox" checked={taskGenerateForm.overwrite} onChange={(e) => setTaskGenerateForm((p) => ({ ...p, overwrite: e.target.checked }))} />
+              Regenerar (sobrescribir tareas automaticas)
+            </label>
+            <button className={styles.pill} type="submit">Generar tareas</button>
+          </form>
+
+          <div className={styles.gridMini}>
+            {shiftTasksVisible.map((task) => (
+              <article key={task._id} className={styles.miniCard}>
+                <strong>{task.titulo}</strong>
+                <p>{task.rama} · {task.turno} · {task.prioridad}</p>
+                <p>{task.descripcion || 'Sin descripcion'}</p>
+                <select className={styles.select} value={task.estado} onChange={(e) => handleTaskStatus(task._id, e.target.value)}>
+                  <option value="pendiente">pendiente</option>
+                  <option value="en_progreso">en_progreso</option>
+                  <option value="hecho">hecho</option>
+                  <option value="aplazado">aplazado</option>
+                  <option value="no_aplica">no_aplica</option>
+                </select>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      {activeTab === 'handoff' && (
+        <section className={styles.card} data-tour="enfermeria-handoff-panel">
+          <h2>Handoff de Guardia</h2>
+          <form onSubmit={handleCreateHandoff} className={styles.gridMini}>
+            <select className={styles.select} value={handoffForm.rama} onChange={(e) => setHandoffForm((p) => ({ ...p, rama: e.target.value }))}>
+              {branches.map((rama) => <option key={rama} value={rama}>{rama}</option>)}
+            </select>
+            <select className={styles.select} value={handoffForm.turnoSaliente} onChange={(e) => setHandoffForm((p) => ({ ...p, turnoSaliente: e.target.value }))}>
+              <option value="manana">manana</option>
+              <option value="tarde">tarde</option>
+              <option value="noche">noche</option>
+            </select>
+            <select className={styles.select} value={handoffForm.turnoEntrante} onChange={(e) => setHandoffForm((p) => ({ ...p, turnoEntrante: e.target.value }))}>
+              <option value="manana">manana</option>
+              <option value="tarde">tarde</option>
+              <option value="noche">noche</option>
+            </select>
+            <textarea className={styles.select} placeholder="Resumen del turno" value={handoffForm.resumenTurno} onChange={(e) => setHandoffForm((p) => ({ ...p, resumenTurno: e.target.value }))} />
+            <textarea className={styles.select} placeholder="Medicacion administrada" value={handoffForm.medicacionAdministrada} onChange={(e) => setHandoffForm((p) => ({ ...p, medicacionAdministrada: e.target.value }))} />
+            <textarea className={styles.select} placeholder="Pendientes criticos (uno por linea)" value={handoffForm.pendientesCriticosText} onChange={(e) => setHandoffForm((p) => ({ ...p, pendientesCriticosText: e.target.value }))} />
+            <button className={styles.pill} type="submit">Guardar handoff</button>
+          </form>
+
+          <div className={styles.gridMini}>
+            {handoffsVisible.map((handoff) => (
+              <article key={handoff._id} className={styles.miniCard}>
+                <strong>{handoff.rama}</strong>
+                <p>{handoff.turnoSaliente} → {handoff.turnoEntrante}</p>
+                <p>{handoff.resumenTurno || 'Sin resumen'}</p>
+                <select className={styles.select} value={handoff.estado} onChange={(e) => handleHandoffStatus(handoff._id, e.target.value)}>
+                  <option value="draft">draft</option>
+                  <option value="sent">sent</option>
+                  <option value="received">received</option>
+                </select>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
         {(activeTab === 'dashboard' || activeTab === 'config') && (<>
       <section className={styles.card}>
         <div className={styles.actionsRow}>
