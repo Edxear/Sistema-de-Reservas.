@@ -4,6 +4,8 @@ const NursingChecklist = require('../models/NursingChecklist');
 const NursingIncident = require('../models/NursingIncident');
 const NursingConfig = require('../models/NursingConfig');
 const NursingWoundPhoto = require('../models/NursingWoundPhoto');
+const NursingShiftTask = require('../models/NursingShiftTask');
+const NursingHandoff = require('../models/NursingHandoff');
 const Mensaje = require('../models/Mensaje');
 const User = require('../models/User');
 const { logAuditEvent } = require('../utils/auditLogger');
@@ -39,6 +41,29 @@ const DEFAULT_THRESHOLDS = {
   adherenciaCapacitacionPct: { yellowMin: 80, greenMin: 92 },
 };
 
+const MAX_IMAGE_DATA_URL_LENGTH = 3500000;
+const SHIFT_TASK_TYPES = ['medicacion', 'cura', 'constantes', 'procedimiento', 'traslado', 'evaluacion', 'administrativa', 'otro'];
+const SHIFT_TASK_STATES = ['pendiente', 'en_progreso', 'hecho', 'aplazado', 'no_aplica'];
+const HANDOFF_STATES = ['draft', 'sent', 'received'];
+
+const DEFAULT_SHIFT_TEMPLATES = {
+  manana: [
+    { tipo: 'constantes', titulo: 'Tomar constantes de inicio de turno', prioridad: 'alta', horaSugerida: '07:30' },
+    { tipo: 'medicacion', titulo: 'Validar y administrar medicacion de la manana', prioridad: 'alta', horaSugerida: '08:00' },
+    { tipo: 'evaluacion', titulo: 'Actualizar estado de movilidad y riesgos', prioridad: 'media', horaSugerida: '09:30' },
+  ],
+  tarde: [
+    { tipo: 'constantes', titulo: 'Control de constantes intermedio', prioridad: 'alta', horaSugerida: '14:00' },
+    { tipo: 'cura', titulo: 'Realizar curaciones y control de heridas', prioridad: 'media', horaSugerida: '15:30' },
+    { tipo: 'medicacion', titulo: 'Administrar medicacion de la tarde', prioridad: 'alta', horaSugerida: '17:00' },
+  ],
+  noche: [
+    { tipo: 'constantes', titulo: 'Control nocturno de constantes', prioridad: 'alta', horaSugerida: '21:00' },
+    { tipo: 'medicacion', titulo: 'Administrar medicacion nocturna', prioridad: 'alta', horaSugerida: '22:00' },
+    { tipo: 'administrativa', titulo: 'Preparar pendientes para handoff', prioridad: 'media', horaSugerida: '05:30' },
+  ],
+};
+
 const HIERARCHY_LEVEL = {
   jefatura: 1,
   subjefatura: 2,
@@ -54,6 +79,13 @@ const isNursingRole = (role) => ['enfermero', 'admin', 'superadmin'].includes(St
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+const parsePagination = (query = {}, defaultLimit = 25, maxLimit = 200) => {
+  const page = clamp(Number(query.page || 1), 1, 100000);
+  const limit = clamp(Number(query.limit || defaultLimit), 1, maxLimit);
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+};
+
 const getWindowDate = (days = 30) => {
   const now = new Date();
   const start = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
@@ -62,6 +94,20 @@ const getWindowDate = (days = 30) => {
 
 const normalize = (value = '') => String(value).trim().toLowerCase();
 const normalizeNoAccents = (value = '') => normalize(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const cleanStringArray = (values) => {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)
+    .slice(0, 200);
+};
+
+const isValidImageDataUrl = (value) => {
+  if (typeof value !== 'string' || !value.startsWith('data:image/')) return false;
+  if (value.length > MAX_IMAGE_DATA_URL_LENGTH) return false;
+  return /^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(value);
+};
 
 const roleFromActor = (actor) => normalize(actor?.rol);
 const cargoFromActor = (actor) => normalizeNoAccents(actor?.cargoOrganigrama);
@@ -325,13 +371,23 @@ exports.listWoundPhotos = async (req, res) => {
 
     if (!scope.global && scope.rama) filter.rama = scope.rama;
 
-    const items = await NursingWoundPhoto.find(filter)
-      .sort({ tomadaEn: -1, createdAt: -1 })
-      .limit(120)
-      .populate('createdBy', 'nombre rol')
-      .populate('updatedBy', 'nombre rol');
+    const { page, limit, skip } = parsePagination(req.query, 20, 120);
+    const [items, total] = await Promise.all([
+      NursingWoundPhoto.find(filter)
+        .sort({ tomadaEn: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'nombre rol')
+        .populate('updatedBy', 'nombre rol'),
+      NursingWoundPhoto.countDocuments(filter),
+    ]);
 
-    return res.json({ items, permissions, scope });
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Error listando fotos de heridas' });
   }
@@ -349,8 +405,8 @@ exports.createWoundPhoto = async (req, res) => {
     }
 
     const imageDataUrl = String(req.body?.imageDataUrl || '');
-    if (!imageDataUrl.startsWith('data:image/')) {
-      return res.status(400).json({ message: 'Formato de imagen invalido. Debe enviarse en data URL.' });
+    if (!isValidImageDataUrl(imageDataUrl)) {
+      return res.status(400).json({ message: 'Formato de imagen invalido o demasiado grande.' });
     }
 
     const payload = {
@@ -402,8 +458,10 @@ exports.updateWoundPhoto = async (req, res) => {
       if (Object.prototype.hasOwnProperty.call(req.body || {}, key)) patch[key] = req.body[key];
     });
     if (req.body?.tomadaEn) patch.tomadaEn = new Date(req.body.tomadaEn);
-    if (typeof req.body?.imageDataUrl === 'string' && req.body.imageDataUrl.startsWith('data:image/')) {
+    if (typeof req.body?.imageDataUrl === 'string' && isValidImageDataUrl(req.body.imageDataUrl)) {
       patch.imageDataUrl = req.body.imageDataUrl;
+    } else if (Object.prototype.hasOwnProperty.call(req.body || {}, 'imageDataUrl')) {
+      return res.status(400).json({ message: 'Formato de imagen invalido o demasiado grande.' });
     }
     patch.updatedBy = getAuthUserId(req);
 
@@ -462,9 +520,18 @@ exports.listInitiatives = async (req, res) => {
       filter.$or = [{ rama: scope.rama }, { rama: 'general' }];
     }
 
-    const items = await NursingInitiative.find(filter).sort({ prioridad: -1, createdAt: -1 }).limit(300);
+    const { page, limit, skip } = parsePagination(req.query, 25, 120);
+    const [items, total] = await Promise.all([
+      NursingInitiative.find(filter).sort({ prioridad: -1, createdAt: -1 }).skip(skip).limit(limit),
+      NursingInitiative.countDocuments(filter),
+    ]);
 
-    return res.json({ items, permissions, scope });
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Error listando iniciativas de enfermeria' });
   }
@@ -569,12 +636,22 @@ exports.listChecklists = async (req, res) => {
       filter.rama = scope.rama;
     }
 
-    const items = await NursingChecklist.find(filter)
-      .sort({ fecha: -1, createdAt: -1 })
-      .limit(250)
-      .populate('createdBy', 'nombre rol');
+    const { page, limit, skip } = parsePagination(req.query, 25, 120);
+    const [items, total] = await Promise.all([
+      NursingChecklist.find(filter)
+        .sort({ fecha: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'nombre rol'),
+      NursingChecklist.countDocuments(filter),
+    ]);
 
-    return res.json({ items, permissions, scope });
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Error listando checklists de enfermeria' });
   }
@@ -639,13 +716,23 @@ exports.listIncidents = async (req, res) => {
       filter.rama = scope.rama;
     }
 
-    const items = await NursingIncident.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(300)
-      .populate('createdBy', 'nombre rol')
-      .populate('resolvedBy', 'nombre rol');
+    const { page, limit, skip } = parsePagination(req.query, 25, 120);
+    const [items, total] = await Promise.all([
+      NursingIncident.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'nombre rol')
+        .populate('resolvedBy', 'nombre rol'),
+      NursingIncident.countDocuments(filter),
+    ]);
 
-    return res.json({ items, permissions, scope });
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
   } catch (error) {
     return res.status(500).json({ message: 'Error listando incidentes de enfermeria' });
   }
@@ -728,6 +815,360 @@ exports.updateIncidentStatus = async (req, res) => {
     return res.json(updated);
   } catch (error) {
     return res.status(500).json({ message: 'Error actualizando incidente de enfermeria' });
+  }
+};
+
+exports.listShiftTasks = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver tareas de turno')) return;
+
+    const { rama, turno, estado, pacienteRef, fechaTurno } = req.query;
+    const filter = { activo: true };
+
+    if (rama) filter.rama = String(rama).trim();
+    if (turno) filter.turno = String(turno).trim();
+    if (estado) filter.estado = String(estado).trim();
+    if (pacienteRef) filter.pacienteRef = { $regex: String(pacienteRef).trim(), $options: 'i' };
+    if (fechaTurno) {
+      const from = new Date(`${fechaTurno}T00:00:00`);
+      const to = new Date(`${fechaTurno}T23:59:59`);
+      filter.fechaTurno = { $gte: from, $lte: to };
+    }
+
+    if (!scope.global && scope.rama) {
+      filter.rama = scope.rama;
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, 25, 200);
+    const [items, total] = await Promise.all([
+      NursingShiftTask.find(filter)
+        .sort({ fechaTurno: -1, prioridad: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'nombre rol')
+        .populate('asignadoA', 'nombre rol')
+        .populate('completedBy', 'nombre rol'),
+      NursingShiftTask.countDocuments(filter),
+    ]);
+
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error listando tareas de turno' });
+  }
+};
+
+exports.generateShiftTasks = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canCreateChecklist', 'No autorizado para generar tareas de turno')) return;
+
+    const rama = String(req.body?.rama || '').trim();
+    const turno = String(req.body?.turno || '').trim();
+    const fechaTurno = req.body?.fechaTurno ? new Date(req.body.fechaTurno) : new Date();
+    const overwrite = Boolean(req.body?.overwrite);
+
+    if (!rama || !['manana', 'tarde', 'noche'].includes(turno)) {
+      return res.status(400).json({ message: 'rama y turno validos son obligatorios' });
+    }
+
+    if (!scope.global && !canOperateBranch(scope, rama)) {
+      return res.status(403).json({ message: 'Solo puedes generar tareas para tu rama de enfermeria' });
+    }
+
+    const dayStart = new Date(fechaTurno);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(fechaTurno);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const taskFilter = {
+      rama,
+      turno,
+      fechaTurno: { $gte: dayStart, $lte: dayEnd },
+      activo: true,
+    };
+
+    if (overwrite) {
+      await NursingShiftTask.deleteMany({ ...taskFilter, origen: 'auto' });
+    }
+
+    const existing = await NursingShiftTask.countDocuments(taskFilter);
+    if (existing > 0 && !overwrite) {
+      return res.status(409).json({
+        message: 'Ya existen tareas para ese turno. Usa overwrite=true para regenerar.',
+        existing,
+      });
+    }
+
+    const templates = DEFAULT_SHIFT_TEMPLATES[turno] || [];
+    const openIncidents = await NursingIncident.find({
+      rama,
+      estado: { $in: ['abierto', 'en_investigacion'] },
+    })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('tipo severidad descripcion pacienteRef');
+
+    const baseTasks = templates.map((item) => ({
+      rama,
+      turno,
+      fechaTurno,
+      tipo: item.tipo,
+      titulo: item.titulo,
+      prioridad: item.prioridad,
+      horaSugerida: item.horaSugerida,
+      estado: 'pendiente',
+      origen: 'auto',
+      sourceRef: { kind: 'template', id: `${turno}:${item.tipo}:${item.horaSugerida}` },
+      createdBy: getAuthUserId(req),
+      updatedBy: getAuthUserId(req),
+    }));
+
+    const incidentTasks = openIncidents.map((incident) => ({
+      rama,
+      turno,
+      fechaTurno,
+      pacienteRef: String(incident.pacienteRef || '').trim(),
+      tipo: 'evaluacion',
+      titulo: `Seguimiento incidente ${incident.tipo}`,
+      descripcion: String(incident.descripcion || '').slice(0, 400),
+      prioridad: incident.severidad === 'critica' ? 'critica' : (incident.severidad === 'alta' ? 'alta' : 'media'),
+      estado: 'pendiente',
+      origen: 'auto',
+      sourceRef: { kind: 'incident', id: String(incident._id) },
+      createdBy: getAuthUserId(req),
+      updatedBy: getAuthUserId(req),
+    }));
+
+    const tasks = await NursingShiftTask.insertMany([...baseTasks, ...incidentTasks]);
+
+    await logAuditEvent(req, {
+      action: 'nursing.shiftTask.generate',
+      resourceType: 'NursingShiftTask',
+      resourceId: `${rama}:${turno}:${dayStart.toISOString().slice(0, 10)}`,
+      details: `tasks=${tasks.length} overwrite=${overwrite}`,
+    });
+
+    return res.status(201).json({ ok: true, generated: tasks.length, items: tasks });
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error generando tareas de turno' });
+  }
+};
+
+exports.updateShiftTask = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canCreateChecklist', 'No autorizado para actualizar tareas de turno')) return;
+
+    const task = await NursingShiftTask.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
+
+    if (!scope.global && !canOperateBranch(scope, task.rama)) {
+      return res.status(403).json({ message: 'Solo puedes gestionar tareas de tu rama de enfermeria' });
+    }
+
+    const patch = {};
+    const allowedFields = ['titulo', 'descripcion', 'prioridad', 'estado', 'horaSugerida', 'pacienteRef', 'tipo', 'activo', 'asignadoA'];
+    allowedFields.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(req.body || {}, key)) patch[key] = req.body[key];
+    });
+
+    if (patch.tipo && !SHIFT_TASK_TYPES.includes(String(patch.tipo))) {
+      return res.status(400).json({ message: 'tipo de tarea invalido' });
+    }
+
+    if (patch.estado && !SHIFT_TASK_STATES.includes(String(patch.estado))) {
+      return res.status(400).json({ message: 'estado de tarea invalido' });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'aplazadaHasta')) {
+      patch.aplazadaHasta = req.body.aplazadaHasta ? new Date(req.body.aplazadaHasta) : null;
+    }
+
+    if (patch.estado === 'hecho') {
+      patch.completedAt = new Date();
+      patch.completedBy = getAuthUserId(req);
+    }
+
+    patch.updatedBy = getAuthUserId(req);
+
+    const updated = await NursingShiftTask.findByIdAndUpdate(req.params.id, patch, { new: true })
+      .populate('createdBy', 'nombre rol')
+      .populate('asignadoA', 'nombre rol')
+      .populate('completedBy', 'nombre rol');
+
+    await logAuditEvent(req, {
+      action: 'nursing.shiftTask.update',
+      resourceType: 'NursingShiftTask',
+      resourceId: updated._id,
+      details: `estado=${updated.estado}`,
+    });
+
+    return res.json(updated);
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error actualizando tarea de turno' });
+  }
+};
+
+exports.listHandoffs = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canViewModule', 'No autorizado para ver handoffs')) return;
+
+    const { rama, estado, turnoEntrante, fechaDesde, fechaHasta } = req.query;
+    const filter = { activo: true };
+
+    if (rama) filter.rama = String(rama).trim();
+    if (estado) filter.estado = String(estado).trim();
+    if (turnoEntrante) filter.turnoEntrante = String(turnoEntrante).trim();
+    if (fechaDesde || fechaHasta) {
+      filter.fechaTurno = {};
+      if (fechaDesde) filter.fechaTurno.$gte = new Date(`${fechaDesde}T00:00:00`);
+      if (fechaHasta) filter.fechaTurno.$lte = new Date(`${fechaHasta}T23:59:59`);
+    }
+
+    if (!scope.global && scope.rama) {
+      filter.rama = scope.rama;
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, 20, 100);
+    const [items, total] = await Promise.all([
+      NursingHandoff.find(filter)
+        .sort({ fechaTurno: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'nombre rol')
+        .populate('sentBy', 'nombre rol')
+        .populate('receivedBy', 'nombre rol'),
+      NursingHandoff.countDocuments(filter),
+    ]);
+
+    return res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      permissions,
+      scope,
+    });
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error listando handoffs' });
+  }
+};
+
+exports.createHandoff = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canCreateChecklist', 'No autorizado para registrar handoff')) return;
+
+    const rama = String(req.body?.rama || '').trim();
+    const turnoSaliente = String(req.body?.turnoSaliente || '').trim();
+    const turnoEntrante = String(req.body?.turnoEntrante || '').trim();
+    const estado = String(req.body?.estado || 'draft').trim();
+
+    if (!rama || !['manana', 'tarde', 'noche'].includes(turnoSaliente) || !['manana', 'tarde', 'noche'].includes(turnoEntrante)) {
+      return res.status(400).json({ message: 'rama, turnoSaliente y turnoEntrante son obligatorios' });
+    }
+
+    if (!HANDOFF_STATES.includes(estado)) {
+      return res.status(400).json({ message: 'estado de handoff invalido' });
+    }
+
+    if (!scope.global && !canOperateBranch(scope, rama)) {
+      return res.status(403).json({ message: 'Solo puedes registrar handoff en tu rama de enfermeria' });
+    }
+
+    const payload = {
+      rama,
+      fechaTurno: req.body?.fechaTurno ? new Date(req.body.fechaTurno) : new Date(),
+      turnoSaliente,
+      turnoEntrante,
+      estado,
+      pacientesInestables: cleanStringArray(req.body?.pacientesInestables),
+      medicacionAdministrada: String(req.body?.medicacionAdministrada || '').trim(),
+      pendientesCriticos: cleanStringArray(req.body?.pendientesCriticos),
+      incidencias: cleanStringArray(req.body?.incidencias),
+      resumenTurno: String(req.body?.resumenTurno || '').trim(),
+      audioNoteUrl: String(req.body?.audioNoteUrl || '').trim(),
+      createdBy: getAuthUserId(req),
+      updatedBy: getAuthUserId(req),
+    };
+
+    if (payload.estado === 'sent') {
+      payload.sentAt = new Date();
+      payload.sentBy = getAuthUserId(req);
+    }
+
+    const created = await NursingHandoff.create(payload);
+
+    await logAuditEvent(req, {
+      action: 'nursing.handoff.create',
+      resourceType: 'NursingHandoff',
+      resourceId: created._id,
+      details: `rama=${rama} estado=${created.estado}`,
+    });
+
+    return res.status(201).json(created);
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error creando handoff' });
+  }
+};
+
+exports.updateHandoffStatus = async (req, res) => {
+  try {
+    const { permissions, scope } = await getActorContext(req);
+    if (!requirePermission(res, permissions, 'canCreateChecklist', 'No autorizado para actualizar handoff')) return;
+
+    const handoff = await NursingHandoff.findById(req.params.id);
+    if (!handoff) return res.status(404).json({ message: 'Handoff no encontrado' });
+
+    if (!scope.global && !canOperateBranch(scope, handoff.rama)) {
+      return res.status(403).json({ message: 'Solo puedes gestionar handoff de tu rama de enfermeria' });
+    }
+
+    const nextState = String(req.body?.estado || '').trim();
+    if (!HANDOFF_STATES.includes(nextState)) {
+      return res.status(400).json({ message: 'estado de handoff invalido' });
+    }
+
+    const patch = {
+      estado: nextState,
+      updatedBy: getAuthUserId(req),
+    };
+
+    if (nextState === 'sent') {
+      patch.sentAt = new Date();
+      patch.sentBy = getAuthUserId(req);
+    }
+    if (nextState === 'received') {
+      patch.receivedAt = new Date();
+      patch.receivedBy = getAuthUserId(req);
+    }
+    if (typeof req.body?.resumenTurno === 'string') {
+      patch.resumenTurno = req.body.resumenTurno.trim();
+    }
+    if (Array.isArray(req.body?.pendientesCriticos)) {
+      patch.pendientesCriticos = cleanStringArray(req.body.pendientesCriticos);
+    }
+
+    const updated = await NursingHandoff.findByIdAndUpdate(req.params.id, patch, { new: true })
+      .populate('createdBy', 'nombre rol')
+      .populate('sentBy', 'nombre rol')
+      .populate('receivedBy', 'nombre rol');
+
+    await logAuditEvent(req, {
+      action: 'nursing.handoff.update',
+      resourceType: 'NursingHandoff',
+      resourceId: updated._id,
+      details: `estado=${updated.estado}`,
+    });
+
+    return res.json(updated);
+  } catch (_error) {
+    return res.status(500).json({ message: 'Error actualizando handoff' });
   }
 };
 

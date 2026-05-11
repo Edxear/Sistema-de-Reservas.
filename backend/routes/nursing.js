@@ -21,6 +21,12 @@ const {
   updateNursingConfig,
   updateIncidentStatus,
   updateInitiative,
+  listShiftTasks,
+  generateShiftTasks,
+  updateShiftTask,
+  listHandoffs,
+  createHandoff,
+  updateHandoffStatus,
 } = require('../controllers/nursingController');
 
 const router = express.Router();
@@ -44,6 +50,14 @@ router.post('/checklists', auth, createChecklist);
 router.get('/incidents', auth, listIncidents);
 router.post('/incidents', auth, createIncident);
 router.put('/incidents/:id/status', auth, updateIncidentStatus);
+
+router.get('/shift-tasks', auth, listShiftTasks);
+router.post('/shift-tasks/generate', auth, generateShiftTasks);
+router.patch('/shift-tasks/:id', auth, updateShiftTask);
+
+router.get('/handoffs', auth, listHandoffs);
+router.post('/handoffs', auth, createHandoff);
+router.patch('/handoffs/:id/status', auth, updateHandoffStatus);
 
 router.get('/wound-photos', auth, listWoundPhotos);
 router.post('/wound-photos', auth, createWoundPhoto);

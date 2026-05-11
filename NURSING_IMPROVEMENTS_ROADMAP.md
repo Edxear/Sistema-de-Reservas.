@@ -293,4 +293,51 @@ Cada sección complicada llevará un botónℹ️ que al hacer click muestra:
 
 ---
 
+## 🔎 Estado Tecnico Verificado (Mayo 2026)
+
+### Implementado (base funcional)
+- API de enfermeria activa (`/api/enfermeria`) con:
+  - Catalogo, dashboard, organigrama, workload.
+  - Iniciativas, checklists, incidentes, ayuda rapida.
+  - Configuracion de umbrales y fotos de heridas.
+- Control de permisos por rol, jerarquia y rama de enfermeria.
+- UI de enfermeria conectada a backend con vistas operativas.
+
+### Parcial (requiere cierre)
+- Pizarra de turno sin canal especifico en tiempo real colaborativo.
+- Fotos de heridas en BD como data URL (falta storage seguro optimizado).
+- Alertas inteligentes con umbrales globales, pero sin reglas clinicas avanzadas por perfil.
+
+### Pendiente critico
+- Tareas automaticas por turno (medicacion/curas/constantes).
+- Handoff estructurado con estados y confirmacion de recepcion.
+- Suite de pruebas dedicada del modulo de enfermeria.
+
+---
+
+## 🛠️ Backlog Tecnico Detallado (faltante por implementar)
+
+### Sprint 1 (Seguridad + Calidad)
+- [ ] Crear `backend/__tests__/nursing.routes.test.js` (auth, permisos, rama, validaciones).
+- [ ] Validar payload con esquema en endpoints de checklist/incidente/foto/iniciativa.
+- [ ] Definir limite de payload de imagen y validacion MIME estricta.
+
+### Sprint 2 (Funcionalidad core faltante)
+- [ ] Crear modelo `NursingShiftTask` (tarea por paciente-turno-estado-prioridad).
+- [ ] Crear endpoint de generacion automatica de tareas por turno.
+- [ ] Crear modelo `NursingHandoff` (resumen de guardia con `draft/sent/received`).
+- [ ] Crear endpoint de cierre de turno con pendientes criticos.
+
+### Sprint 3 (Escalabilidad + UX)
+- [ ] Migrar fotos a almacenamiento de objetos (URL firmada, no base64 en BD).
+- [ ] Agregar paginacion/filtros avanzados en incidentes/checklists/fotos.
+- [ ] Exportacion estandar CSV/XLSX/PDF para reportes de turno.
+
+### Sprint 4 (Inteligencia operativa)
+- [ ] Reglas de alerta por perfil (adulto, pediatrico, UCI, aislamiento).
+- [ ] Matriz de alertas con sensibilidad configurable por rama.
+- [ ] Panel de alertas accionadas/cerradas con tiempo de respuesta.
+
+---
+
 **Versión**: 1.0 | Fecha: Abril 2026 | Basado en análisis de tareas diarias de enfermería

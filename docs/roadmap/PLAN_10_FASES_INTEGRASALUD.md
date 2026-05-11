@@ -174,3 +174,7 @@ Criterio de cierre:
 - Fase 10: completada (hardening tecnico, runbook operativo y checklist de seguridad)
 - Estado global: roadmap de 10 fases completado
 - Proximo hito: estabilizacion post-release y optimizacion continua
+
+## Validacion tecnica post-roadmap
+- Ver analisis detallado por areas nuevas y existentes en:
+	- `docs/roadmap/ANALISIS_AREAS_Y_BRECHAS_IMPLEMENTACION_2026-05.md`

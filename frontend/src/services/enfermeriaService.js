@@ -94,3 +94,33 @@ export const updateNursingWoundPhoto = async (id, payload) => {
   const res = await API.put(`/enfermeria/wound-photos/${id}`, payload);
   return res.data;
 };
+
+export const listNursingShiftTasks = async (params = {}) => {
+  const res = await API.get('/enfermeria/shift-tasks', { params });
+  return res.data;
+};
+
+export const generateNursingShiftTasks = async (payload) => {
+  const res = await API.post('/enfermeria/shift-tasks/generate', payload);
+  return res.data;
+};
+
+export const updateNursingShiftTask = async (id, payload) => {
+  const res = await API.patch(`/enfermeria/shift-tasks/${id}`, payload);
+  return res.data;
+};
+
+export const listNursingHandoffs = async (params = {}) => {
+  const res = await API.get('/enfermeria/handoffs', { params });
+  return res.data;
+};
+
+export const createNursingHandoff = async (payload) => {
+  const res = await API.post('/enfermeria/handoffs', payload);
+  return res.data;
+};
+
+export const updateNursingHandoffStatus = async (id, payload) => {
+  const res = await API.patch(`/enfermeria/handoffs/${id}/status`, payload);
+  return res.data;
+};
