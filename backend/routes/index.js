@@ -36,6 +36,7 @@ const listaEsperaRoutes = require('./listaEspera');
 const uciRoutes = require('./uci');
 const inventarioRoutes = require('./inventario');
 const reportesRoutes = require('./reportes');
+const nutricionRoutes = require('./nutricion');
 
 function registerApiRoutes(app) {
   app.use('/api/auth', authRoutes);
@@ -74,6 +75,7 @@ function registerApiRoutes(app) {
   app.use('/api/uci', uciRoutes);
   app.use('/api/inventario', inventarioRoutes);
   app.use('/api/reportes', reportesRoutes);
+  app.use('/api/nutricion', nutricionRoutes);
 }
 
 module.exports = {
