@@ -11,9 +11,6 @@ import { ThemeProvider } from './context/ThemeContext';
 
 import Header from './components/Header';
 import AppRoutes from './routes/AppRoutes';
-import DemoBanner from './components/DemoBanner';
-import DemoPageTip from './components/DemoPageTip';
-import DemoTourCustom from './components/DemoTourCustom';
 import OfflineIndicator from './components/OfflineIndicator';
 import { useDemoAnalytics } from './hooks/useDemoAnalytics';
 import { applyRouteScroll, buildScrollStorageKey, persistRouteScroll } from './utils/scrollRestoration';
@@ -153,10 +150,8 @@ function App() {
             <DemoToastFilter />
             <ScrollRestorationManager />
             <DemoAnalyticsTracker />
-            <DemoPageTip />
             <OfflineIndicator />
             <Header />
-            <DemoTourCustom />
             <ToastContainer
               position={isMobileViewport ? 'top-center' : 'top-right'}
               autoClose={3000}
@@ -165,7 +160,6 @@ function App() {
               style={isMobileViewport ? { top: 'calc(62px + env(safe-area-inset-top, 0px))' } : undefined}
             />
             <AppRoutes />
-            <DemoBanner />
           </NotificacionProvider>
         </AuthProvider>
       </Router>

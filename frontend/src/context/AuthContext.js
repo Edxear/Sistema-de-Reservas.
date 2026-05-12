@@ -156,7 +156,7 @@ export function AuthProvider({ children }) {
       setToken('demo-session');
       setUser(demoUser);
       localStorage.setItem('user', JSON.stringify(demoUser));
-      toast.success('Modo demo activo: acceso completo habilitado.');
+      toast.success('Acceso habilitado.');
       return { success: true };
     }
 
@@ -185,7 +185,7 @@ export function AuthProvider({ children }) {
       setToken('demo-session');
       setUser(demoUser);
       localStorage.setItem('user', JSON.stringify(demoUser));
-      toast.success('Modo demo activo: registro simulado con éxito.');
+      toast.success('Registro completado con exito.');
       return { success: true };
     }
 
@@ -210,7 +210,7 @@ export function AuthProvider({ children }) {
   // Función para cerrar sesión
   const logout = async () => {
     if (demoMode) {
-      toast.info('En modo demo no se requiere sesión.');
+      toast.info('No hay sesion activa para cerrar.');
       return;
     }
 
@@ -266,12 +266,12 @@ export function AuthProvider({ children }) {
     if (nextValue && !isPublicDemoHost()) {
       localStorage.setItem('demoModeOverride', 'false');
       setDemoMode(false);
-      toast.info('Modo demo disponible solo en Vercel publico.');
+      toast.info('Esta opcion no esta disponible en este entorno.');
       return;
     }
 
     if (!nextValue && !canUseRealMode()) {
-      toast.info('En este dominio el acceso publico queda en demo. Para modo real usa ?modo=real desde tu equipo.');
+      toast.info('No se puede cambiar esta configuracion en este entorno.');
       localStorage.setItem('demoModeOverride', 'true');
       setDemoMode(true);
       return;
@@ -303,7 +303,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(demoUser));
     }
 
-    toast.info(nextValue ? 'Modo demo activado.' : 'Modo demo desactivado.');
+    toast.info('Configuracion de acceso actualizada.');
   };
 
   const setDemoRoleEnabled = (role) => {
@@ -322,7 +322,7 @@ export function AuthProvider({ children }) {
       const demoUser = getDemoUser(nextRole);
       setUser(demoUser);
       localStorage.setItem('user', JSON.stringify(demoUser));
-      toast.info(`Vista demo actual: ${nextRole === 'paciente' ? 'Paciente' : 'Administrativo'}.`);
+      toast.info(`Vista actual: ${nextRole === 'paciente' ? 'Paciente' : 'Administrativo'}.`);
     }
   };
 

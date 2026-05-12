@@ -35,7 +35,7 @@ export default function OfflineIndicator() {
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
       }}
     >
-      Sin conexión. La aplicación sigue disponible con los recursos en caché y el modo demo local.
+      Sin conexion. La aplicacion sigue disponible con los recursos en cache.
     </div>
   );
 }

@@ -56,10 +56,10 @@ export default function DemoLanding() {
       <div style={{ textAlign: 'center', marginBottom: '48px', color: '#fff' }}>
         <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🩺</div>
         <h1 style={{ margin: '0 0 8px', fontSize: '2.4rem', fontWeight: '800', letterSpacing: '-0.5px' }}>
-          {t('demo.title', 'IntegraSalud - Demo')}
+          {t('demo.title', 'IntegraSalud')}
         </h1>
         <p style={{ margin: 0, fontSize: '1.1rem', color: '#a5c8e4', maxWidth: 480 }}>
-          {t('demo.subtitle', 'Explorá el sistema como Administrativo o como Paciente. Los datos son ficticios y no representan personas reales.')}
+          {t('demo.subtitle', 'Explora el sistema como Administrativo o como Paciente.')}
         </p>
         <div style={{
           display: 'inline-flex',
@@ -74,7 +74,7 @@ export default function DemoLanding() {
           color: '#fbbf24',
           fontWeight: 600,
         }}>
-          {t('demo.badge', '🧪 Entorno de demostración - datos ficticios')}
+          {t('demo.badge', 'Seleccion de perfil de acceso')}
         </div>
       </div>
 
