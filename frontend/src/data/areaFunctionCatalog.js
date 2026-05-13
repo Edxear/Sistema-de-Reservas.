@@ -138,9 +138,30 @@ const CATALOG = {
   'nutricion-dietoterapia': {
     objective: 'Gestion de dietas y seguridad alimentaria del paciente.',
     actions: [
-      { name: 'Registrar plan de dieta', purpose: 'Definir esquema nutricional por paciente', status: 'planificada', usage: 'Pendiente endpoint especifico de nutricion.' },
-      { name: 'Controlar alergias alimentarias', purpose: 'Evitar errores de entrega', status: 'planificada', usage: 'Pendiente validacion cruzada con HCE.' },
-      { name: 'Emitir orden a cocina', purpose: 'Orquestar preparacion por turno', status: 'planificada', usage: 'Pendiente workflow cocina-enfermeria.' },
+      {
+        name: 'Registrar plan de dieta',
+        purpose: 'Definir esquema nutricional por paciente',
+        frontendRoute: '/modulos/nutricion-dietoterapia/panel',
+        backend: { method: 'POST', endpoint: '/api/nutricion/pacientes/:pacienteId/dietas' },
+        status: 'operativa',
+        usage: 'Seleccionar paciente en el modulo y usar la pestana Dietas.',
+      },
+      {
+        name: 'Controlar alergias alimentarias',
+        purpose: 'Evitar errores de entrega',
+        frontendRoute: '/modulos/nutricion-dietoterapia/panel',
+        backend: { method: 'POST', endpoint: '/api/nutricion/pacientes/:pacienteId/alergias' },
+        status: 'operativa',
+        usage: 'Cargar sustancia y gravedad en la pestana Alergias.',
+      },
+      {
+        name: 'Emitir orden a cocina',
+        purpose: 'Orquestar preparacion por turno',
+        frontendRoute: '/modulos/nutricion-dietoterapia/panel',
+        backend: { method: 'POST', endpoint: '/api/nutricion/pacientes/:pacienteId/cocina' },
+        status: 'operativa',
+        usage: 'Emitir menu/turno desde la pestana Cocina.',
+      },
     ],
   },
   'kinesiologia-rehabilitacion': {

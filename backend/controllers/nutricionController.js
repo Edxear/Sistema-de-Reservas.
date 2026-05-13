@@ -1,67 +1,113 @@
-const Nutricion = require('../models/Nutricion');
+const nutricionDb = require('../services/nutricionJsonDbService');
 
-exports.crearNutricion = async (req, res) => {
+function buildActor(req) {
+  return {
+    id: req.user?._id || null,
+    rol: req.user?.rol || 'desconocido',
+    nombre: req.user?.nombre || req.user?.email || 'usuario',
+  };
+}
+
+function handleError(res, error) {
+  const status = error.status || 500;
+  return res.status(status).json({ error: error.message || 'Error interno' });
+}
+
+exports.obtenerBaseNutricion = async (_req, res) => {
   try {
-    const { paciente, dieta, fechaInicio, fechaFin } = req.body;
-
-    if (!paciente || !dieta || !fechaInicio) {
-      return res.status(400).json({ error: 'Campos requeridos faltantes' });
-    }
-
-    const nutricion = await Nutricion.create({
-      paciente,
-      dieta,
-      fechaInicio,
-      fechaFin,
-      estado: 'activa',
-    });
-
-    res.status(201).json(nutricion);
+    const db = await nutricionDb.getDatabase();
+    return res.json(db);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return handleError(res, error);
   }
 };
 
-exports.obtenerNutriciones = async (req, res) => {
+exports.listarPacientes = async (_req, res) => {
   try {
-    const nutricionesActivas = await Nutricion.find({ estado: 'activa' })
-      .populate('paciente', 'nombre email');
-
-    res.json(nutricionesActivas);
+    const pacientes = await nutricionDb.listPacientes();
+    return res.json(pacientes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return handleError(res, error);
   }
 };
 
-exports.actualizarNutricion = async (req, res) => {
+exports.crearPaciente = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { estado, fechaFin } = req.body;
-
-    const nutricion = await Nutricion.findByIdAndUpdate(
-      id,
-      { estado, fechaFin },
-      { new: true }
-    );
-
-    res.json(nutricion);
+    const paciente = await nutricionDb.createPaciente(req.body, buildActor(req));
+    return res.status(201).json(paciente);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return handleError(res, error);
   }
 };
 
-exports.obtenerMetricas = async (req, res) => {
+exports.obtenerPaciente = async (req, res) => {
   try {
-    const totalActivas = await Nutricion.countDocuments({ estado: 'activa' });
-    const totalSuspendidas = await Nutricion.countDocuments({ estado: 'suspendida' });
-    const totalFinalizadas = await Nutricion.countDocuments({ estado: 'finalizada' });
-
-    res.json({
-      totalActivas,
-      totalSuspendidas,
-      totalFinalizadas,
-    });
+    const paciente = await nutricionDb.getPacienteById(req.params.pacienteId);
+    return res.json(paciente);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return handleError(res, error);
+  }
+};
+
+exports.actualizarHistoriaClinica = async (req, res) => {
+  try {
+    const historia = await nutricionDb.updateHistoriaClinica(req.params.pacienteId, req.body);
+    return res.json(historia);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.agregarProceso = async (req, res) => {
+  try {
+    const proceso = await nutricionDb.appendProceso(req.params.pacienteId, req.body, buildActor(req));
+    return res.status(201).json(proceso);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.agregarDieta = async (req, res) => {
+  try {
+    const dieta = await nutricionDb.appendDieta(req.params.pacienteId, req.body, buildActor(req));
+    return res.status(201).json(dieta);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.agregarAlergia = async (req, res) => {
+  try {
+    const alergia = await nutricionDb.appendAlergia(req.params.pacienteId, req.body, buildActor(req));
+    return res.status(201).json(alergia);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.agregarPedidoCocina = async (req, res) => {
+  try {
+    const pedido = await nutricionDb.appendPedidoCocina(req.params.pacienteId, req.body, buildActor(req));
+    return res.status(201).json(pedido);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.obtenerMetricas = async (_req, res) => {
+  try {
+    const metricas = await nutricionDb.getMetricas();
+    return res.json(metricas);
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+exports.cambiarEstadoOperativo = async (req, res) => {
+  try {
+    const estado = await nutricionDb.updateEstadoOperativo(req.body, buildActor(req));
+    return res.json(estado);
+  } catch (error) {
+    return handleError(res, error);
   }
 };

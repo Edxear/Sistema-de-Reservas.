@@ -1,0 +1,42 @@
+{
+  "clinico": {
+    "pacientes": []
+  },
+  "dietas": {
+    "catalogo": [
+      {
+        "id": "dieta-blanda",
+        "nombre": "Dieta blanda",
+        "descripcion": "Baja en irritantes, facil digestion"
+      },
+      {
+        "id": "dieta-hiposodica",
+        "nombre": "Dieta hiposodica",
+        "descripcion": "Control de sodio para HTA e insuficiencia cardiaca"
+      },
+      {
+        "id": "dieta-diabetica",
+        "nombre": "Dieta diabetica",
+        "descripcion": "Control de carbohidratos de absorcion rapida"
+      }
+    ]
+  },
+  "alergias": {
+    "catalogo": [
+      "lactosa",
+      "gluten",
+      "huevo",
+      "frutos secos",
+      "mariscos"
+    ]
+  },
+  "cocina": {
+    "pedidos": []
+  },
+  "estadoOperativoEstandar": {
+    "modulo": "ON",
+    "motivo": "Operacion normal",
+    "actualizadoEn": null,
+    "actualizadoPor": null
+  }
+}

@@ -5,6 +5,7 @@ import { getStrategicModule } from '../../data/strategicModules';
 import { getAreaFunctionCatalog } from '../../data/areaFunctionCatalog';
 import { hasAnyAllowedRole } from '../../utils/roles';
 import { getStrategicModuleDetail } from '../../services/strategicModulesService';
+import NutricionDietoterapiaArea from './NutricionDietoterapiaArea';
 import styles from '../operaciones/OperationalArea.module.css';
 
 const FUNCTION_STATUS_LABEL = {
@@ -167,7 +168,9 @@ export default function StrategicModuleArea() {
         </div>
       </section>
 
-      {renderTab(currentTab)}
+      {module.slug === 'nutricion-dietoterapia' && <NutricionDietoterapiaArea />}
+
+      {module.slug !== 'nutricion-dietoterapia' && renderTab(currentTab)}
 
       <section className={styles.card} data-tour="strategic-module-functional-matrix">
         <h2>Matriz funcional del área</h2>
