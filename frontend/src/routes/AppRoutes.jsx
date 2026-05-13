@@ -86,6 +86,14 @@ const PublicRoute = ({ children }) => {
 
 export default function AppRoutes() {
   const { user, demoMode } = useAuth();
+  const isVercelHost = typeof window !== 'undefined' && (
+    window.location.hostname.toLowerCase() === 'vercel.app'
+    || window.location.hostname.toLowerCase().endsWith('.vercel.app')
+  );
+  const isLocalDemoHost = typeof window !== 'undefined' && (
+    window.location.hostname.toLowerCase() === 'localhost'
+    || window.location.hostname.toLowerCase() === '127.0.0.1'
+  );
   const isPublicDemoHost = typeof window !== 'undefined' && (
     window.location.hostname.toLowerCase() === 'sistema-de-reservas-eta.vercel.app'
     || window.location.hostname.toLowerCase().endsWith('.sistema-de-reservas-eta.vercel.app')
@@ -313,7 +321,7 @@ export default function AppRoutes() {
       <Route path="/medicos" element={<MedicosList />} />
       <Route path="/medicos/:id" element={<PaginaMedico />} />
       <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
-      <Route path="/demo" element={isPublicDemoHost ? <DemoLanding /> : <Navigate to="/login" replace />} />
+      <Route path="/demo" element={(isPublicDemoHost || isLocalDemoHost || isVercelHost) ? <DemoLanding /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

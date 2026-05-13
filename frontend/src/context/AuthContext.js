@@ -18,10 +18,19 @@ const DEMO_MODE = process.env.REACT_APP_DEMO_MODE !== 'false';
 const PUBLIC_DEMO_HOSTS = ['sistema-de-reservas-eta.vercel.app'];
 const REAL_MODE_UNLOCK_KEY = 'demoRealModeUnlocked';
 
+const isVercelHost = (hostname) => hostname === 'vercel.app' || hostname.endsWith('.vercel.app');
+
 const isPublicDemoHost = () => {
   if (typeof window === 'undefined') return false;
   const hostname = window.location.hostname.toLowerCase();
-  return PUBLIC_DEMO_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  return isVercelHost(hostname)
+    || PUBLIC_DEMO_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+};
+
+const isLocalDevHost = () => {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname.toLowerCase();
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local');
 };
 
 const readDemoModeFromQuery = () => {
@@ -62,8 +71,8 @@ const getDemoUser = (demoRole) => DEMO_PROFILES[demoRole] || DEMO_PROFILES.pacie
 const readDemoModePreference = () => {
   if (typeof window === 'undefined') return DEMO_MODE;
 
-  // Fuera del host publico de demo, forzamos modo real.
-  if (!isPublicDemoHost()) {
+  // Fuera del host público y de localhost, forzamos modo real.
+  if (!isPublicDemoHost() && !isLocalDevHost()) {
     window.localStorage.setItem('demoModeOverride', 'false');
     return false;
   }
@@ -263,7 +272,7 @@ export function AuthProvider({ children }) {
   const setDemoModeEnabled = (enabled) => {
     const nextValue = Boolean(enabled);
 
-    if (nextValue && !isPublicDemoHost()) {
+    if (nextValue && !isPublicDemoHost() && !isLocalDevHost()) {
       localStorage.setItem('demoModeOverride', 'false');
       setDemoMode(false);
       toast.info('Esta opcion no esta disponible en este entorno.');

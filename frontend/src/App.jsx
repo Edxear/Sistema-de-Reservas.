@@ -10,6 +10,7 @@ import { NotificacionProvider } from './context/NotificacionContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 import Header from './components/Header';
+import DemoTourCustom from './components/DemoTourCustom';
 import AppRoutes from './routes/AppRoutes';
 import OfflineIndicator from './components/OfflineIndicator';
 import { useDemoAnalytics } from './hooks/useDemoAnalytics';
@@ -152,6 +153,7 @@ function App() {
             <DemoAnalyticsTracker />
             <OfflineIndicator />
             <Header />
+            <DemoTourCustom />
             <ToastContainer
               position={isMobileViewport ? 'top-center' : 'top-right'}
               autoClose={3000}
