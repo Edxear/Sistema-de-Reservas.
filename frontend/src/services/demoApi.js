@@ -623,6 +623,68 @@ const buildInitialState = () => {
     organigramaAudit,
     nursing,
     notifications,
+    nutricion: {
+      pacientes: [
+        {
+          id: 'npac-1',
+          nombre: 'Ana Perez',
+          documento: '28100200',
+          edad: 45,
+          medicoResponsable: 'Dra. Laura Gomez',
+          enfermeroResponsable: 'Enf. Carlos Vera',
+          historiaClinica: {
+            resumen: 'Paciente con diabetes tipo 2 y sobrepeso moderado. En plan dietoterapeutico reduccion calorica.',
+            antecedentes: ['Diabetes tipo 2', 'HTA controlada', 'Dislipemia'],
+            procesos: [
+              { titulo: 'Evaluacion inicial', detalle: 'IMC 29.5. Objetivo: reducir 5kg en 3 meses.', estado: 'completado', fecha: daysFromNow(-30, 9, 0) },
+            ],
+          },
+          dietas: [
+            { nombre: 'Dieta hipocalorica 1800kcal', tipo: 'terapeutica', objetivo: 'Reduccion de peso gradual', estado: 'activa', fecha: daysFromNow(-25, 10, 0) },
+          ],
+          alergias: [
+            { sustancia: 'Gluten', gravedad: 'moderada', notas: 'Sensibilidad confirmada por laboratorio', fecha: daysFromNow(-20, 11, 0) },
+          ],
+          cocina: [
+            { menu: 'Almuerzo sin gluten bajo en sodio', turno: 'almuerzo', estado: 'entregado', observaciones: 'Sin sal agregada', fecha: daysFromNow(-1, 12, 0) },
+          ],
+        },
+        {
+          id: 'npac-2',
+          nombre: 'Jorge Mendez',
+          documento: '35204560',
+          edad: 62,
+          medicoResponsable: 'Dr. Martin Ruiz',
+          enfermeroResponsable: '',
+          historiaClinica: {
+            resumen: 'Post-cirugia bariatrica 6 meses. Seguimiento nutricional intensivo.',
+            antecedentes: ['Cirugia bariatrica', 'Deficit B12'],
+            procesos: [],
+          },
+          dietas: [
+            { nombre: 'Dieta postoperatoria fase 3', tipo: 'terapeutica', objetivo: 'Reintroduccion de solidos', estado: 'activa', fecha: daysFromNow(-10, 8, 0) },
+          ],
+          alergias: [],
+          cocina: [
+            { menu: 'Cena dieta blanda hipercalorica', turno: 'cena', estado: 'pendiente', observaciones: '', fecha: daysFromNow(0, 19, 0) },
+          ],
+        },
+      ],
+      dietasCatalogo: [
+        { id: 'dc-1', nombre: 'Dieta hipocalorica 1800kcal', tipo: 'terapeutica' },
+        { id: 'dc-2', nombre: 'Dieta postoperatoria fase 3', tipo: 'terapeutica' },
+        { id: 'dc-3', nombre: 'Dieta libre', tipo: 'normal' },
+      ],
+      pedidosCocina: [
+        { id: 'pk-1', pacienteId: 'npac-1', menu: 'Almuerzo sin gluten bajo en sodio', turno: 'almuerzo', estado: 'entregado', observaciones: 'Sin sal agregada' },
+        { id: 'pk-2', pacienteId: 'npac-2', menu: 'Cena dieta blanda hipercalorica', turno: 'cena', estado: 'pendiente', observaciones: '' },
+      ],
+      estadoOperativo: {
+        modulo: 'ON',
+        motivo: 'Operacion normal del servicio de nutricion',
+        actualizadoEn: daysFromNow(-5, 8, 0),
+      },
+    },
     counters: {
       booking: 100,
       teleconsulta: 100,
@@ -1526,6 +1588,91 @@ export const mockApiRequest = async (config) => {
     demoState.notifications = demoState.notifications.map((item) => ({ ...item, leido: true }));
     return response(config, { ok: true });
   }
+
+  // ── Nutrición & Dietoterapia (mocks de demostración) ─────────────────────
+  if (method === 'get' && path === '/nutricion/db') {
+    return response(config, deepClone({
+      clinico: { pacientes: demoState.nutricion.pacientes },
+      dietas: { catalogo: demoState.nutricion.dietasCatalogo },
+      alergias: { catalogo: ['Gluten', 'Lactosa', 'Mariscos', 'Nueces', 'Soja'] },
+      cocina: { pedidos: demoState.nutricion.pedidosCocina },
+      estadoOperativoEstandar: demoState.nutricion.estadoOperativo,
+    }));
+  }
+  if (method === 'get' && path === '/nutricion/metricas') {
+    const pacs = demoState.nutricion.pacientes;
+    return response(config, {
+      pacientesTotal: pacs.length,
+      dietasActivas: pacs.reduce((acc, p) => acc + (p.dietas || []).filter((d) => d.estado === 'activa').length, 0),
+      alergiasCriticas: pacs.reduce((acc, p) => acc + (p.alergias || []).filter((a) => a.gravedad === 'severa').length, 0),
+      pedidosCocinaPendientes: demoState.nutricion.pedidosCocina.filter((pk) => pk.estado === 'pendiente').length,
+      estadoModulo: demoState.nutricion.estadoOperativo.modulo || 'ON',
+    });
+  }
+  if (method === 'get' && path === '/nutricion/pacientes') {
+    return response(config, deepClone(demoState.nutricion.pacientes));
+  }
+  if (method === 'post' && path === '/nutricion/pacientes') {
+    const nuevo = {
+      id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `np-${Date.now()}`,
+      nombre: body.nombre || 'Paciente Demo',
+      documento: body.documento || '00000000',
+      edad: Number(body.edad) || 0,
+      medicoResponsable: body.medicoResponsable || '',
+      enfermeroResponsable: body.enfermeroResponsable || '',
+      historiaClinica: { resumen: body.resumenClinico || '', antecedentes: [] },
+      dietas: [],
+      alergias: [],
+      cocina: [],
+    };
+    demoState.nutricion.pacientes.unshift(nuevo);
+    return response(config, deepClone(nuevo), 201);
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+$/.test(path) && method === 'get') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (!pac) return response(config, { error: 'Paciente no encontrado' }, 404);
+    return response(config, deepClone(pac));
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+\/clinico$/.test(path) && method === 'put') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (pac) pac.historiaClinica = { ...pac.historiaClinica, ...body };
+    return response(config, deepClone(pac || {}));
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+\/procesos$/.test(path) && method === 'post') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (pac) {
+      if (!pac.historiaClinica) pac.historiaClinica = { resumen: '', antecedentes: [] };
+      if (!pac.historiaClinica.procesos) pac.historiaClinica.procesos = [];
+      pac.historiaClinica.procesos.unshift({ ...body, fecha: new Date().toISOString() });
+    }
+    return response(config, deepClone(pac || {}));
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+\/dietas$/.test(path) && method === 'post') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (pac) { if (!pac.dietas) pac.dietas = []; pac.dietas.unshift({ ...body, fecha: new Date().toISOString() }); }
+    return response(config, deepClone(pac || {}));
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+\/alergias$/.test(path) && method === 'post') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (pac) { if (!pac.alergias) pac.alergias = []; pac.alergias.unshift({ ...body, fecha: new Date().toISOString() }); }
+    return response(config, deepClone(pac || {}));
+  }
+  if (/^\/nutricion\/pacientes\/[^/]+\/cocina$/.test(path) && method === 'post') {
+    const pid = path.split('/')[3];
+    const pac = demoState.nutricion.pacientes.find((p) => p.id === pid);
+    if (pac) { if (!pac.cocina) pac.cocina = []; pac.cocina.unshift({ ...body, fecha: new Date().toISOString() }); }
+    return response(config, deepClone(pac || {}));
+  }
+  if (method === 'put' && path === '/nutricion/estado-operativo') {
+    demoState.nutricion.estadoOperativo = { ...demoState.nutricion.estadoOperativo, ...body, actualizadoEn: new Date().toISOString() };
+    return response(config, deepClone(demoState.nutricion.estadoOperativo));
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   return response(config, {});
 };

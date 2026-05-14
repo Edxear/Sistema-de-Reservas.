@@ -1,12 +1,14 @@
 const express = require('express');
 const { check } = require('express-validator');
 const validateRequest = require('../middleware/validateRequest');
+const authMiddleware = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const router = express.Router();
 const { getBookings, createBooking, updateBooking, deleteBooking, getBookingMetrics, getPatientSummaries } = require('../controllers/bookingController');
 
-router.get('/', getBookings);
-router.get('/metrics', getBookingMetrics);
-router.get('/patient-summaries', getPatientSummaries);
+router.get('/', authMiddleware, authorize('admin', 'superadmin', 'secretaria', 'medico', 'enfermero', 'paciente'), getBookings);
+router.get('/metrics', authMiddleware, authorize('admin', 'superadmin'), getBookingMetrics);
+router.get('/patient-summaries', authMiddleware, authorize('admin', 'superadmin', 'secretaria'), getPatientSummaries);
 router.post(
   '/',
   [
@@ -21,6 +23,8 @@ router.post(
   createBooking
 );
 router.put('/:id',
+  authMiddleware,
+  authorize('admin', 'superadmin', 'secretaria'),
   [
     check('id', 'ID inválido').isMongoId(),
     check('medico').optional().isMongoId(),
@@ -32,6 +36,6 @@ router.put('/:id',
   validateRequest,
   updateBooking
 );
-router.delete('/:id', deleteBooking);
+router.delete('/:id', authMiddleware, authorize('admin', 'superadmin', 'secretaria'), deleteBooking);
 
 module.exports = router;

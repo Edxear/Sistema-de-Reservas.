@@ -1,3 +1,5 @@
+import { SkeletonAreaPage } from '../components/SkeletonLoader';
+  const [loadingStep, setLoadingStep] = useState(false);
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ACTIONS, EVENTS, Joyride, STATUS } from 'react-joyride';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -86,6 +88,14 @@ const ADMIN_STEPS = [
     target: '[data-tour="organigrama-overview"]',
     title: '🏢 Organigrama',
     content: 'Visualización de estructura institucional y relaciones de áreas.',
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    route: '/modulos/nutricion-dietoterapia',
+    target: '[data-tour="nutricion-overview"]',
+    title: '🥗 Nutrición y Dietoterapia',
+    content: 'Gestión clínica de pacientes, dietas terapéuticas, alergias, pedidos a cocina y estado operativo del servicio.',
     placement: 'bottom',
     disableBeacon: true,
   },
@@ -276,29 +286,8 @@ export default function DemoTour() {
     }
   }, [demoMode, demoRole, navigate, pathname, resetNonce, steps]);
 
-  // Detect when Joyride dialog closes and navigate to the next step's route.
-  // This is a workaround for the broken Joyride callback that doesn't trigger on Next button.
-  // Using useLayoutEffect to detect DOM changes immediately.
-  React.useLayoutEffect(() => {
-    if (!demoMode || !run || stepIndex >= steps.length - 1) return;
-
-    const dialogOpen = !!document.querySelector('[role="alertdialog"]');
-    const wasOpen = lastDialogStateRef.current;
-
-    if (wasOpen && !dialogOpen) {
-      // Dialog just closed. Navigate to next step's route.
-      const nextIndex = stepIndex + 1;
-      const nextRoute = steps[nextIndex]?.route;
-      if (nextRoute) {
-        setStepIndex(nextIndex);
-        saveTourState(nextIndex, nextRoute);
-        trackTourStep(demoRole, steps[nextIndex], nextIndex, 'dialog-closed-auto');
-        navigate(nextRoute);
-      }
-    }
-
-    lastDialogStateRef.current = dialogOpen;
-  });
+  // Eliminado: useLayoutEffect que dependía del DOM para navegación del tour.
+  // Ahora toda la navegación se gestiona en handleCallback usando los eventos de Joyride.
 
   if (!demoMode) return null;
 
@@ -332,17 +321,25 @@ export default function DemoTour() {
     if (type === EVENTS.STEP_AFTER) {
       if (action === ACTIONS.NEXT) {
         const nextIndex = Math.min(index + 1, steps.length - 1);
-        setStepIndex(nextIndex);
-        saveTourState(nextIndex, steps[nextIndex]?.route);
-        trackTourStep(demoRole, steps[nextIndex], nextIndex, 'next');
-        goToStepRoute(nextIndex);
+        setLoadingStep(true);
+        setTimeout(() => {
+          setStepIndex(nextIndex);
+          saveTourState(nextIndex, steps[nextIndex]?.route);
+          trackTourStep(demoRole, steps[nextIndex], nextIndex, 'next');
+          goToStepRoute(nextIndex);
+          setLoadingStep(false);
+        }, 350);
       }
       if (action === ACTIONS.PREV) {
         const prevIndex = Math.max(index - 1, 0);
-        setStepIndex(prevIndex);
-        saveTourState(prevIndex, steps[prevIndex]?.route);
-        trackTourStep(demoRole, steps[prevIndex], prevIndex, 'prev');
-        goToStepRoute(prevIndex);
+        setLoadingStep(true);
+        setTimeout(() => {
+          setStepIndex(prevIndex);
+          saveTourState(prevIndex, steps[prevIndex]?.route);
+          trackTourStep(demoRole, steps[prevIndex], prevIndex, 'prev');
+          goToStepRoute(prevIndex);
+          setLoadingStep(false);
+        }, 350);
       }
     }
 
@@ -369,6 +366,10 @@ export default function DemoTour() {
       }, 350);
     }
   };
+
+  if (loadingStep) {
+    return <div style={{ padding: 48, textAlign: 'center' }}><SkeletonAreaPage /><div style={{marginTop: 16}}>Cargando paso del tour...</div></div>;
+  }
 
   return (
     <Joyride

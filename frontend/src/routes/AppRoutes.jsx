@@ -13,15 +13,15 @@ import Perfil from '../pages/app/Perfil';
 import MedicosList from '../pages/medicos/MedicosList';
 import PaginaMedico from '../pages/medicos/PaginaMedico';
 import PaginaPublicaMedico from '../pages/medicos/PaginaPublicaMedico';
-import GestionMedicos from '../pages/medicos/GestionMedicos';
-import GestionPacientes from '../pages/pacientes/GestionPacientes';
-import PacienteDetalle from '../pages/pacientes/PacienteDetalle';
-import HistoriaClinica from '../pages/clinico/HistoriaClinica';
-import Recetas from '../pages/clinico/Recetas';
-import OrdenesMedicas from '../pages/clinico/OrdenesMedicas';
-import Teleconsultas from '../pages/teleconsultas/Teleconsultas';
-import PizarraDigital from '../pages/clinico/PizarraDigital';
-import DemoLanding from '../pages/demo/DemoLanding';
+const GestionMedicos = React.lazy(() => import('../pages/medicos/GestionMedicos'));
+const GestionPacientes = React.lazy(() => import('../pages/pacientes/GestionPacientes'));
+const PacienteDetalle = React.lazy(() => import('../pages/pacientes/PacienteDetalle'));
+const HistoriaClinica = React.lazy(() => import('../pages/clinico/HistoriaClinica'));
+const Recetas = React.lazy(() => import('../pages/clinico/Recetas'));
+const OrdenesMedicas = React.lazy(() => import('../pages/clinico/OrdenesMedicas'));
+const Teleconsultas = React.lazy(() => import('../pages/teleconsultas/Teleconsultas'));
+const PizarraDigital = React.lazy(() => import('../pages/clinico/PizarraDigital'));
+const DemoLanding = React.lazy(() => import('../pages/demo/DemoLanding'));
 
 const Organigrama = React.lazy(() => import('../pages/organizacion/Organigrama'));
 const Soporte = React.lazy(() => import('../pages/soporte/Soporte'));
@@ -34,8 +34,33 @@ const OperationalDashboard = React.lazy(() => import('../pages/operaciones/Opera
 const StrategicModulesHub = React.lazy(() => import('../pages/modulos/StrategicModulesHub'));
 const StrategicModuleArea = React.lazy(() => import('../pages/modulos/StrategicModuleArea'));
 
+const PageLoadingFallback = () => (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '60vh',
+    padding: '24px 16px',
+    gap: 16,
+    color: '#6b7280',
+    fontSize: 15,
+  }}>
+    <div style={{
+      width: 40,
+      height: 40,
+      border: '3px solid #e5e7eb',
+      borderTop: '3px solid #3b82f6',
+      borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite',
+    }} />
+    <span>Cargando módulo...</span>
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
+
 const LazyRoute = ({ children, area = false }) => (
-  <Suspense fallback={area ? <SkeletonAreaPage /> : <div style={{ padding: 24 }}>Cargando modulo...</div>}>
+  <Suspense fallback={area ? <SkeletonAreaPage /> : <PageLoadingFallback />}>
     {children}
   </Suspense>
 );
@@ -47,7 +72,7 @@ const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const normalizedAllowedRoles = allowedRoles?.map((role) => normalizeRole(role)) || null;
 
   if (loading || (demoMode && !user)) {
-    return <div style={{ padding: 24 }}>Cargando sesion...</div>;
+    return <PageLoadingFallback />;
   }
 
   if (!isAuthenticated) {
@@ -101,14 +126,16 @@ export default function AppRoutes() {
   const isPatientDashboard = user?.rol === ROLE.PACIENTE;
 
   return (
-    <Routes>
       <Route
-        path="/"
-        element={<Navigate to={demoMode ? '/demo' : '/dashboard'} replace />}
-      />
-      <Route
-        path="/login"
+        path="/pizarra"
         element={(
+          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
+            <LazyRoute>
+              <PizarraDigital />
+            </LazyRoute>
+          </ProtectedRoute>
+        )}
+      />
           <PublicRoute>
             <LoginRegister />
           </PublicRoute>
@@ -306,7 +333,9 @@ export default function AppRoutes() {
         path="/ordenes-medicas"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <OrdenesMedicas />
+            <LazyRoute>
+              <OrdenesMedicas />
+            </LazyRoute>
           </ProtectedRoute>
         )}
       />
@@ -314,14 +343,20 @@ export default function AppRoutes() {
         path="/teleconsultas"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.PACIENTE, ROLE.ENFERMERO, ROLE.SECRETARIA]}>
-            <Teleconsultas />
+            <LazyRoute>
+              <Teleconsultas />
+            </LazyRoute>
           </ProtectedRoute>
         )}
       />
       <Route path="/medicos" element={<MedicosList />} />
       <Route path="/medicos/:id" element={<PaginaMedico />} />
       <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
-      <Route path="/demo" element={(isPublicDemoHost || isLocalDemoHost || isVercelHost) ? <DemoLanding /> : <Navigate to="/login" replace />} />
+      <Route path="/demo" element={(isPublicDemoHost || isLocalDemoHost || isVercelHost) ? (
+        <LazyRoute>
+          <DemoLanding />
+        </LazyRoute>
+      ) : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

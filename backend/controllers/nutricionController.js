@@ -1,4 +1,9 @@
-const nutricionDb = require('../services/nutricionJsonDbService');
+// Si NUTRICION_USE_PG=true (solo entornos locales con PostgreSQL configurado),
+// se usa el servicio PG. En producción/Vercel se usa el servicio JSON por defecto.
+const nutricionDb =
+  process.env.NUTRICION_USE_PG === 'true'
+    ? require('../services/nutricionDb')
+    : require('../services/nutricionJsonDbService');
 
 function buildActor(req) {
   return {

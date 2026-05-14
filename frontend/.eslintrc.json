@@ -22,6 +22,11 @@
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^React$" }],
     "react/jsx-uses-vars": "warn",
     "react/jsx-uses-react": "off",
-    "no-console": "off"
+    "no-console": "off",
+    "eqeqeq": ["error", "always"],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "prefer-const": "warn"
   }
 }

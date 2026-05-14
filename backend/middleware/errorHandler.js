@@ -26,6 +26,24 @@ module.exports = function errorHandler(err, req, res, next) {
     return res.status(409).json({ message: `Ya existe un registro con ese ${field}` });
   }
 
+  // Errores de PostgreSQL
+  if (err.code === '23505') {
+    // unique_violation
+    return res.status(409).json({ message: 'Ya existe un registro con ese valor único' });
+  }
+  if (err.code === '23503') {
+    // foreign_key_violation
+    return res.status(400).json({ message: 'Referencia a un recurso que no existe' });
+  }
+  if (err.code === '23502') {
+    // not_null_violation
+    return res.status(400).json({ message: `Campo obligatorio faltante: ${err.column || ''}` });
+  }
+  if (err.code === '22P02') {
+    // invalid_text_representation (UUID inválido, etc.)
+    return res.status(400).json({ message: 'Formato de dato inválido' });
+  }
+
   // Errores JWT
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({ message: 'Token inválido' });

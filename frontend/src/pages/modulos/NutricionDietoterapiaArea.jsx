@@ -15,6 +15,13 @@ import {
 } from '../../services/nutricionService';
 
 const TAB_KEYS = ['clinico', 'dietas', 'alergias', 'cocina', 'estado-operativo'];
+const TAB_LABELS = {
+  clinico: 'Clinico',
+  dietas: 'Dietas',
+  alergias: 'Alergias',
+  cocina: 'Cocina',
+  'estado-operativo': 'Estado operativo',
+};
 
 const INITIAL_PATIENT_FORM = {
   nombre: '',
@@ -229,10 +236,10 @@ export default function NutricionDietoterapiaArea() {
 
   return (
     <>
-      <section className={styles.card}>
-        <h2>Base Nutricion local (JSON)</h2>
+      <section className={styles.card} data-tour="nutricion-overview">
+        <h2>Gestion integral de Nutricion Clinica</h2>
         <p className={styles.note}>
-          Secciones activas: Clinico, Dietas, Alergias, Cocina y Estado operativo estandar.
+          Secciones activas: Clinico, Dietas, Alergias, Cocina y Estado operativo estandar del servicio.
         </p>
         <div className={styles.grid3}>
           {metricCards.map((item) => (
@@ -253,7 +260,9 @@ export default function NutricionDietoterapiaArea() {
           <input className={styles.select} placeholder="Medico responsable" value={patientForm.medicoResponsable} onChange={(e) => setPatientForm((prev) => ({ ...prev, medicoResponsable: e.target.value }))} />
           <input className={styles.select} placeholder="Enfermero responsable" value={patientForm.enfermeroResponsable} onChange={(e) => setPatientForm((prev) => ({ ...prev, enfermeroResponsable: e.target.value }))} />
           <input className={styles.select} placeholder="Resumen clinico inicial" value={patientForm.resumenClinico} onChange={(e) => setPatientForm((prev) => ({ ...prev, resumenClinico: e.target.value }))} />
-          <button type="submit" className={styles.btnPrimary}>Agregar paciente</button>
+          <div className={styles.actionsRow} style={{ gridColumn: '1 / -1', marginTop: '0.25rem' }}>
+            <button type="submit" className={styles.btnPrimary}>Agregar paciente</button>
+          </div>
         </form>
       </section>
 
@@ -292,15 +301,15 @@ export default function NutricionDietoterapiaArea() {
           </div>
         )}
 
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className={styles.tabBar} style={{ marginTop: '1.25rem' }}>
           {TAB_KEYS.map((tabKey) => (
             <button
               key={tabKey}
               type="button"
               onClick={() => setActiveTab(tabKey)}
-              className={activeTab === tabKey ? styles.btnPrimary : styles.btnSecondary}
+              className={activeTab === tabKey ? styles.tabActive : styles.tab}
             >
-              {tabKey}
+              {TAB_LABELS[tabKey]}
             </button>
           ))}
         </div>
@@ -308,7 +317,7 @@ export default function NutricionDietoterapiaArea() {
         {!selectedPaciente && <p className={styles.note}>Selecciona un paciente para gestionar Clinico, Dietas, Alergias y Cocina.</p>}
 
         {selectedPaciente && activeTab === 'clinico' && (
-          <div className={styles.grid2} style={{ marginTop: '1rem' }}>
+          <div className={styles.grid2} style={{ marginTop: '1.25rem' }}>
             <article className={styles.card}>
               <h2>Datos clinicos / historial</h2>
               <form className={styles.listWrap} onSubmit={onSaveHistoriaClinica}>
@@ -356,7 +365,7 @@ export default function NutricionDietoterapiaArea() {
         )}
 
         {selectedPaciente && activeTab === 'dietas' && (
-          <div className={styles.grid2} style={{ marginTop: '1rem' }}>
+          <div className={styles.grid2} style={{ marginTop: '1.25rem' }}>
             <article className={styles.card}>
               <h2>Dietas del paciente</h2>
               <div className={styles.listWrap}>
@@ -387,7 +396,7 @@ export default function NutricionDietoterapiaArea() {
         )}
 
         {selectedPaciente && activeTab === 'alergias' && (
-          <div className={styles.grid2} style={{ marginTop: '1rem' }}>
+          <div className={styles.grid2} style={{ marginTop: '1.25rem' }}>
             <article className={styles.card}>
               <h2>Alergias del paciente</h2>
               <div className={styles.listWrap}>
@@ -417,7 +426,7 @@ export default function NutricionDietoterapiaArea() {
         )}
 
         {selectedPaciente && activeTab === 'cocina' && (
-          <div className={styles.grid2} style={{ marginTop: '1rem' }}>
+          <div className={styles.grid2} style={{ marginTop: '1.25rem' }}>
             <article className={styles.card}>
               <h2>Pedidos de cocina</h2>
               <div className={styles.listWrap}>
@@ -453,7 +462,7 @@ export default function NutricionDietoterapiaArea() {
         )}
 
         {activeTab === 'estado-operativo' && (
-          <article className={styles.card} style={{ marginTop: '1rem' }}>
+          <article className={styles.card} style={{ marginTop: '1.25rem' }}>
             <h2>Estado operativo estandar</h2>
             <form className={styles.listWrap} onSubmit={onUpdateEstadoOperativo}>
               <select className={styles.select} value={estadoForm.modulo} onChange={(e) => setEstadoForm((prev) => ({ ...prev, modulo: e.target.value }))}>
