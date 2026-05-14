@@ -13,15 +13,15 @@ import Perfil from '../pages/app/Perfil';
 import MedicosList from '../pages/medicos/MedicosList';
 import PaginaMedico from '../pages/medicos/PaginaMedico';
 import PaginaPublicaMedico from '../pages/medicos/PaginaPublicaMedico';
-const GestionMedicos = React.lazy(() => import('../pages/medicos/GestionMedicos'));
-const GestionPacientes = React.lazy(() => import('../pages/pacientes/GestionPacientes'));
-const PacienteDetalle = React.lazy(() => import('../pages/pacientes/PacienteDetalle'));
-const HistoriaClinica = React.lazy(() => import('../pages/clinico/HistoriaClinica'));
-const Recetas = React.lazy(() => import('../pages/clinico/Recetas'));
-const OrdenesMedicas = React.lazy(() => import('../pages/clinico/OrdenesMedicas'));
-const Teleconsultas = React.lazy(() => import('../pages/teleconsultas/Teleconsultas'));
-const PizarraDigital = React.lazy(() => import('../pages/clinico/PizarraDigital'));
-const DemoLanding = React.lazy(() => import('../pages/demo/DemoLanding'));
+import GestionMedicos from '../pages/medicos/GestionMedicos';
+import GestionPacientes from '../pages/pacientes/GestionPacientes';
+import PacienteDetalle from '../pages/pacientes/PacienteDetalle';
+import HistoriaClinica from '../pages/clinico/HistoriaClinica';
+import Recetas from '../pages/clinico/Recetas';
+import OrdenesMedicas from '../pages/clinico/OrdenesMedicas';
+import Teleconsultas from '../pages/teleconsultas/Teleconsultas';
+import PizarraDigital from '../pages/clinico/PizarraDigital';
+import DemoLanding from '../pages/demo/DemoLanding';
 
 const Organigrama = React.lazy(() => import('../pages/organizacion/Organigrama'));
 const Soporte = React.lazy(() => import('../pages/soporte/Soporte'));
@@ -126,16 +126,14 @@ export default function AppRoutes() {
   const isPatientDashboard = user?.rol === ROLE.PACIENTE;
 
   return (
+    <Routes>
       <Route
-        path="/pizarra"
-        element={(
-          <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <LazyRoute>
-              <PizarraDigital />
-            </LazyRoute>
-          </ProtectedRoute>
-        )}
+        path="/"
+        element={<Navigate to={demoMode ? '/demo' : '/dashboard'} replace />}
       />
+      <Route
+        path="/login"
+        element={(
           <PublicRoute>
             <LoginRegister />
           </PublicRoute>
@@ -333,9 +331,7 @@ export default function AppRoutes() {
         path="/ordenes-medicas"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ENFERMERO, ROLE.ADMIN, ROLE.SUPERADMIN]}>
-            <LazyRoute>
-              <OrdenesMedicas />
-            </LazyRoute>
+            <OrdenesMedicas />
           </ProtectedRoute>
         )}
       />
@@ -343,20 +339,14 @@ export default function AppRoutes() {
         path="/teleconsultas"
         element={(
           <ProtectedRoute allowedRoles={[ROLE.MEDICO, ROLE.ADMIN, ROLE.SUPERADMIN, ROLE.PACIENTE, ROLE.ENFERMERO, ROLE.SECRETARIA]}>
-            <LazyRoute>
-              <Teleconsultas />
-            </LazyRoute>
+            <Teleconsultas />
           </ProtectedRoute>
         )}
       />
       <Route path="/medicos" element={<MedicosList />} />
       <Route path="/medicos/:id" element={<PaginaMedico />} />
       <Route path="/medico/:id" element={<PaginaPublicaMedico />} />
-      <Route path="/demo" element={(isPublicDemoHost || isLocalDemoHost || isVercelHost) ? (
-        <LazyRoute>
-          <DemoLanding />
-        </LazyRoute>
-      ) : <Navigate to="/login" replace />} />
+      <Route path="/demo" element={(isPublicDemoHost || isLocalDemoHost || isVercelHost) ? <DemoLanding /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

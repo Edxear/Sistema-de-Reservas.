@@ -193,7 +193,6 @@ export default function DemoTour() {
   const [resetNonce, setResetNonce] = useState(() => sessionStorage.getItem(RESET_KEY) || '');
   const retryTimerRef = useRef(null);
   const lastHandledResetNonceRef = useRef('');
-  const lastDialogStateRef = useRef(false);
   const steps = useMemo(
     () => (demoRole === 'paciente' ? PATIENT_STEPS : ADMIN_STEPS),
     [demoRole],
